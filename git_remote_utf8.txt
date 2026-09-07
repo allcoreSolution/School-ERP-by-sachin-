@@ -1,0 +1,2 @@
+origin	https://github.com/allcoreSolution/School-ERP-by-sachin-.git (fetch)
+origin	https://github.com/allcoreSolution/School-ERP-by-sachin-.git (push)
