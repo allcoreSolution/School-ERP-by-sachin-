@@ -1,0 +1,110 @@
+{
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "stop": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "afterAgentResponse": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "afterAgentThought": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "subagentStart": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "subagentStop": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "afterMCPExecution": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "preCompact": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ],
+    "afterTabFileEdit": [
+      {
+        "type": "command",
+        "command": "node \".cursor/hooks/cursor-ai-activity-timer.cjs\"",
+        "cursor-ai-activity-timerManaged": true
+      }
+    ]
+  },
+  "version": 1
+}
