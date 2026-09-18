@@ -117,7 +117,7 @@ export default function Plans() {
           <div className="relative w-full">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Search plans..." value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] focus:outline-none focus:ring-1 focus:ring-[#0891b2] w-full" />
+              className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:ring-1 focus:ring-[#0891b2] w-full" />
           </div>
           <div className="flex gap-2">
              <select className="border border-gray-200 rounded-none px-4 py-2 text-[13px] text-gray-600 focus:outline-none focus:ring-1 focus:ring-[#0891b2] min-w-[120px] bg-white">
@@ -218,12 +218,12 @@ export default function Plans() {
               <div className="grid grid-cols-2 gap-5 mb-5 bg-white p-5 border border-slate-200">
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Plan Name</label>
-                  <input required value={formData.name || editPlan?.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. Starter Plan" />
+                  <input required value={formData.name || editPlan?.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. Starter Plan" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Type</label>
-                  <select value={formData.type || editPlan?.type || 'Paid'} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select value={formData.type || editPlan?.type || 'Paid'} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                     <option>Paid</option>
                     <option>Trial - 14 days</option>
                     <option>Trial - 7 days</option>
@@ -232,7 +232,7 @@ export default function Plans() {
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Visibility</label>
-                  <select value={formData.visibility || editPlan?.visibility || 'Public'} onChange={e => setFormData({...formData, visibility: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select value={formData.visibility || editPlan?.visibility || 'Public'} onChange={e => setFormData({...formData, visibility: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                     <option>Public</option>
                     <option>Hidden</option>
                   </select>
@@ -242,7 +242,7 @@ export default function Plans() {
               <div className="grid grid-cols-2 gap-5 mb-5 bg-white p-5 border border-slate-200">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Capacity</label>
-                  <select value={formData.capacity || editPlan?.capacity || 'Billed per student'} onChange={e => setFormData({...formData, capacity: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select value={formData.capacity || editPlan?.capacity || 'Billed per student'} onChange={e => setFormData({...formData, capacity: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                     <option>Billed per student</option>
                     <option>Up to 100 students</option>
                     <option>Up to 400 students</option>
@@ -251,16 +251,16 @@ export default function Plans() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Storage Quota</label>
-                  <input required value={formData.storage || editPlan?.storage || '5 GB'} onChange={e => setFormData({...formData, storage: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" />
+                  <input required value={formData.storage || editPlan?.storage || '5 GB'} onChange={e => setFormData({...formData, storage: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Monthly Price (₹)</label>
-                  <input required type="number" value={formData.monthly || editPlan?.monthly?.replace(',','') || ''} onChange={e => setFormData({...formData, monthly: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
+                  <input required type="number" value={formData.monthly || editPlan?.monthly?.replace(',','') || ''} onChange={e => setFormData({...formData, monthly: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Yearly Price (₹)</label>
-                  <input required type="number" value={formData.yearly || editPlan?.yearly?.replace(',','') || ''} onChange={e => setFormData({...formData, yearly: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
+                  <input required type="number" value={formData.yearly || editPlan?.yearly?.replace(',','') || ''} onChange={e => setFormData({...formData, yearly: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
                 </div>
               </div>
             </form>

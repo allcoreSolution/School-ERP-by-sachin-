@@ -4,26 +4,26 @@ import { Landmark, Users, FileText, Banknote, ReceiptText, Activity } from 'luci
 import { tenantService } from '../../api/tenantService';
 
 const KpiCard = ({ title, value, isLive, icon: Icon, glowColor, stroke, iconBg, iconColor, spark }) => (
-  <div className="bg-white rounded-xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] border border-slate-200/60 relative overflow-hidden group hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-400 ease-out aspect-square flex flex-col justify-between">
+  <div className="bg-white rounded-xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] border border-slate-200/60 relative overflow-hidden group hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-400 ease-out h-[110px] flex flex-col justify-between">
     
     {/* Subtle Glow Effect on Hover */}
     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out z-0" 
          style={{ background: `radial-gradient(circle at top right, ${glowColor}15, transparent 70%)` }}></div>
     
-    <div className="p-5 relative z-10 flex flex-col h-full">
+    <div className="p-4 relative z-10 flex flex-col h-full">
       <div className="flex justify-between items-start mb-auto">
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[13px] font-bold text-slate-500 tracking-wide uppercase">{title}</div>
-          <div className="text-[32px] font-black text-slate-800 leading-none tracking-tight flex items-baseline gap-2 mt-1">
+        <div className="flex flex-col gap-1">
+          <div className="text-[11px] font-bold text-slate-500 tracking-wide uppercase">{title}</div>
+          <div className="text-[22px] font-black text-slate-800 leading-none tracking-tight flex items-baseline gap-2 mt-0.5">
             {value}
           </div>
         </div>
         
         <div className="relative flex-shrink-0">
-          <div className="absolute inset-0 rounded-xl blur-md opacity-40 transition-transform group-hover:scale-110" style={{ background: iconBg }}></div>
-          <div className="w-[42px] h-[42px] rounded-xl flex items-center justify-center relative shadow-sm border border-white/20 transition-transform group-hover:scale-110 duration-300" 
+          <div className="absolute inset-0 rounded-lg blur-md opacity-40 transition-transform group-hover:scale-110" style={{ background: iconBg }}></div>
+          <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center relative shadow-sm border border-white/20 transition-transform group-hover:scale-110 duration-300" 
                style={{ background: iconBg }}>
-            <Icon size={20} style={{ color: iconColor }} strokeWidth={2.5} />
+            <Icon size={16} style={{ color: iconColor }} strokeWidth={2.5} />
           </div>
         </div>
       </div>

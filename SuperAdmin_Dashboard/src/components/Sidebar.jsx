@@ -190,7 +190,7 @@ const NavItem = ({ item, onClose }) => {
 
 const Sidebar = ({ open, onClose }) => {
   const [search, setSearch] = useState('');
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -305,13 +305,13 @@ const Sidebar = ({ open, onClose }) => {
         <div className="border border-white/5 rounded-none p-3 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors"
           style={{ background: 'rgba(255,255,255,0.03)' }}
           onClick={() => { window.location.href = '/profile'; onClose(); }}>
-          <div className="w-8 h-8 rounded-none flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+          <div className="w-8 h-8 rounded-none flex items-center justify-center text-white text-xs font-bold flex-shrink-0 uppercase"
             style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
-            SA
+            {user?.name ? user.name.slice(0, 2) : 'SA'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white text-xs font-semibold truncate">Super Admin</p>
-            <p className="text-gray-600 text-[10px] truncate">superadmin@erp.com</p>
+            <p className="text-white text-xs font-semibold truncate">{user?.name || 'Super Admin'}</p>
+            <p className="text-gray-600 text-[10px] truncate">{user?.email || 'superadmin@erp.com'}</p>
           </div>
           <div className="w-2 h-2 rounded-none bg-green-400 flex-shrink-0" style={{ boxShadow: '0 0 6px rgba(74,222,128,0.6)' }} />
         </div>

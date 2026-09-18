@@ -152,11 +152,11 @@ export default function Schools() {
     <div>
       <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>
       {options ? (
-        <select name={name} value={value} onChange={onChange} className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <select name={name} value={value} onChange={onChange} className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300">
           {options.map(o => <option key={o}>{o}</option>)}
         </select>
       ) : (
-        <input type={type} name={name} value={value} onChange={onChange} className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+        <input type={type} name={name} value={value} onChange={onChange} className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300" />
       )}
     </div>
   );
@@ -310,7 +310,7 @@ export default function Schools() {
                 <div key={f.name}>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
                   <input type={f.type || 'text'} value={editSchool[f.name] || ''} onChange={e => setEditSchool({ ...editSchool, [f.name]: e.target.value })}
-                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
               ))}
               {[
@@ -320,7 +320,7 @@ export default function Schools() {
                 <div key={f.name}>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
                   <select value={editSchool[f.name]} onChange={e => setEditSchool({ ...editSchool, [f.name]: e.target.value })}
-                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300">
                     {f.options.map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
@@ -328,7 +328,7 @@ export default function Schools() {
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Address</label>
                 <textarea value={editSchool.address || ''} onChange={e => setEditSchool({ ...editSchool, address: e.target.value })} rows={2}
-                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
+                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
               </div>
             </div>
             <div className="p-5 pt-0 flex gap-3">
@@ -359,7 +359,7 @@ export default function Schools() {
                 <div key={f.name}>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
                   <input type={f.type || 'text'} value={form[f.name] || ''} onChange={e => setForm({ ...form, [f.name]: e.target.value })}
-                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300" />
                 </div>
               ))}
               {[
@@ -369,7 +369,7 @@ export default function Schools() {
                 <div key={f.name}>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
                   <select value={form[f.name]} onChange={e => setForm({ ...form, [f.name]: e.target.value })}
-                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300">
                     {f.options.map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
@@ -377,7 +377,7 @@ export default function Schools() {
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Address</label>
                 <textarea value={form.address || ''} onChange={e => setForm({ ...form, address: e.target.value })} rows={2}
-                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
+                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
               </div>
             </div>
             <div className="p-5 pt-0 flex gap-3">

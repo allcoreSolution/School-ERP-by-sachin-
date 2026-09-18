@@ -1,9 +1,54 @@
-import React from 'react';
-import { Key, Lock, User, Mail, Shield, ShieldCheck, KeyRound } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Key, Lock, User, Mail, Shield, ShieldCheck, KeyRound, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { useAuth } from '../context/AuthContext';
 
 export default function MyProfile() {
+  const { user, updateUser } = useAuth();
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+  const [profile, setProfile] = useState({ name: user?.name || 'Super Admin', email: user?.email || 'superadmin@example.com' });
+
+  // Make sure profile state updates if context user changes
+  useEffect(() => {
+    if (user) {
+      setProfile({ name: user.name || 'Super Admin', email: user.email || 'superadmin@example.com' });
+    }
+  }, [user]);
+
+  const handlePasswordUpdate = () => {
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
+      return Swal.fire('Error', 'Please fill all password fields', 'error');
+    }
+    if (passwords.new !== passwords.confirm) {
+      return Swal.fire('Error', 'New passwords do not match', 'error');
+    }
+    // Simulate successful password update
+    Swal.fire({
+      icon: 'success',
+      title: 'Password Updated!',
+      text: 'Your password has been changed successfully.',
+      confirmButtonColor: '#f97316'
+    });
+    setPasswords({ current: '', new: '', confirm: '' });
+  };
+
+  const handleProfileUpdate = () => {
+    if (!profile.name || !profile.email) {
+      return Swal.fire('Error', 'Please fill name and email', 'error');
+    }
+    updateUser({ name: profile.name, email: profile.email });
+    
+    // Simulate successful profile update
+    Swal.fire({
+      icon: 'success',
+      title: 'Profile Updated!',
+      text: 'Your account information has been saved globally.',
+      confirmButtonColor: '#f97316'
+    });
+  };
+
   return (
-    <div className="max-w-[1200px]">
+    <div className="max-w-[1150px] w-full mx-auto p-6 lg:p-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-[22px] font-bold text-gray-800 tracking-tight">My Profile</h1>
@@ -25,6 +70,7 @@ export default function MyProfile() {
                   <Lock className="w-4 h-4" />
                 </div>
                 <input type="password" placeholder="Enter your current password" 
+                  value={passwords.current} onChange={(e) => setPasswords({...passwords, current: e.target.value})}
                   className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-700 placeholder-gray-400 font-medium" />
               </div>
             </div>
@@ -36,6 +82,7 @@ export default function MyProfile() {
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <input type="password" placeholder="Enter a new, strong password" 
+                  value={passwords.new} onChange={(e) => setPasswords({...passwords, new: e.target.value})}
                   className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-700 placeholder-gray-400 font-medium" />
               </div>
             </div>
@@ -47,14 +94,15 @@ export default function MyProfile() {
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <input type="password" placeholder="Confirm the new password" 
+                  value={passwords.confirm} onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
                   className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-700 placeholder-gray-400 font-medium" />
               </div>
             </div>
           </div>
 
           <div className="mt-8 flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-gray-500 border border-gray-200 rounded-none shrink-0 bg-white shadow-sm cursor-not-allowed">
-              <Lock className="w-3.5 h-3.5" /> Update disabled in demo
+            <button onClick={handlePasswordUpdate} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold text-white border border-transparent rounded-none shrink-0 bg-[#f97316] hover:bg-orange-600 transition-colors shadow-sm cursor-pointer">
+              <Save className="w-4 h-4" /> Update Password
             </button>
           </div>
         </div>
@@ -72,8 +120,8 @@ export default function MyProfile() {
                 <div className="flex items-center justify-center bg-gray-100/70 border-r border-gray-200 px-3 text-gray-600 shrink-0">
                   <User className="w-4 h-4" />
                 </div>
-                <input type="text" defaultValue="Super Admin" 
-                  className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-500 font-medium" />
+                <input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} 
+                  className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-900 font-medium" />
               </div>
             </div>
 
@@ -83,8 +131,8 @@ export default function MyProfile() {
                 <div className="flex items-center justify-center bg-gray-100/70 border-r border-gray-200 px-3 text-gray-600 shrink-0">
                   <Mail className="w-4 h-4" />
                 </div>
-                <input type="email" defaultValue="superadmin@example.com" 
-                  className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-500 font-medium" />
+                <input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} 
+                  className="w-full px-3 py-2 text-[13px] focus:outline-none text-gray-900 font-medium" />
               </div>
             </div>
 
@@ -103,8 +151,8 @@ export default function MyProfile() {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-gray-500 border border-gray-200 rounded-none shrink-0 bg-white shadow-sm cursor-not-allowed">
-              <Lock className="w-3.5 h-3.5" /> Update disabled in demo
+            <button onClick={handleProfileUpdate} className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-bold text-white border border-transparent rounded-none shrink-0 bg-[#f97316] hover:bg-orange-600 transition-colors shadow-sm cursor-pointer">
+              <Save className="w-4 h-4" /> Save Changes
             </button>
           </div>
         </div>
