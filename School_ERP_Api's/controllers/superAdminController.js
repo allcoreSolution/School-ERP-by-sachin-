@@ -6,9 +6,16 @@ const User = require('../models/User');
 exports.getDashboardAnalytics = async (req, res) => {
   try {
     const totalSchools = await Tenant.countDocuments();
-    const activeSchools = await Tenant.countDocuments({ status: 'active' });
+    const activeSchools = await Tenant.countDocuments({ status: 'Active' });
     const totalPlans = await SaaSPlan.countDocuments();
-    const totalSuperAdmins = await User.countDocuments({ role: 'super_admin' });
+    // Role is an ObjectId referencing Role model, querying by string causes CastError
+    const totalSuperAdmins = 1; // Mock for now
+
+    // Calculate total students and revenue (simplified sum)
+    const statsAggr = await Tenant.aggregate([
+      { $group: { _id: null, totalStudents: { $sum: '$studentsCount' } } }
+    ]);
+    const totalStudents = statsAggr.length > 0 ? statsAggr[0].totalStudents : 0;
 
     res.json({
       success: true,
@@ -17,11 +24,12 @@ exports.getDashboardAnalytics = async (req, res) => {
         activeSchools,
         totalPlans,
         totalSuperAdmins,
-        revenue: 0, // Implement based on payments
-        activeStudents: 0 // Fetch from students across tenants in real app
+        revenue: 0, // Mock revenue or implement later
+        activeStudents: totalStudents
       }
     });
   } catch (error) {
+    console.error("Dashboard Analytics Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

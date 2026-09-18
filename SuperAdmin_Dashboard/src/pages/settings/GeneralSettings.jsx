@@ -168,6 +168,23 @@ function PaymentsPanel() {
   const [taxRate, setTaxRate] = useState('18');
   const [autoInvoice, setAutoInvoice] = useState(true);
   const [lateFee, setLateFee] = useState(false);
+
+  React.useEffect(() => {
+    settingsService.getSetting('payments').then(res => {
+      if(res?.data) {
+        setCurrency(res.data.currency || 'Indian Rupee (₹)');
+        setMode(res.data.mode || 'Live');
+        setTaxLabel(res.data.taxLabel || 'GST');
+        setTaxRate(res.data.taxRate || '18');
+        setAutoInvoice(res.data.autoInvoice !== false);
+        setLateFee(res.data.lateFee === true);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = () => {
+    return settingsService.saveSetting('payments', { currency, mode, taxLabel, taxRate, autoInvoice, lateFee });
+  };
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-7">
@@ -208,7 +225,7 @@ function PaymentsPanel() {
           </div>
         </div>
       </div>
-      <SaveBar label="Save Payments" />
+      <SaveBar onSave={handleSave} label="Save Payments" />
     </div>
   );
 }
@@ -361,6 +378,22 @@ function RegistrationPanel() {
   const [twoFA, setTwoFA] = useState(false);
   const [captcha, setCaptcha] = useState(true);
   const [maxAttempts, setMaxAttempts] = useState('5');
+
+  React.useEffect(() => {
+    settingsService.getSetting('security').then(res => {
+      if(res?.data) {
+        setAllowSelfReg(res.data.allowSelfReg !== false);
+        setEmailVerify(res.data.emailVerify !== false);
+        setTwoFA(res.data.twoFA === true);
+        setCaptcha(res.data.captcha !== false);
+        setMaxAttempts(res.data.maxAttempts || '5');
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = () => {
+    return settingsService.saveSetting('security', { allowSelfReg, emailVerify, twoFA, captcha, maxAttempts });
+  };
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-7">
@@ -385,7 +418,7 @@ function RegistrationPanel() {
           </div>
         </div>
       </div>
-      <SaveBar label="Save Security Settings" />
+      <SaveBar onSave={handleSave} label="Save Security Settings" />
     </div>
   );
 }
@@ -396,6 +429,21 @@ function WhatsAppPanel() {
   const [phone, setPhone] = useState('+91');
   const [provider, setProvider] = useState('Meta Cloud API');
   const [enabled, setEnabled] = useState(true);
+
+  React.useEffect(() => {
+    settingsService.getSetting('whatsapp').then(res => {
+      if(res?.data) {
+        setApiKey(res.data.apiKey || '');
+        setPhone(res.data.phone || '+91');
+        setProvider(res.data.provider || 'Meta Cloud API');
+        setEnabled(res.data.enabled !== false);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = () => {
+    return settingsService.saveSetting('whatsapp', { apiKey, phone, provider, enabled });
+  };
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-7">
@@ -421,7 +469,7 @@ function WhatsAppPanel() {
               className="w-full border border-gray-300 rounded-none-none px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-blue-500" /></div>
         </div>
       </div>
-      <SaveBar label="Save WhatsApp Settings" />
+      <SaveBar onSave={handleSave} label="Save WhatsApp Settings" />
     </div>
   );
 }

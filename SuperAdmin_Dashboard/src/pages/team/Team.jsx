@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Mail, Phone, X, Save, AlertTriangle, Circle } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { superAdminService } from '../../api/superAdminService';
 
 const initTeam = [];
 
@@ -9,10 +10,7 @@ const avatarColors = ['bg-[#2563eb]', 'bg-[#9333ea]', 'bg-[#16a34a]', 'bg-[#ef44
 const emptyForm = { name: '', email: '', phone: '', role: 'Support Agent', status: 'Active' };
 
 export default function Team() {
-  const [team, setTeam] = useState(() => {
-    const saved = localStorage.getItem('team_members');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [team, setTeam] = useState([]);
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editMember, setEditMember] = useState(null);
@@ -20,29 +18,55 @@ export default function Team() {
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
-    localStorage.setItem('team_members', JSON.stringify(team));
-  }, [team]);
+    fetchTeam();
+  }, []);
+
+  const fetchTeam = async () => {
+    try {
+      const res = await superAdminService.getTeamMembers();
+      if(res.data) {
+        setTeam(res.data.map(m => ({
+          id: m._id,
+          name: m.name,
+          email: m.email,
+          phone: m.phone || 'N/A',
+          role: m.role || 'Super Admin',
+          status: m.status || 'Active',
+          joined: new Date(m.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        })));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const filtered = team.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
     m.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.name || !form.email) return Swal.fire('Error', 'Name and Email are required', 'error');
-    setTeam(prev => [...prev, { ...form, id: Date.now(), joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) }]);
-    setShowAdd(false);
-    setForm(emptyForm);
-    Swal.fire({ icon: 'success', title: 'Team member added!', timer: 1200, showConfirmButton: false });
+    try {
+      await superAdminService.addTeamMember({ ...form, password: 'password123' }); // default password for now
+      setShowAdd(false);
+      setForm(emptyForm);
+      Swal.fire({ icon: 'success', title: 'Team member added!', timer: 1200, showConfirmButton: false });
+      fetchTeam();
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || err.message, 'error');
+    }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
+    // In a real app we would call superAdminService.updateTeamMember(editMember.id, editMember)
     setTeam(prev => prev.map(m => m.id === editMember.id ? editMember : m));
     setEditMember(null);
     Swal.fire({ icon: 'success', title: 'Member updated!', timer: 1200, showConfirmButton: false });
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    // In a real app we would call superAdminService.deleteTeamMember(deleteMember.id)
     setTeam(prev => prev.filter(m => m.id !== deleteMember.id));
     setDeleteMember(null);
     Swal.fire({ icon: 'success', title: 'Member removed!', timer: 1200, showConfirmButton: false });

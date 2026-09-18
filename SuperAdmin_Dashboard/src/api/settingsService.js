@@ -1,23 +1,21 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api/settings';
+import axiosInstance from './axios';
 
 export const settingsService = {
   // Get all settings
   getAllSettings: async () => {
-    const response = await axios.get(API_BASE_URL);
+    const response = await axiosInstance.get(`/settings`);
     return response.data;
   },
 
   // Get specific setting
   getSetting: async (key) => {
-    const response = await axios.get(`${API_BASE_URL}/${key}`);
+    const response = await axiosInstance.get(`/settings/${key}`);
     return response.data;
   },
 
   // Save/Update specific setting
   saveSetting: async (key, data) => {
-    const response = await axios.put(`${API_BASE_URL}/${key}`, data);
+    const response = await axiosInstance.put(`/settings/${key}`, data);
     return response.data;
   },
 
@@ -25,7 +23,7 @@ export const settingsService = {
   uploadFile: async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
+    const response = await axiosInstance.post(`/settings/upload`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
@@ -33,7 +31,7 @@ export const settingsService = {
 
   // Test SMTP Connection
   testSmtp: async (credentials) => {
-    const response = await axios.post(`${API_BASE_URL}/test-smtp`, credentials);
+    const response = await axiosInstance.post(`/settings/test-smtp`, credentials);
     return response.data;
   }
 };

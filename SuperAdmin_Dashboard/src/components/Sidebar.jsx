@@ -259,7 +259,9 @@ const Sidebar = ({ open, onClose }) => {
         <div className="relative">
           <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-600" />
           <input
-            type="text"
+            type="search"
+            name="sidebar_search_menu"
+            autoComplete="off"
             placeholder="Search menu..."
             value={search}
             onChange={e => setSearch(e.target.value)}
