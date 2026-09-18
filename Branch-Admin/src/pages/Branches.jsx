@@ -3,6 +3,15 @@ import { Search, Mail, Info, ChevronDown } from 'lucide-react';
 
 const Branches = () => {
   const [activeTab, setActiveTab] = useState('All');
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  const toggleDropdown = (index) => {
+    if (openDropdown === index) {
+      setOpenDropdown(null);
+    } else {
+      setOpenDropdown(index);
+    }
+  };
 
   const branchesData = [
     { id: '#172', name: 'SUDHAKAR', email: 'cloudwaveindia@gmail.com', plan: 'Trial Plan', rows: '4,831', reg: '08 Jul, 2026', sub: '19 Sep, 2030', status: 'Active', highlight: true },
@@ -139,10 +148,22 @@ const Branches = () => {
                 <td className="border border-gray-200 py-3 px-2.5 text-gray-500 font-medium whitespace-nowrap">{branch.reg}</td>
                 <td className="border border-gray-200 py-3 px-2.5 text-gray-500 font-medium whitespace-nowrap">{branch.sub}</td>
                 <td className="border border-gray-200 py-3 px-2.5 whitespace-nowrap">
-                  <div className="flex justify-center">
-                    <button className="flex items-center gap-1.5 bg-[#17a2b8] hover:bg-[#138496] text-white px-3 py-1.5 rounded-[3px] font-medium transition-colors text-[12.5px] shadow-sm">
+                  <div className="flex justify-center relative">
+                    <button 
+                      onClick={() => toggleDropdown(i)}
+                      className="flex items-center gap-1.5 bg-[#17a2b8] hover:bg-[#138496] text-white px-3 py-1.5 rounded-[3px] font-medium transition-colors text-[12.5px] shadow-sm"
+                    >
                       Manage <ChevronDown className="w-3 h-3 border-l border-white/20 pl-1 ml-1" />
                     </button>
+                    {openDropdown === i && (
+                      <div className="absolute right-0 md:left-auto md:right-0 top-full mt-1 w-48 bg-white border border-gray-100 rounded-[3px] shadow-xl py-1 z-50 text-left">
+                        <a href="#" className="block px-4 py-2 text-[12.5px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#17a2b8]">✏️ Edit Details</a>
+                        <a href="http://localhost:5176" target="_blank" className="block px-4 py-2 text-[12.5px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#17a2b8]">🔑 Login to Branch Panel</a>
+                        <a href="#" className="block px-4 py-2 text-[12.5px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#17a2b8]">💳 Upgrade Plan</a>
+                        <div className="border-t border-gray-100 my-1"></div>
+                        <a href="#" className="block px-4 py-2 text-[12.5px] font-medium text-red-600 hover:bg-red-50">⏸️ Suspend Branch</a>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

@@ -1,24 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, CheckCircle, X, Save, AlertTriangle, ChevronDown, Wand2, EyeOff, Globe } from 'lucide-react';
+import { planService } from '../../api/planService';
 
 const mockPlans = [
   { id: 14, name: 'PYG', type: 'Trial - 14 days', visibility: 'Public', capacity: 'Billed per student', storage: '1 GB', monthly: '50.00', yearly: '300.00', isTrial: true },
   { id: 9, name: '[Showcase] Flat — Starter', type: 'Paid', visibility: 'Hidden', capacity: 'Up to 400 students', storage: '5 GB', monthly: '2,999.00', yearly: '29,990.00' },
-  { id: 10, name: 'Per Student — Pay As You Grow', type: 'Paid', visibility: 'Public', capacity: 'Billed per student', storage: '5 GB', monthly: '12.00', yearly: '120.00' },
-  { id: 11, name: '[Showcase] Tiered', type: 'Paid', visibility: 'Hidden', capacity: '300 students + seat packs', storage: '5 GB', monthly: '3,499.00', yearly: '34,990.00' },
 ];
 
 export default function Plans() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
-  const [plans, setPlans] = useState(mockPlans);
+  const [plans, setPlans] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [editPlan, setEditPlan] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    name: '', type: 'Paid', visibility: 'Public', capacity: 'Billed per student', storage: '5 GB', monthly: '', yearly: ''
+  });
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const res = await planService.getPlans();
+      if(res.data && res.data.length > 0) {
+        setPlans(res.data.map(p => ({
+          id: p._id,
+          name: p.name,
+          type: p.description || 'Paid',
+          visibility: p.isActive ? 'Public' : 'Hidden',
+          capacity: `Up to ${p.maxStudents} students`,
+          storage: '5 GB',
+          monthly: p.monthlyPrice.toString(),
+          yearly: p.yearlyPrice.toString(),
+          isTrial: p.description?.includes('Trial')
+        })));
+      } else {
+        setPlans([]); // Fallback removed
+      }
+    } catch (err) {
+      setPlans([]); // Fallback removed
+    }
+  };
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    setShowAdd(false);
-    setEditPlan(null);
+    try {
+      const payload = {
+        name: formData.name || editPlan?.name,
+        description: formData.type || editPlan?.type || 'Paid',
+        monthlyPrice: Number(formData.monthly || editPlan?.monthly || 0),
+        yearlyPrice: Number(formData.yearly || editPlan?.yearly || 0),
+        maxStudents: 500
+      };
+      
+      if(editPlan && editPlan.id?.length > 10) { // update real ID
+        await planService.updatePlan(editPlan.id, payload);
+      } else {
+        await planService.createPlan(payload);
+      }
+      
+      fetchPlans();
+      setShowAdd(false);
+      setEditPlan(null);
+      setFormData({ name: '', type: 'Paid', visibility: 'Public', capacity: 'Billed per student', storage: '5 GB', monthly: '', yearly: '' });
+      alert("Plan Saved successfully!");
+    } catch(err) {
+      alert("Error saving plan: " + err.message);
+    }
   };
 
   const filtered = plans.filter(p => {
@@ -92,8 +143,8 @@ export default function Plans() {
             <tbody>
               {filtered.map((plan, i) => (
                 <tr key={plan.id} className="hover:bg-slate-50 transition-colors bg-white group border-b border-slate-200">
-                  <td className="px-3 py-2.5 text-slate-500 text-[13px] font-medium align-middle w-12 border-x border-slate-200 bg-slate-50/50 text-center">
-                    #{plan.id}
+                  <td className="px-3 py-2.5 text-slate-500 text-[13px] font-medium align-middle w-12 border-x border-slate-200 bg-slate-50/50 text-center truncate max-w-[60px]" title={plan.id}>
+                    #{typeof plan.id === 'number' ? plan.id : plan.id.substring(0, 4)}
                   </td>
                   
                   <td className="px-3 py-2.5 align-middle border-x border-slate-200">
@@ -167,12 +218,12 @@ export default function Plans() {
               <div className="grid grid-cols-2 gap-5 mb-5 bg-white p-5 border border-slate-200">
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Plan Name</label>
-                  <input required defaultValue={editPlan?.name || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. Starter Plan" />
+                  <input required value={formData.name || editPlan?.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. Starter Plan" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Type</label>
-                  <select defaultValue={editPlan?.type || 'Paid'} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select value={formData.type || editPlan?.type || 'Paid'} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
                     <option>Paid</option>
                     <option>Trial - 14 days</option>
                     <option>Trial - 7 days</option>
@@ -181,7 +232,7 @@ export default function Plans() {
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Visibility</label>
-                  <select defaultValue={editPlan?.visibility || 'Public'} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select value={formData.visibility || editPlan?.visibility || 'Public'} onChange={e => setFormData({...formData, visibility: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
                     <option>Public</option>
                     <option>Hidden</option>
                   </select>
@@ -191,7 +242,7 @@ export default function Plans() {
               <div className="grid grid-cols-2 gap-5 mb-5 bg-white p-5 border border-slate-200">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Capacity</label>
-                  <select defaultValue={editPlan?.capacity || 'Billed per student'} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select value={formData.capacity || editPlan?.capacity || 'Billed per student'} onChange={e => setFormData({...formData, capacity: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
                     <option>Billed per student</option>
                     <option>Up to 100 students</option>
                     <option>Up to 400 students</option>
@@ -200,22 +251,22 @@ export default function Plans() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Storage Quota</label>
-                  <input required defaultValue={editPlan?.storage || '5 GB'} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" />
+                  <input required value={formData.storage || editPlan?.storage || '5 GB'} onChange={e => setFormData({...formData, storage: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Monthly Price (₹)</label>
-                  <input required type="number" defaultValue={editPlan?.monthly?.replace(',','') || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
+                  <input required type="number" value={formData.monthly || editPlan?.monthly?.replace(',','') || ''} onChange={e => setFormData({...formData, monthly: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Yearly Price (₹)</label>
-                  <input required type="number" defaultValue={editPlan?.yearly?.replace(',','') || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
+                  <input required type="number" value={formData.yearly || editPlan?.yearly?.replace(',','') || ''} onChange={e => setFormData({...formData, yearly: e.target.value})} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
                 </div>
               </div>
             </form>
             
             <div className="p-5 flex gap-3 border-t border-gray-100 bg-white">
-              <button type="submit" onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 bg-[#0891b2] hover:bg-cyan-700 text-white py-2.5 rounded-none text-[13px] font-bold transition-colors">
+              <button type="button" onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 bg-[#0891b2] hover:bg-cyan-700 text-white py-2.5 rounded-none text-[13px] font-bold transition-colors">
                 Save Plan Details
               </button>
               <button onClick={() => { setShowAdd(false); setEditPlan(null); }} className="px-5 py-2.5 border border-gray-200 rounded-none text-[13px] font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>

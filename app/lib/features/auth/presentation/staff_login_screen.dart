@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/auth_service.dart';
 
 class StaffLoginScreen extends StatefulWidget {
@@ -704,34 +705,41 @@ class _StaffLoginScreenState extends State<StaffLoginScreen> {
               ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
 
               const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'First time user / New Employee?',
-                    style: GoogleFonts.inter(
-                      fontSize: 13.5,
-                      color:
-                          isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.push('/staff-register'),
-                    child: Text(
-                      'Register Now',
-                      style: GoogleFonts.inter(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF059669),
+              
+              // Developer Signature
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    final Uri url = Uri.parse('https://www.allcoresolution.com');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      Text(
+                        'Developed By Sachin',
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '@ All Core Solution',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF2563EB), 
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ).animate().fadeIn(duration: 450.ms, delay: 200.ms),
               ),
-            ],
+              
+              const SizedBox(height: 16),            ],
           ),
         ),
       ),

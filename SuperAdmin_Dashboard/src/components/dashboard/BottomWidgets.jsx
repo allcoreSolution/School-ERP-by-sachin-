@@ -1,49 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { initSchools } from '../../data/schoolsData';
-
-const revenueData = [
-  { name: 'Jan', value: 38000 },
-  { name: 'Feb', value: 42000 },
-  { name: 'Mar', value: 39000 },
-  { name: 'Apr', value: 47000 },
-  { name: 'May', value: 51000 },
-  { name: 'Jun', value: 49000 },
-];
-
-const activeCount = initSchools.filter(s => s.status === 'Active').length;
-const inactiveCount = initSchools.filter(s => s.status !== 'Active').length;
-const totalCount = initSchools.length;
-const activePercent = Math.round((activeCount / totalCount) * 100);
-
-const subData = [
-  { name: 'Active', value: activeCount, color: '#22c55e' },
-  { name: 'Inactive', value: inactiveCount, color: '#ef4444' },
-];
-
-const topSchools = [...initSchools]
-  .sort((a, b) => b.students - a.students)
-  .slice(0, 3);
-
-const latestSchools = [...initSchools]
-  .sort((a, b) => b.id - a.id)
-  .slice(0, 3);
+import { tenantService } from '../../api/tenantService';
 
 const bgColors = ['bg-blue-500', 'bg-pink-500', 'bg-orange-500', 'bg-teal-500', 'bg-purple-500'];
-
-const pendingSchools = initSchools
-  .filter(s => s.status === 'Pending')
-  .map((s, i) => ({
-    initial: s.name[0],
-    name: s.name,
-    date: s.joined,
-    amount: '₹999',
-    color: bgColors[i] || 'bg-gray-500',
-  }));
 
 const WidgetCard = ({ title, subtitle, actionText, onAction, children, icon: Icon }) => (
   <div className="bg-white rounded-none border border-gray-100 p-4 flex flex-col h-full shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
@@ -71,6 +34,33 @@ const WidgetCard = ({ title, subtitle, actionText, onAction, children, icon: Ico
 
 const BottomWidgets = () => {
   const navigate = useNavigate();
+  const [schools, setSchools] = useState([]);
+  
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      if(res.data) setSchools(res.data);
+    }).catch(console.error);
+  }, []);
+
+  const totalCount = schools.length;
+  const activeCount = schools.filter(s => s.status === 'Active').length;
+  const inactiveCount = schools.filter(s => s.status !== 'Active').length;
+  const activePercent = totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0;
+  
+  const subData = [
+    { name: 'Active', value: activeCount, color: '#22c55e' },
+    { name: 'Inactive', value: inactiveCount, color: '#ef4444' },
+  ];
+
+  const pendingSchools = schools.filter(s => s.status === 'Pending').slice(0,5);
+  const largestSchools = [...schools].sort((a, b) => (b.studentsCount||0) - (a.studentsCount||0)).slice(0,6);
+  const latestSchools = [...schools].reverse().slice(0,6);
+  
+  const revenueData = [
+    { name: 'Jan', value: 0 }, { name: 'Feb', value: 0 }, { name: 'Mar', value: 0 },
+    { name: 'Apr', value: 0 }, { name: 'May', value: 0 }, { name: 'Jun', value: 0 },
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 mb-12">
       
@@ -146,15 +136,15 @@ const BottomWidgets = () => {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">Platform Demographics</p>
           <div className="grid grid-cols-2 bg-slate-50 border border-slate-200">
             <div className="p-3 text-center border-b border-r border-slate-200 bg-white shadow-[inset_0_-2px_0_rgba(59,130,246,0.1)]">
-              <div className="text-[18px] font-extrabold text-slate-800">1,932</div>
+              <div className="text-[18px] font-extrabold text-slate-800">{schools.reduce((sum,s) => sum+(s.studentsCount||0), 0)}</div>
               <div className="text-[9px] font-bold text-blue-600 uppercase tracking-wider mt-0.5">Students</div>
             </div>
             <div className="p-3 text-center border-b border-slate-200 bg-white shadow-[inset_0_-2px_0_rgba(16,185,129,0.1)]">
-              <div className="text-[18px] font-extrabold text-slate-800">346</div>
+              <div className="text-[18px] font-extrabold text-slate-800">0</div>
               <div className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5">Staff</div>
             </div>
             <div className="p-3 text-center border-r border-slate-200 bg-white shadow-[inset_0_-2px_0_rgba(217,70,239,0.1)]">
-              <div className="text-[18px] font-extrabold text-slate-800">5,211</div>
+              <div className="text-[18px] font-extrabold text-slate-800">0</div>
               <div className="text-[9px] font-bold text-fuchsia-600 uppercase tracking-wider mt-0.5">Users</div>
             </div>
             <div className="p-3 text-center bg-white shadow-[inset_0_-2px_0_rgba(20,184,166,0.1)]">
@@ -169,20 +159,20 @@ const BottomWidgets = () => {
       <div className="col-span-1">
         <WidgetCard title="Pending Orders" subtitle="Awaiting verification" actionText="View all" onAction={() => navigate('/schools')}>
           <div className="flex flex-col mt-2">
-            {[1,2,3,4,5].map((_, i) => (
+            {pendingSchools.length === 0 ? <p className="text-xs text-gray-400 text-center py-4">No pending orders</p> : pendingSchools.map((s, i) => (
               <div key={i} className="flex items-center justify-between group py-2.5 px-2 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 relative">
                 <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 flex items-center justify-center text-white text-[11px] font-extrabold shadow-sm ${bgColors[i % bgColors.length]}`}>
-                    {['RA', 'GP', 'GP', 'GP', 'GP'][i]}
+                   <div className={`w-8 h-8 flex items-center justify-center text-white text-[11px] font-extrabold shadow-sm ${bgColors[i % bgColors.length]}`}>
+                    {s.schoolName.substring(0,2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-[12px] font-extrabold text-slate-800 leading-tight">{['RVS ACADEMY2', 'G. P. School', 'G. P. School', 'G. P. School', 'G. P. School'][i]}</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate max-w-[140px]">{['Pay As You Grow · Sep 02', 'Growth Plan · Aug 25', 'Growth Plan · Aug 25', 'Growth Plan · Aug 25', 'Growth Plan · Aug 25'][i]}</p>
+                    <p className="text-[12px] font-extrabold text-slate-800 leading-tight">{s.schoolName}</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate max-w-[140px]">{s.plan} Plan</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[13px] font-extrabold text-slate-800 font-mono">₹1,000</p>
+                  <p className="text-[13px] font-extrabold text-slate-800 font-mono">₹—</p>
                   <p className="text-[9px] uppercase tracking-wider font-bold text-orange-600 bg-orange-50 inline-block px-1.5 py-0.5 border border-orange-200 mt-1">Pending</p>
                 </div>
               </div>
@@ -196,20 +186,20 @@ const BottomWidgets = () => {
       <div className="col-span-1">
         <WidgetCard title="Largest Schools" subtitle="By user count" actionText="View all" onAction={() => navigate('/schools')}>
           <div className="flex flex-col mt-2">
-            {[1,2,3,4,5,6].map((_, i) => (
+            {largestSchools.length === 0 ? <p className="text-xs text-gray-400 text-center py-4">No data</p> : largestSchools.map((s, i) => (
               <div key={i} className="flex items-center justify-between group py-2 px-2 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 relative">
                 <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 shadow-sm flex items-center justify-center text-white text-[11px] font-extrabold flex-shrink-0 ${bgColors[i % bgColors.length]}`}>
-                    {['GR', 'ZI', 'S', 'RN', 'K', 'RH'][i]}
+                    {s.schoolName.substring(0,2).toUpperCase()}
                   </div>
                   <div className="truncate pr-2">
-                    <p className="text-[12px] font-extrabold text-slate-800 truncate uppercase leading-tight">{['General Raj School', 'ZIDO INTERNATIONAL SCHOOL', 'SKOOL', 'Ratnakar North Point School', 'KPSEM', 'Risma high school'][i]}</p>
-                    <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{['asset22c@gmail.com · 8146466332', 'zidoschool@gmail.com · +233257000..', 'skoolpro?@atomicmail.io · 2348123456..', 'itsabhishekyadav@gmail.com · No phone', 'kpsem@gmail.com · +917894561230', 'ramaictsolutions@gmail.com · +254798..'][i]}</p>
+                    <p className="text-[12px] font-extrabold text-slate-800 truncate uppercase leading-tight">{s.schoolName}</p>
+                    <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{s.email || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 border border-emerald-100 flex-shrink-0">
-                  {['254', '157', '84', '79', '78', '77'][i]} users
+                  {s.studentsCount || 0} users
                 </div>
               </div>
             ))}
@@ -221,20 +211,20 @@ const BottomWidgets = () => {
       <div className="col-span-1">
         <WidgetCard title="New Registrations" subtitle="Latest schools to join" actionText="View all" onAction={() => navigate('/schools')}>
           <div className="flex flex-col mt-2">
-            {[1,2,3,4,5,6].map((_, i) => (
+            {latestSchools.length === 0 ? <p className="text-xs text-gray-400 text-center py-4">No data</p> : latestSchools.map((s, i) => (
               <div key={i} className="flex items-center justify-between group py-2 px-2 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 relative">
                 <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 shadow-sm flex items-center justify-center text-white text-[11px] font-extrabold flex-shrink-0 ${bgColors[(i+2) % bgColors.length]}`}>
-                    {['SK', 'GS', 'AP', 'R', 'KI', 'S'][i]}
+                    {s.schoolName.substring(0,2).toUpperCase()}
                   </div>
                   <div className="truncate pr-2">
-                    <p className="text-[12px] font-extrabold text-slate-800 truncate capitalize leading-tight">{['Sandeep kumar', 'Global Solutions', 'Abc pre school', 'RNPS', 'kv institute', 'Saas'][i]}</p>
-                    <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{['sandeepmaravi84@gmail.com · +9..', 'freeon13344@gmail.com - 123456..', 'ptl.jasmin@gmail.com - 987654321', 'shub@yopmail.com - No phone', 'vikaspandey722@gmail.com - 912..', 'ismaillabubakarsulaiman137@gmail..'][i]}</p>
+                    <p className="text-[12px] font-extrabold text-slate-800 truncate capitalize leading-tight">{s.schoolName}</p>
+                    <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{s.email}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-[11px] font-extrabold text-slate-600">{['Sep 02, 2026', 'Sep 02, 2026', 'Sep 02, 2026', 'Sep 02, 2026', 'Sep 02, 2026', 'Sep 01, 2026'][i]}</p>
+                  <p className="text-[11px] font-extrabold text-slate-600">{new Date(s.createdAt).toLocaleDateString()}</p>
                   <p className="text-[9px] text-blue-600 uppercase tracking-widest font-bold bg-blue-50 border border-blue-100 inline-block px-1.5 py-0.5 mt-1">New</p>
                 </div>
               </div>
@@ -247,24 +237,7 @@ const BottomWidgets = () => {
       <div className="col-span-1">
         <WidgetCard title="Expiring Soon" subtitle="Renewals coming up" actionText="View all" onAction={() => navigate('/schools')}>
           <div className="flex flex-col mt-2">
-            {[1,2,3,4,5,6].map((_, i) => (
-              <div key={i} className="flex items-center justify-between group py-2 px-2 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 relative">
-                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-red-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 shadow-sm flex items-center justify-center text-white text-[11px] font-extrabold flex-shrink-0 ${bgColors[(i+4) % bgColors.length]}`}>
-                    {['NB', 'GE', 'AA', 'M', 'N', 'G'][i]}
-                  </div>
-                  <div className="truncate pr-2">
-                    <p className="text-[12px] font-extrabold text-slate-800 truncate capitalize leading-tight">{['Nps bilali', 'Global Education Centre', 'Arun academy', 'myschool95', 'netsol', 'GMS'][i]}</p>
-                    <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{['neerajawana91@gmail.com - +9172..', 'md.nurullah.s@gmail.com - +91882..', 'vedprakashmaurya0701@gmail.c..', 'rathodsagar999sr@gmail.com - 92..', 'powaray523@bejum.com - 03003..', 'vivekhackerback@gmail.com - 86..'][i]}</p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-[11px] font-extrabold text-slate-600">{['Sep 03, 2026', 'Sep 03, 2026', 'Sep 03, 2026', 'Sep 03, 2026', 'Sep 03, 2026', 'Sep 03, 2026'][i]}</p>
-                  <p className="text-[9px] text-red-600 uppercase tracking-widest font-bold inline-block px-1.5 py-0.5 mt-1 border border-red-100 bg-red-50">0 days left</p>
-                </div>
-              </div>
-            ))}
+            <p className="text-xs text-gray-400 text-center py-4">No renewals soon</p>
           </div>
         </WidgetCard>
       </div>
@@ -327,26 +300,7 @@ const BottomWidgets = () => {
       <div className="col-span-2">
         <WidgetCard title="Application Errors" subtitle="Latest from the log" actionText="Open logs" onAction={() => {}}>
            <div className="flex flex-col gap-3 mt-4 overflow-y-auto pr-2 max-h-[300px] mb-2" style={{ scrollbarWidth: 'thin' }}>
-             {[1,2,3,4].map((_, i) => (
-                <div key={i} className="flex flex-col border border-red-100 bg-white shadow-sm hover:border-red-300 transition-colors group">
-                  <div className="flex items-center justify-between px-4 py-2 border-b border-slate-100 bg-slate-50/50">
-                     <div className="flex items-center gap-2">
-                       <span className="w-2 h-2 bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]"></span>
-                       <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">MethodException</span>
-                     </div>
-                     <div className="text-[10px] font-extrabold text-slate-400 group-hover:text-red-500 transition-colors">
-                        {[35, 42, 42, 45][i]}m ago
-                     </div>
-                  </div>
-                  <div className="p-4 bg-[#0f172a] text-slate-300 text-[11px] font-mono leading-relaxed border-l-[3px] border-red-500 relative overflow-hidden">
-                     <div className="absolute top-1/2 -translate-y-1/2 right-0 p-2 opacity-5 pointer-events-none">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
-                     </div>
-                     <span className="text-red-400 font-bold">App\Http\Controllers\SchoolController::store</span><br/>
-                     <span className="opacity-80 leading-loose">Call to undefined method App\Models\School::bankAccount() in </span><span className="text-emerald-400">SchoolController.php:143</span>
-                  </div>
-                </div>
-             ))}
+              <p className="text-xs text-gray-400 text-center py-4">No errors in log</p>
            </div>
         </WidgetCard>
       </div>

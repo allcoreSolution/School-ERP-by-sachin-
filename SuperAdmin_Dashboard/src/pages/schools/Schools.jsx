@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, Plus, Search, Eye, Edit, Trash2, CheckCircle, XCircle, Clock, X, Save, AlertTriangle, Mail, Info, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { initSchools } from '../../data/schoolsData';
+import { tenantService } from '../../api/tenantService';
+import Swal from 'sweetalert2';
 
 const planColors = { Premium: 'bg-purple-100 text-purple-700', Standard: 'bg-blue-100 text-blue-700', Basic: 'bg-gray-100 text-gray-600' };
 
 const StatusBadge = ({ status }) => {
   if (status === 'Active') return <span className="bg-[#22c55e] text-white px-2 py-0.5 rounded-none text-[11px] font-bold">Active</span>;
   if (status === 'Inactive') return <span className="bg-red-500 text-white px-2 py-0.5 rounded-none text-[11px] font-bold">Inactive</span>;
+  if (status === 'Suspended') return <span className="bg-orange-600 text-white px-2 py-0.5 rounded-none text-[11px] font-bold">Suspended</span>;
   return <span className="bg-orange-500 text-white px-2 py-0.5 rounded-none text-[11px] font-bold">Pending</span>;
 };
 
@@ -21,7 +24,8 @@ const Field = ({ label, value }) => (
 const emptyForm = { name: '', email: '', phone: '', city: '', state: '', address: '', website: '', plan: 'Basic', status: 'Active', adminName: '', established: '', students: 0 };
 
 export default function Schools() {
-  const [schools, setSchools] = useState(initSchools);
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [editSchool, setEditSchool] = useState(null);
@@ -36,21 +40,112 @@ export default function Schools() {
       (filter === 'All' || s.status === filter);
   });
 
-  const handleSaveEdit = () => {
-    setSchools(prev => prev.map(s => s.id === editSchool.id ? { ...editSchool } : s));
-    setEditSchool(null);
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const fetchTenants = async () => {
+    try {
+      setLoading(true);
+      const res = await tenantService.getTenants();
+      const mappedSchools = (res.data || []).map(t => ({
+        id: t._id,
+        name: t.schoolName,
+        email: t.email,
+        phone: t.phone || 'N/A',
+        city: 'India', // Usually part of Tenant logic, hardcoded for now
+        state: 'N/A',
+        address: t.address || 'N/A',
+        website: 'N/A',
+        plan: t.plan + ' Plan',
+        status: t.status,
+        adminName: 'Admin',
+        established: '2026',
+        students: 0,
+        joined: new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      }));
+      setSchools(mappedSchools); // Removing initSchools fallback so it correctly displays empty DB!
+    } catch (err) {
+      console.error(err);
+      setSchools([]); // Fallback to empty instead of dummy if error
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAdd = () => {
-    const newSchool = { ...form, id: Date.now(), joined: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) };
-    setSchools(prev => [newSchool, ...prev]);
-    setShowAdd(false);
-    setForm(emptyForm);
+  const handleSaveEdit = async () => {
+    try {
+      await tenantService.updateTenant(editSchool.id, {
+        schoolName: editSchool.name,
+        email: editSchool.email,
+        phone: editSchool.phone,
+        plan: editSchool.plan,
+        status: editSchool.status,
+        address: editSchool.address,
+      });
+      Swal.fire({
+        icon: 'success',
+        title: 'Updated!',
+        text: 'School details have been updated.',
+        confirmButtonColor: '#f97316'
+      });
+      setEditSchool(null);
+      fetchTenants();
+    } catch (err) {
+      Swal.fire('Error!', err.response?.data?.message || err.message, 'error');
+    }
   };
 
-  const handleDelete = () => {
-    setSchools(prev => prev.filter(s => s.id !== deleteSchool.id));
-    setDeleteSchool(null);
+  const handleAdd = async () => {
+    try {
+      if(!form.name || !form.email) return Swal.fire('Error', 'Fill school name and email', 'error');
+      
+      const payload = {
+        schoolName: form.name,
+        email: form.email,
+        phone: form.phone,
+        plan: form.plan.replace(' Plan', ''), // Basic, Enterprise
+      };
+      await tenantService.registerTenant(payload);
+      Swal.fire({
+        icon: 'success',
+        title: 'School Added!',
+        text: 'School successfully registered in Database!',
+        confirmButtonColor: '#f97316'
+      });
+      fetchTenants(); // Reload Data
+      setShowAdd(false);
+      setForm(emptyForm);
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed',
+        text: "Failed to register school: " + (err.response?.data?.message || err.message),
+        confirmButtonColor: '#f97316'
+      });
+    }
+  };
+
+  const handleDeleteClick = (school) => {
+    Swal.fire({
+      title: 'Delete School?',
+      text: `Are you sure you want to completely delete ${school.name}? This removes all data!`,
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#9ca3af',
+      confirmButtonText: 'Yes, permanently delete!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await tenantService.deleteTenant(school.id);
+          Swal.fire('Deleted!', 'The school has been removed from database.', 'success');
+          fetchTenants();
+        } catch (err) {
+          Swal.fire('Error!', err.response?.data?.message || err.message, 'error');
+        }
+      }
+    });
   };
 
   const InputField = ({ label, name, value, onChange, type = 'text', options }) => (
@@ -143,7 +238,7 @@ export default function Schools() {
                 return (
                   <tr key={school.id} className="hover:bg-slate-50 transition-colors bg-white group border-b border-slate-200">
                     <td className="px-3 py-2.5 text-slate-500 text-[13px] font-medium align-middle w-12 border-x border-slate-200 bg-slate-50/50 text-center">
-                      {school.id || (i === 0 ? 1 : i === 1 ? 346 : i === 2 ? 172 : i === 3 ? 122 : 429)}
+                      <span className="truncate max-w-[50px] inline-block" title={school.id}>{typeof school.id === 'number' ? school.id : school.id.substring(0, 5)}...</span>
                     </td>
                     <td className="px-3 py-2.5 align-middle border-x border-slate-200">
                       <div className="flex flex-col">
@@ -167,9 +262,27 @@ export default function Schools() {
                       {subs}
                     </td>
                     <td className="px-3 py-2.5 align-middle border-x border-slate-200 text-center bg-slate-50/50">
-                      <button onClick={() => navigate(`/schools/${school.id}`)} className="text-[#0891b2] hover:text-cyan-700 text-[13px] font-bold hover:underline underline-offset-2">
-                        Manage
-                      </button>
+                      <div className="flex items-center justify-center gap-3">
+                        <button onClick={() => navigate(`/schools/${school.id}`)} className="text-[#0891b2] hover:text-cyan-700 text-[13px] font-bold hover:underline underline-offset-2">
+                          Manage
+                        </button>
+                        <span className="text-gray-300">|</span>
+                        <button onClick={() => {
+                          setEditSchool({
+                            id: school.id,
+                            name: school.name,
+                            email: school.email,
+                            phone: school.phone !== 'N/A' ? school.phone : '',
+                            plan: school.plan.replace(' Plan', ''),
+                            status: school.status
+                          });
+                        }} className="text-orange-500 hover:text-orange-600 transition-colors" title="Edit">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeleteClick(school)} className="text-red-500 hover:text-red-600 transition-colors" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -223,23 +336,6 @@ export default function Schools() {
                 <Save className="w-4 h-4" /> Save Changes
               </button>
               <button onClick={() => setEditSchool(null)} className="px-5 py-2 border border-gray-200 rounded-none text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DELETE MODAL */}
-      {deleteSchool && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-none shadow-2xl w-full max-w-sm p-6 text-center">
-            <div className="w-14 h-14 bg-red-50 rounded-none flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-7 h-7 text-red-500" />
-            </div>
-            <h2 className="font-bold text-gray-800 text-lg mb-2">Delete School?</h2>
-            <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete <span className="font-semibold text-gray-700">{deleteSchool.name}</span>? This action cannot be undone.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteSchool(null)} className="flex-1 py-2 border border-gray-200 rounded-none text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-              <button onClick={handleDelete} className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-none text-sm font-semibold">Delete</button>
             </div>
           </div>
         </div>

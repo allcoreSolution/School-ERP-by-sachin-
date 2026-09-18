@@ -1,17 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, DollarSign, UserPlus, AlertCircle, LogIn, Maximize2 } from 'lucide-react';
 
-const BASE_ACTIVITIES = [
-  { action: 'Super Admin logged in', user: 'superadmin@erp.com', type: 'login', minsAgo: 2 },
-  { action: 'New school registered', user: 'Ali Public School', type: 'register', minsAgo: 8 },
-  { action: 'Payment received', user: '₹4,999 — Montessori School', type: 'payment', minsAgo: 15 },
-  { action: 'School Admin logged in', user: 'admin@montessori.com', type: 'login', minsAgo: 22 },
-  { action: 'Support ticket raised', user: 'Oxford International', type: 'alert', minsAgo: 35 },
-  { action: 'School Admin logged in', user: 'admin@oxford.com', type: 'login', minsAgo: 48 },
-  { action: 'Payment received', user: '₹2,499 — St. Mary Convent', type: 'payment', minsAgo: 61 },
-  { action: 'New school registered', user: 'Sunrise Public School', type: 'register', minsAgo: 74 },
-  { action: 'School Admin logged in', user: 'admin@greenvalley.com', type: 'login', minsAgo: 90 },
-];
+import { tenantService } from '../../api/tenantService';
 
 const TYPE_CONFIG = {
   login:    { icon: LogIn,     bg: 'bg-purple-100', color: 'text-purple-600' },
@@ -29,7 +19,33 @@ const formatTime = (minsAgo) => {
 };
 
 const LiveActivity = () => {
-  const [activities, setActivities] = useState(BASE_ACTIVITIES);
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    fetchActivity();
+  }, []);
+
+  const fetchActivity = async () => {
+    try {
+      const res = await tenantService.getTenants();
+      if(res.data) {
+         const acts = res.data.map(t => {
+            const msAgo = Date.now() - new Date(t.createdAt).getTime();
+            return {
+              action: 'New school registered',
+              user: t.schoolName,
+              type: 'register',
+              minsAgo: Math.floor(msAgo / 60000)
+            };
+         });
+         // Add super admin login as fixed recent event since we don't have auth logs yet
+         acts.unshift({ action: 'Super Admin logged in', user: 'admin', type: 'login', minsAgo: 0 });
+         setActivities(acts.sort((a,b) => a.minsAgo - b.minsAgo));
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  };
 
   // Every minute, increment all minsAgo by 1 to simulate live time passing
   useEffect(() => {
@@ -59,7 +75,9 @@ const LiveActivity = () => {
 
       <div className="flex-1 overflow-y-auto p-2 h-[440px]">
         <ul className="space-y-1">
-          {activities.map((item, idx) => {
+          {activities.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-[11px] text-gray-400 font-medium pb-10">No recent activity</div>
+          ) : activities.map((item, idx) => {
             const cfg = TYPE_CONFIG[item.type];
             const Icon = cfg.icon;
             return (

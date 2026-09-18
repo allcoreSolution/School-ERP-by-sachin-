@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, Save, Upload, CheckCircle, User, Globe } from 'lucide-react';
+import { tenantService } from '../../api/tenantService';
+import { planService } from '../../api/planService';
 
 const EMPTY = {
   name: '', email: '', phone: '', city: '', state: '', country: 'India',
-  plan: 'Basic', adminName: '', adminEmail: '', adminPhone: '',
+  plan: 'Basic', adminName: '', adminEmail: '', adminPhone: '', adminPassword: '',
   address: '', website: '', established: '',
 };
 
@@ -14,7 +16,7 @@ const Field = ({ label, name, value, onChange, type = 'text', placeholder, requi
     <input
       type={type} name={name} value={value} onChange={onChange}
       placeholder={placeholder} required={required}
-      className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 transition-shadow"
+      className="w-full border border-gray-200 bg-white text-slate-800 placeholder-slate-400 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 transition-shadow"
     />
   </div>
 );
@@ -24,6 +26,14 @@ const AddSchool = () => {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    planService.getPlans().then(res => {
+      if(res.data) setPlans(res.data);
+    }).catch(console.error);
+  }, []);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,22 +51,59 @@ const AddSchool = () => {
     return e;
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setSuccess(true);
-    setTimeout(() => navigate('/schools'), 1800);
+    
+    try {
+      setLoading(true);
+      await tenantService.registerTenant({
+        schoolName: form.name,
+        email: form.email,
+        phone: form.phone,
+        plan: form.plan,
+        city: form.city,
+        state: form.state,
+        address: form.address,
+        adminName: form.adminName,
+        adminEmail: form.adminEmail,
+        adminPhone: form.adminPhone,
+        adminPassword: form.adminPassword || 'admin123',
+      });
+      setSuccess(true);
+      // Removed the 1800ms auto redirect so they can copy the credentials
+    } catch (err) {
+      alert("Registration failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 text-center">
+      <div className="flex flex-col items-center justify-center p-12 bg-white rounded-none border border-gray-200 mt-10 shadow-sm max-w-xl mx-auto text-center">
         <div className="w-16 h-16 bg-green-50 rounded-none flex items-center justify-center mb-4">
           <CheckCircle className="w-8 h-8 text-green-500" />
         </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-1">School Added!</h2>
-        <p className="text-sm text-gray-500">Redirecting to schools list...</p>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">School Successfully Registered!</h2>
+        <p className="text-sm text-gray-500 mb-6">You can now share these credentials with the school admin.</p>
+        
+        <div className="bg-gray-50 border border-gray-200 rounded-none p-4 w-full text-left mb-6">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3">Admin Credentials</p>
+          <div className="mb-2">
+            <span className="text-xs text-gray-500 w-24 inline-block">Login ID:</span>
+            <span className="text-sm font-bold text-gray-800">{form.adminEmail}</span>
+          </div>
+          <div>
+            <span className="text-xs text-gray-500 w-24 inline-block">Password:</span>
+            <span className="text-sm font-mono font-bold text-gray-800">{form.adminPassword || 'admin123'}</span>
+          </div>
+        </div>
+
+        <button onClick={() => navigate('/schools')} className="bg-orange-500 text-white px-6 py-2.5 rounded-none font-semibold text-sm hover:bg-orange-600">
+          Go to Schools List
+        </button>
       </div>
     );
   }
@@ -99,7 +146,7 @@ const AddSchool = () => {
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Address</label>
                 <textarea name="address" value={form.address} onChange={handleChange}
                   placeholder="Full school address..." rows={2}
-                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
+                  className="w-full border border-gray-200 bg-white text-slate-800 placeholder-slate-400 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none" />
               </div>
             </div>
           </div>
@@ -119,6 +166,7 @@ const AddSchool = () => {
                 {errors.adminEmail && <p className="text-[10px] text-red-500 mt-1">{errors.adminEmail}</p>}
               </div>
               <Field label="Admin Phone" name="adminPhone" value={form.adminPhone} onChange={handleChange} placeholder="+91 98765 43210" />
+              <Field label="Login Password" name="adminPassword" value={form.adminPassword} onChange={handleChange} placeholder="Leave blank for 'admin123'" />
             </div>
           </div>
         </div>
@@ -133,16 +181,17 @@ const AddSchool = () => {
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Subscription Plan</label>
                 <select name="plan" value={form.plan} onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
-                  <option>Basic</option>
-                  <option>Standard</option>
-                  <option>Premium</option>
+                  className="w-full border border-gray-200 bg-white text-slate-800 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                  <option value="Basic">Basic (Fallback)</option>
+                  {plans.map(p => (
+                    <option key={p._id} value={p.name}>{p.name}</option>
+                  ))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Country</label>
                 <select name="country" value={form.country} onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                  className="w-full border border-gray-200 bg-white text-slate-800 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
                   <option>India</option>
                   <option>USA</option>
                   <option>UK</option>
@@ -166,9 +215,9 @@ const AddSchool = () => {
               className="flex-1 py-3 border border-gray-200 rounded-none text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
               Cancel
             </button>
-            <button type="submit"
-              className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-none font-semibold transition-colors">
-              <Save className="w-4 h-4" /> Add School
+            <button type="submit" disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white py-3 rounded-none font-semibold transition-colors">
+              <Save className="w-4 h-4" /> {loading ? 'Registering...' : 'Add School'}
             </button>
           </div>
         </div>

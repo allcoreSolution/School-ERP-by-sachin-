@@ -67,9 +67,7 @@ class _StaffLeaveManagementScreenState extends State<StaffLeaveManagementScreen>
     
     // Fallback Mock Data
     setState(() {
-      _myLeaves = [
-        {'type': 'Casual Leave', 'from': '2025-05-26', 'to': '2025-05-27', 'days': '2 Days', 'status': 'Pending', 'reason': 'Family Occasion'},
-      ];
+      _myLeaves = [];
       _isLoading = false;
     });
   }

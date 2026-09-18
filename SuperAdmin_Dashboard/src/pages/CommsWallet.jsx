@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, MessageSquare, Phone, Mail, Download, X, CheckCircle } from 'lucide-react';
+import { tenantService } from '../api/tenantService';
 
 const initTransactions = [
   { id: 1, type: 'SMS', school: 'Montessori School', count: 500, cost: 99, date: 'Sep 01, 2024', balance: 1200 },
@@ -13,28 +14,54 @@ export default function CommsWallet() {
   const [transactions, setTransactions] = useState(initTransactions);
   const [showRecharge, setShowRecharge] = useState(false);
   const [amount, setAmount] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('');
+  const [schoolsList, setSchoolsList] = useState([]);
   const [toast, setToast] = useState(null);
   const [balance, setBalance] = useState(873);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      setSchoolsList(res.data || []);
+    }).catch(console.error);
+  }, []);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleRecharge = () => {
-    if (!amount || isNaN(amount) || Number(amount) <= 0) return;
+  const handleRecharge = async () => {
+    if (!amount || isNaN(amount) || Number(amount) <= 0 || !selectedSchool) {
+        showToast("Please enter a valid amount and select a school", "error");
+        return;
+    }
     const amt = Number(amount);
-    const newBalance = balance + amt;
-    const newTxn = {
-      id: Date.now(), type: 'Recharge', school: '—', count: 0, cost: -amt,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      balance: newBalance,
-    };
-    setTransactions(prev => [newTxn, ...prev]);
-    setBalance(newBalance);
-    setShowRecharge(false);
-    setAmount('');
-    showToast(`Wallet recharged with ₹${amt.toLocaleString()} successfully!`);
+    
+    try {
+      setLoading(true);
+      // Let's assume 1 Rs = 1 SMS logic for this simple mock integration
+      await tenantService.rechargeWallet(selectedSchool, amt, 0); 
+      
+      const targetSchoolName = schoolsList.find(s => s._id === selectedSchool)?.schoolName || selectedSchool;
+
+      const newBalance = balance - amt; // Superadmin pool decreases, school quota increases
+      const newTxn = {
+        id: Date.now(), type: 'Recharge', school: targetSchoolName, count: amt, cost: -amt,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        balance: newBalance,
+      };
+      setTransactions(prev => [newTxn, ...prev]);
+      setBalance(newBalance);
+      setShowRecharge(false);
+      setAmount('');
+      setSelectedSchool('');
+      showToast(`Allocated ${amt.toLocaleString()} SMS credits to ${targetSchoolName}!`);
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message, "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -142,7 +169,16 @@ export default function CommsWallet() {
               <button onClick={() => setShowRecharge(false)} className="p-2 hover:bg-gray-100 rounded-none"><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <div className="p-5">
-              <p className="text-xs font-semibold text-gray-600 mb-3">Quick Select</p>
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Select Client (School) *</label>
+                <select value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)} className="w-full border border-gray-200 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                   <option value="">-- Choose School --</option>
+                   {schoolsList.map(s => (
+                     <option key={s._id} value={s._id}>{s.schoolName}</option>
+                   ))}
+                </select>
+              </div>
+              <p className="text-xs font-semibold text-gray-600 mb-3">Quick Select (SMS Count)</p>
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {['500', '1000', '2000', '5000', '10000', '20000'].map(a => (
                   <button key={a} onClick={() => setAmount(a)}
@@ -163,9 +199,9 @@ export default function CommsWallet() {
               )}
               <div className="flex gap-3">
                 <button onClick={() => setShowRecharge(false)} className="flex-1 py-2 border border-gray-200 rounded-none text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
-                <button onClick={handleRecharge} disabled={!amount || Number(amount) <= 0}
+                <button onClick={handleRecharge} disabled={loading || !amount || Number(amount) <= 0 || !selectedSchool}
                   className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-none text-sm font-semibold">
-                  Recharge ₹{amount ? Number(amount).toLocaleString() : '0'}
+                  {loading ? 'Processing...' : `Recharge ${amount ? Number(amount).toLocaleString() : '0'}`}
                 </button>
               </div>
             </div>

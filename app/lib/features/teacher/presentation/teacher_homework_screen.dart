@@ -21,11 +21,7 @@ class _TeacherHomeworkScreenState extends State<TeacherHomeworkScreen>
   // Use specific dynamic states through the provider in the build method.
   // Still keeping _submittedHomework static for the UI layout while assigned is mapped directly.
 
-  final List<Map<String, dynamic>> _submittedHomework = [
-    {'student': 'Aarav Sharma', 'class': 'Class 10 - A', 'file': 'quadratic_aarav.pdf', 'status': 'Checked', 'marks': '10/10'},
-    {'student': 'Vivaan Patel', 'class': 'Class 10 - A', 'file': 'quadratic_vivaan.pdf', 'status': 'Pending Review', 'marks': '--'},
-    {'student': 'Riya Singh',    'class': 'Class 9 - B',  'file': 'linear_riya.pdf',     'status': 'Checked', 'marks': '09/10'},
-  ];
+  final List<Map<String, dynamic>> _submittedHomework = [];
 
   @override
   void initState() {

@@ -23,21 +23,8 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
   late AnimationController _pulseController;
   late List<String> _originalStatuses;
 
-  final List<Map<String, dynamic>> _students = [
-    {'roll': '01', 'name': 'Aarav Sharma', 'status': 'Present', 'avatar': 'AS'},
-    {'roll': '02', 'name': 'Vivaan Patel', 'status': 'Present', 'avatar': 'VP'},
-    {'roll': '03', 'name': 'Riya Singh', 'status': 'Absent', 'avatar': 'RS'},
-    {'roll': '04', 'name': 'Aditya Verma', 'status': 'Present', 'avatar': 'AV'},
-    {'roll': '05', 'name': 'Ananya Gupta', 'status': 'Leave', 'avatar': 'AG'},
-    {
-      'roll': '06',
-      'name': 'Karan Malhotra',
-      'status': 'Present',
-      'avatar': 'KM',
-    },
-    {'roll': '07', 'name': 'Pooja Nair', 'status': 'Present', 'avatar': 'PN'},
-    {'roll': '08', 'name': 'Rohan Das', 'status': 'Absent', 'avatar': 'RD'},
-  ];
+  List<Map<String, dynamic>> _students = [];
+  bool _isLoading = true;
 
   final List<Color> _avatarColors = [
     AppTheme.teacherPurple,
@@ -57,7 +44,26 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _originalStatuses = _students.map((s) => s['status'] as String).toList();
+    _originalStatuses = [];
+    _fetchStudents();
+  }
+
+  Future<void> _fetchStudents() async {
+    setState(() => _isLoading = true);
+    final students = await TeacherDataRepository.instance.fetchClassStudents(className: _selectedClass);
+    if (!mounted) return;
+    setState(() {
+      _students = students;
+      _originalStatuses = _students.map((s) => s['status'] as String).toList();
+      _isLoading = false;
+    });
+  }
+
+  void _onClassChanged(String newClass) {
+    setState(() {
+      _selectedClass = newClass;
+    });
+    _fetchStudents();
   }
 
   @override
@@ -96,10 +102,8 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
 
   Future<void> _saveAttendance() async {
     // Generate the payload
-    // Using mock objectIds for class and section to satisfy Mongoose requirements temporarily.
     List<Map<String, dynamic>> submitData = _students.map((s) => {
-      // Create a mocked valid 24-character hex object id for student for UI visually working
-      'studentId': '64fa23db8d5763001abc${_students.indexOf(s).toString().padLeft(4, '0')}',
+      'studentId': s['id'],
       'status': s['status']
     }).toList();
 
@@ -353,9 +357,9 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
                         Expanded(
                           child: _emeraldDropdown(
                             _selectedClass,
-                            ['Class 10 - A', 'Class 9 - B', 'Class 8 - A'],
+                            ['Class 10 - A', 'Class 9 - B', 'Class 8 - A', 'All'],
                             Icons.class_rounded,
-                            (v) => setState(() => _selectedClass = v!),
+                            (v) => _onClassChanged(v!),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -538,7 +542,11 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
 
             // ════════════════ STUDENT LIST ════════════════
             Expanded(
-              child: ListView.builder(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppTheme.teacherPurple))
+                : filtered.isEmpty 
+                  ? Center(child: Text("No students found", style: GoogleFonts.inter(color: Colors.grey)))
+                  : ListView.builder(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 4,

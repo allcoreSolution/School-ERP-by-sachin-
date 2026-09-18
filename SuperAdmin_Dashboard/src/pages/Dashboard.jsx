@@ -47,9 +47,9 @@ const Dashboard = () => {
           </div>
           <div className="w-[400px] overflow-hidden whitespace-nowrap relative h-full flex items-center text-[12px] font-medium text-slate-600 pl-4">
             <div className="animate-[marquee_20s_linear_infinite] flex items-center gap-1.5">
-              <Key className="w-3.5 h-3.5 text-emerald-500" /> User Logged In — Super Admin (Superadmin) <span className="text-slate-400 font-normal">({dateStr} — 05:42 PM)</span>
+              <Key className="w-3.5 h-3.5 text-emerald-500" /> User Logged In — Super Admin <span className="text-slate-400 font-normal">({timeStr})</span>
               <span className="opacity-0">___</span>
-              <Key className="w-3.5 h-3.5 text-emerald-500" /> User Logged In — school admin (School admin) <span className="text-slate-400 font-normal">({dateStr} — 05:40 PM)</span>
+              <Key className="w-3.5 h-3.5 text-emerald-500" /> System Online <span className="text-slate-400 font-normal">({dateStr})</span>
             </div>
           </div>
         </div>

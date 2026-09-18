@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, CheckCircle, Clock, Bell, Filter, ChevronRight, X, Send, AlertTriangle, Trash2 } from 'lucide-react';
+import { tenantService } from '../api/tenantService';
 
 const initTickets = [
   { id: 1, tkt: 'TKT-000001', subject: 'student data filling problem',  school: 'G. P. School',                category: 'Technical issue',      priority: 'Urgent', status: 'Open',     updated: '1 week ago' },
@@ -26,7 +27,7 @@ const STATUS_BADGE = {
 const SCHOOLS = ['All schools', 'G. P. School', 'Gaurav Excellence Academy', 'skoolpro', 'SUNRISE INTERNATION SCHOOL', 'Bright Minds Academy', 'DPS International'];
 
 export default function SupportTickets() {
-  const [tickets, setTickets] = useState(initTickets);
+  const [tickets, setTickets] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
@@ -35,6 +36,33 @@ export default function SupportTickets() {
   const [reply, setReply] = useState('');
   const [deleteTicket, setDeleteTicket] = useState(null);
   const [messages, setMessages] = useState({});
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const fetchTickets = async () => {
+    try {
+      const res = await tenantService.getAllTickets();
+      if(res.data && res.data.length > 0) {
+         setTickets(res.data.map(t => ({
+           id: t._id,
+           tkt: 'TKT-' + t._id.substring(t._id.length - 6).toUpperCase(),
+           subject: t.title,
+           school: t.schoolId?.schoolName || 'Unknown School',
+           category: 'Support', // Or parse from dynamic tags if available
+           priority: t.priority,
+           status: t.status,
+           updated: new Date(t.updatedAt).toLocaleDateString()
+         })));
+      } else {
+         setTickets([]); // removed fallback
+      }
+    } catch(err) {
+      console.log(err);
+      setTickets([]); // removed fallback
+    }
+  };
 
   const stats = useMemo(() => ({
     open:       tickets.filter(t => t.status === 'Open').length,

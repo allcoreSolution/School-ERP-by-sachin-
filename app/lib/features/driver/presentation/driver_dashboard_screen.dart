@@ -354,7 +354,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               ),
                             ),
                             Text(
-                              '6 Casual • 6 Medical',
+                              'Pending Sync...',
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -428,14 +428,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              'Driver Pay (July 2026)',
+                              'Driver Pay (Current)',
                               style: GoogleFonts.inter(
                                 fontSize: 11.5,
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
-                              '₹ 28,500 • Credited',
+                              '-- • Pending',
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -573,21 +573,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
 
               const SizedBox(height: 10),
-
-              _buildNoticeCard(
-                '📢 Transport Notice: Speed Limit & Safety Alert',
-                'Maintain max speed limit of 40 km/h in school zones at all times.',
-                '09 Aug 2026',
-                isDark,
+              
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('No new notices for drivers.', style: GoogleFonts.inter(color: Colors.grey)),
               ),
-              const SizedBox(height: 8),
-              _buildNoticeCard(
-                '📢 Vehicle Servicing: Bus UP 32 AB 1234',
-                'Scheduled brake and oil servicing due on Saturday 12 Aug.',
-                '07 Aug 2026',
-                isDark,
-              ),
-
               const SizedBox(height: 20),
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/theme/theme_provider.dart';
 
@@ -374,31 +375,39 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
 
                 const SizedBox(height: 20),
 
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'New Driver? ',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              // Developer Signature
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    final Uri url = Uri.parse('https://www.allcoresolution.com');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      Text(
+                        'Developed By Sachin',
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => context.push('/driver-register'),
-                      child: Text(
-                        'Register Driver Profile',
+                      const SizedBox(height: 4),
+                      Text(
+                        '@ All Core Solution',
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFEA580C),
+                          color: const Color(0xFF2563EB), 
                         ),
                       ),
-                    ),
-                  ],
-                ),
-
+                    ],
+                  ),
+                ).animate().fadeIn(duration: 450.ms, delay: 200.ms),
+              ),
+              
                 const SizedBox(height: 16),
               ],
             ),

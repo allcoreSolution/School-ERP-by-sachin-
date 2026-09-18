@@ -1,24 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Building2, Users, CreditCard, CheckCircle, XCircle, Clock,
   Mail, Phone, Globe, MapPin, Calendar, Edit, Trash2, TrendingUp,
   BookOpen, UserCheck, AlertTriangle, X, Save
 } from 'lucide-react';
-import { initSchools } from '../../data/schoolsData';
-
-const extraData = {
-  1: { branches: 3, staff: 89, revenue: '₹4,999', lastPayment: 'Sep 01, 2024' },
-  2: { branches: 1, staff: 54, revenue: '₹999',   lastPayment: 'Aug 31, 2024' },
-  3: { branches: 2, staff: 61, revenue: '₹4,999', lastPayment: 'Jul 15, 2024' },
-  4: { branches: 1, staff: 42, revenue: '₹2,499', lastPayment: 'Aug 30, 2024' },
-  5: { branches: 1, staff: 31, revenue: '₹999',   lastPayment: 'Pending' },
-  6: { branches: 4, staff: 78, revenue: '₹4,999', lastPayment: 'Sep 01, 2024' },
-  7: { branches: 2, staff: 55, revenue: '₹2,499', lastPayment: 'Aug 27, 2024' },
-  8: { branches: 1, staff: 18, revenue: '₹999',   lastPayment: 'Pending' },
-};
-
-const allSchools = initSchools.map(s => ({ ...s, ...(extraData[s.id] || {}) }));
+import { tenantService } from '../../api/tenantService';
 
 const planColors = { Premium: 'bg-purple-100 text-purple-700', Standard: 'bg-blue-100 text-blue-700', Basic: 'bg-gray-100 text-gray-600' };
 
@@ -51,12 +38,57 @@ const recentActivity = [
 export default function SchoolDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const found = allSchools.find(s => s.id === Number(id));
 
-  const [school, setSchool] = useState(found || null);
+  const [school, setSchool] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [editData, setEditData] = useState(found ? { ...found } : {});
+  const [editData, setEditData] = useState({});
+
+  useEffect(() => {
+    fetchSchoolData();
+  }, [id]);
+
+  const fetchSchoolData = async () => {
+    try {
+      const res = await tenantService.getTenantById(id);
+      if (res.data) {
+        // Map backend schema to UI expectations
+        const s = res.data;
+        const mapped = {
+          id: s._id,
+          name: s.schoolName,
+          email: s.email,
+          phone: s.phone || 'N/A',
+          city: s.city || 'Unknown',
+          state: s.state || 'Unknown',
+          address: s.address || 'Not Provided',
+          website: 'N/A',
+          plan: s.plan || 'Basic',
+          status: s.status,
+          established: 'N/A',
+          joined: new Date(s.createdAt).toLocaleDateString(),
+          adminName: s.adminName || 'Admin',
+          
+          students: s.studentsCount || 0,
+          branches: 1,
+          staff: 0,
+          revenue: '₹0',
+          lastPayment: 'Pending'
+        };
+        setSchool(mapped);
+        setEditData(mapped);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="flex h-96 items-center justify-center text-gray-500 font-bold">Loading school details...</div>;
+  }
 
   if (!school) {
     return (

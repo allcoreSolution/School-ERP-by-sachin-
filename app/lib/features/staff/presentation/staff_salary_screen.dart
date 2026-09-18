@@ -69,11 +69,8 @@ class _StaffSalaryScreenState extends State<StaffSalaryScreen> with SingleTicker
     
     // Fallback to mock data if API fails or is empty
     setState(() {
-      _paymentHistory = [
-        {'month': 'May 2025', 'amount': '₹ 18,650', 'paidDate': '31 May 2025', 'status': 'Paid', 'raw': null},
-        {'month': 'April 2025', 'amount': '₹ 18,650', 'paidDate': '30 Apr 2025', 'status': 'Paid', 'raw': null},
-      ];
-      _selectedPayslip = _paymentHistory.first;
+      _paymentHistory = [];
+      _selectedPayslip = null;
       _isLoading = false;
     });
   }

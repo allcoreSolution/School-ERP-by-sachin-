@@ -137,5 +137,47 @@ class TeacherDataRepository extends ChangeNotifier {
     }
   }
 
-  // Generic Leave applications etc can be added here
+  // Fetch Students for Attendance
+  Future<List<Map<String, dynamic>>> fetchClassStudents({String? className}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sp_teacher_token') ?? '';
+      
+      final response = await http.get(
+        Uri.parse('https://all-core-school-erp-backend.onrender.com/api/students?limit=50'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true && body['data'] != null) {
+          List<Map<String, dynamic>> students = [];
+          for (var item in body['data']) {
+            if (className != null && className != 'All') {
+                final studentClass = item['studentClass']?.toString() ?? '';
+                if (!className.contains(studentClass)) continue; // rudimentary filter
+            }
+            
+            final String name = (item['firstName']?.toString() ?? item['name']?.toString() ?? 'Unknown') + ' ' + (item['lastName']?.toString() ?? '');
+            
+            students.add({
+              'id': item['_id']?.toString() ?? '',
+              'roll': item['rollNo']?.toString() ?? '-',
+              'name': name.trim(),
+              'status': 'Present', // Default status for UI
+              'avatar': name.trim().isNotEmpty ? name.trim().substring(0, 1).toUpperCase() : 'U'
+            });
+          }
+          return students;
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching students: $e');
+      return [];
+    }
+  }
 }
