@@ -3,6 +3,7 @@ import {
   Lock, Plus, Eye, Edit, Trash2, LayoutList, LayoutGrid,
   FileText, FileSpreadsheet, Printer, Columns, Search
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const initPosts = [
   { id: 1, title: 'Mastering Revenue with the ProjectWorlds Finance & Fee Management Ecosystem', readTime: '2 min read', category: 'School Management', categoryColor: 'bg-blue-100 text-blue-700', author: 'Super Admin', status: 'Published', views: 144, published: 'Feb 18, 2026' },
@@ -50,14 +51,23 @@ export default function BlogPosts() {
 
   // Delete
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      setPosts(prev => prev.filter(p => p.id !== id));
-      if (displayed.length === 1 && currentPage > 1) setCurrentPage(p => p - 1);
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to delete this post?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setPosts(prev => prev.filter(p => p.id !== id));
+        if (displayed.length === 1 && currentPage > 1) setCurrentPage(p => p - 1);
+      }
+    });
   };
 
   // Export stubs
-  const handleExport = (type) => alert(`${type} export coming soon.`);
+  const handleExport = (type) => Swal.fire({ icon: 'info', text: `${type} export coming soon.`, confirmButtonColor: '#0891b2' });
 
   const statCards = [
     { icon: '📝', label: 'TOTAL POSTS', value: totalPosts, color: 'text-blue-600' },
@@ -75,7 +85,7 @@ export default function BlogPosts() {
           <p className="text-sm text-gray-500 mt-0.5">Public website articles &amp; product updates</p>
         </div>
         <button
-          onClick={() => alert('New Blog Post form coming soon.')}
+          onClick={() => Swal.fire({ icon: 'info', text: 'New Blog Post form coming soon.', confirmButtonColor: '#0891b2' })}
           className="flex items-center gap-2 px-4 py-2 bg-[#6610f2] text-white rounded-none hover:bg-purple-700 text-sm font-semibold transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" strokeWidth={3} />
@@ -159,7 +169,7 @@ export default function BlogPosts() {
                 </button>
               ))}
               <button
-                onClick={() => alert('Column visibility settings coming soon.')}
+                onClick={() => Swal.fire({ icon: 'info', text: 'Column visibility settings coming soon.', confirmButtonColor: '#0891b2' })}
                 className="flex items-center gap-1 px-2 py-1 text-xs font-medium border border-gray-300 bg-white rounded-none hover:bg-gray-100 text-gray-600 transition-colors"
               >
                 <Columns className="w-3 h-3" /> Columns ▾

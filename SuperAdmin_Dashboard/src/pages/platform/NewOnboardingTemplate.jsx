@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2, GripVertical, Settings, Users, ArrowRight } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function NewOnboardingTemplate() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function NewOnboardingTemplate() {
 
   const handleSave = () => {
     if (!templateName.trim()) {
-      alert('Please enter a template name');
+      Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please enter a template name', confirmButtonColor: '#0891b2' });
       return;
     }
     // In a real app, send to API here

@@ -2,15 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, CheckCircle, Clock, Bell, Filter, ChevronRight, X, Send, AlertTriangle, Trash2 } from 'lucide-react';
 import { tenantService } from '../api/tenantService';
 
-const initTickets = [
-  { id: 1, tkt: 'TKT-000001', subject: 'student data filling problem',  school: 'G. P. School',                category: 'Technical issue',      priority: 'Urgent', status: 'Open',     updated: '1 week ago' },
-  { id: 2, tkt: 'TKT-000001', subject: 'We are facing plan upgrade related issue', school: 'Gaurav Excellence Academy', category: 'Billing & subscription', priority: 'Normal', status: 'Open',     updated: '1 month ago' },
-  { id: 3, tkt: 'TKT-000007', subject: 'Unable to generate fees',       school: 'skoolpro',                   category: 'Technical issue',      priority: 'High',   status: 'Resolved', updated: '3 days ago' },
-  { id: 4, tkt: 'TKT-000008', subject: 'Fee not generated',             school: 'SUNRISE INTERNATION SCHOOL', category: 'Technical issue',      priority: 'High',   status: 'Resolved', updated: '2 weeks ago' },
-  { id: 5, tkt: 'TKT-000009', subject: 'Cannot export attendance',      school: 'Bright Minds Academy',       category: 'Technical issue',      priority: 'Normal', status: 'Open',     updated: '5 days ago' },
-  { id: 6, tkt: 'TKT-000010', subject: 'WhatsApp notifications not sent', school: 'DPS International',       category: 'Billing & subscription', priority: 'Urgent', status: 'Open',   updated: '2 days ago' },
-];
-
 const PRIORITIES = {
   Urgent: 'text-orange-600 font-bold',
   High:   'text-red-600   font-bold',
@@ -23,8 +14,6 @@ const STATUS_BADGE = {
   Resolved:  'text-emerald-600 border border-emerald-300 bg-emerald-50',
   'In Progress': 'text-blue-600 border border-blue-300 bg-blue-50',
 };
-
-const SCHOOLS = ['All schools', 'G. P. School', 'Gaurav Excellence Academy', 'skoolpro', 'SUNRISE INTERNATION SCHOOL', 'Bright Minds Academy', 'DPS International'];
 
 export default function SupportTickets() {
   const [tickets, setTickets] = useState([]);
@@ -70,6 +59,8 @@ export default function SupportTickets() {
     resolved:   tickets.filter(t => t.status === 'Resolved').length,
     unread:     0,
   }), [tickets]);
+
+  const uniqueSchools = useMemo(() => ['All schools', ...new Set(tickets.map(t => t.school))], [tickets]);
 
   const filtered = useMemo(() => tickets.filter(t => {
     if (statusFilter !== 'All' && t.status !== statusFilter) return false;
@@ -170,7 +161,7 @@ export default function SupportTickets() {
           <div className="min-w-[200px] flex-1">
             <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5">School</label>
             <select value={schoolFilter} onChange={e => setSchoolFilter(e.target.value)} className="w-full border border-gray-200 rounded-none px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-[#554bb9]">
-              {SCHOOLS.map(s => <option key={s}>{s}</option>)}
+              {uniqueSchools.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
 

@@ -3,6 +3,7 @@ import {
   Lock, MessageSquare, CheckCircle2, Star, Edit3, Send,
   X, Check, Eye, EyeOff, Copy, AlertCircle, Sparkles, Shield, Download
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import SettingsLayout from '../../components/SettingsLayout';
 
 const INITIAL_SMS_GATEWAYS = [
@@ -21,7 +22,7 @@ export default function SmsGatewaysSettings({ inSettingsCenter = false }) {
     const saved = localStorage.getItem('superadmin_sms_gateways');
     return saved ? JSON.parse(saved) : INITIAL_SMS_GATEWAYS;
   });
-  const [demoBanner, setDemoBanner] = useState(true);
+  const [demoBanner, setDemoBanner] = useState(false);
   const [editingGw, setEditingGw] = useState(null);
   const [editForm, setEditForm] = useState({ accountSid: '', authToken: '', senderId: '', dltEntityId: '', active: false, isDefault: false });
   const [showToken, setShowToken] = useState(false);
@@ -59,6 +60,13 @@ export default function SmsGatewaysSettings({ inSettingsCenter = false }) {
     });
     updateAndSave(updated);
     setEditSuccess(true);
+    Swal.fire({
+      icon: 'success',
+      title: 'Provider Saved',
+      text: `${editingGw.name} settings updated successfully.`,
+      timer: 1500,
+      showConfirmButton: false
+    });
     setTimeout(() => { setEditSuccess(false); setEditingGw(null); }, 1000);
   };
 
@@ -100,13 +108,7 @@ export default function SmsGatewaysSettings({ inSettingsCenter = false }) {
           </button>
         </div>
 
-        {/* Demo Banner */}
-        {demoBanner && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2"><Lock className="w-3.5 h-3.5 flex-shrink-0" /><span><strong>Demo mode:</strong> these settings are read-only.</span></div>
-            <button onClick={() => setDemoBanner(false)} className="text-amber-500 hover:text-amber-700 font-bold text-base leading-none">×</button>
-          </div>
-        )}
+
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

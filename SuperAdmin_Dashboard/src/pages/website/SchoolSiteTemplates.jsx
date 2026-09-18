@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Code, Plus, Lock, Puzzle, Download, Layers, Check, Edit, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const initTemplates = [
   { id: 1, name: 'Multi School ERPv2.0 Orange Full', tag: 'orange', updatedAt: '4 weeks ago', active: true },
@@ -17,12 +18,21 @@ export default function SchoolSiteTemplates() {
   // Delete template
   const handleDelete = (id) => {
     if (templates.find(t => t.id === id)?.active) {
-      alert('Cannot delete the active template.');
+      Swal.fire({ icon: 'warning', title: 'Cannot Delete', text: 'Cannot delete the active template.', confirmButtonColor: '#0891b2' });
       return;
     }
-    if (window.confirm('Delete this template?')) {
-      setTemplates(templates.filter(t => t.id !== id));
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Delete this template?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setTemplates(templates.filter(t => t.id !== id));
+      }
+    });
   };
 
   return (
@@ -39,7 +49,7 @@ export default function SchoolSiteTemplates() {
           </p>
         </div>
         <button
-          onClick={() => alert('New Template form coming soon.')}
+          onClick={() => Swal.fire({ icon: 'info', text: 'New Template form coming soon.', confirmButtonColor: '#0891b2' })}
           className="flex items-center gap-2 px-4 py-2 bg-[#f97316] text-white rounded-none hover:bg-orange-600 text-sm font-medium transition-colors mt-1"
         >
           <Plus className="w-4 h-4" />
@@ -87,9 +97,8 @@ export default function SchoolSiteTemplates() {
         </div>
       </div>
 
-      {/* Quick Import */}
       <div
-        onClick={() => alert('Quick Import: Upload a .zip HTML template.')}
+        onClick={() => Swal.fire({ icon: 'info', text: 'Quick Import: Upload a .zip HTML template.', confirmButtonColor: '#0891b2' })}
         className="bg-white border-t-2 border-yellow-500 border-x border-b border-gray-300 rounded-none shadow-sm p-4 mb-6 flex items-center justify-between cursor-pointer hover:bg-gray-50"
       >
         <div className="flex items-center gap-2 font-semibold text-gray-800 text-sm">

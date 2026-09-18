@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutGrid, Save, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 const THEMES = [
   { id: 1, name: 'Classic Dashboard (Legacy)', bg: 'bg-blue-100', tag: '' },
@@ -19,7 +21,32 @@ export default function DashboardThemesSettings() {
   const [allowedIds, setAllowedIds] = useState(THEMES.map(t => t.id));
   const [defaultTheme, setDefaultTheme] = useState('Command Center (Warm ERP) 🟠');
   const [saved, setSaved] = useState(false);
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+
+  useEffect(() => {
+    settingsService.getSetting('dashboard_themes').then(res => {
+      if (res.success && res.data) {
+        setAllowedIds(res.data.allowedIds || THEMES.map(t => t.id));
+        setDefaultTheme(res.data.defaultTheme || 'Command Center (Warm ERP) 🟠');
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = async () => { 
+    try {
+      await settingsService.saveSetting('dashboard_themes', { allowedIds, defaultTheme });
+      setSaved(true); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Settings Saved',
+        text: 'Your changes have been saved to the database successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setTimeout(() => setSaved(false), 2500); 
+    } catch (error) {
+      Swal.fire('Error', 'Failed to save configuration: ' + error.message, 'error');
+    }
+  };
 
   const toggleAllowed = (id) => {
     setAllowedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);

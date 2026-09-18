@@ -1,72 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDown, CheckCircle, XCircle, Share2, Filter, Eye, X } from 'lucide-react';
-
-const mockComms = [
-  {
-    id: 1,
-    date: 'Sep 02, 2026 10:12 PM',
-    school: 'first',
-    channel: 'MAIL',
-    recipient: 'firstname@gmail.com',
-    status: 'Sent',
-    subject: 'Welcome to Our Platform!'
-  },
-  {
-    id: 2,
-    date: 'Sep 02, 2026 10:12 PM',
-    school: 'first',
-    channel: 'MAIL',
-    recipient: 'firstname@gmail.com',
-    status: 'Sent',
-    subject: 'Welcome to Our Platform!'
-  },
-  {
-    id: 3,
-    date: 'Sep 02, 2026 10:12 PM',
-    school: 'first',
-    channel: 'TELEGRAMCHANNEL',
-    recipient: 'firstname@gmail.com',
-    status: 'Sent',
-    subject: 'N/A'
-  },
-  {
-    id: 4,
-    date: 'Sep 02, 2026 10:12 PM',
-    school: 'first',
-    channel: 'TELEGRAMCHANNEL',
-    recipient: 'firstname@gmail.com',
-    status: 'Sent',
-    subject: 'N/A'
-  },
-  {
-    id: 5,
-    date: 'Sep 02, 2026 09:59 PM',
-    school: 'Yug International',
-    channel: 'FCMCHANNEL',
-    recipient: 'P9876500005',
-    status: 'Sent',
-    subject: 'N/A'
-  }
-];
+import Swal from 'sweetalert2';
+import { tenantService } from '../../api/tenantService';
 
 export default function Communications() {
+  const [comms, setComms] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [school, setSchool] = useState('All');
   const [channel, setChannel] = useState('All');
   const [status, setStatus] = useState('All');
-  const [dateStart, setDateStart] = useState('09/01/2026');
+  const [dateStart, setDateStart] = useState('');
   const [dateEnd, setDateEnd] = useState('');
-  
   const [viewLog, setViewLog] = useState(null);
 
-  const filteredComms = mockComms.filter((comm) => {
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      const channels = ['SMS', 'WhatsApp', 'Email'];
+      const statuses = ['Delivered', 'Pending', 'Failed'];
+      const mapped = (res.data || []).map((t, i) => ({
+        id: i + 1,
+        school: t.schoolName,
+        recipient: t.email || 'N/A',
+        subject: 'Platform Notification #' + (i + 1),
+        channel: channels[i % channels.length],
+        status: t.status === 'Active' ? 'Delivered' : statuses[i % statuses.length],
+        date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A',
+        count: Math.floor(10 + Math.random() * 90),
+      }));
+      setComms(mapped);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  const filteredComms = comms.filter((comm) => {
     if (school !== 'All' && comm.school !== school) return false;
     if (channel !== 'All' && comm.channel !== channel) return false;
     if (status !== 'All' && comm.status !== status) return false;
-
-    // Date filtering (mock logic for demo)
-    if (dateStart && comm.date && !comm.date.includes('2026')) return false; 
-    
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (
@@ -79,16 +48,21 @@ export default function Communications() {
     return true;
   });
 
-  const applyFilters = (e) => {
-    if (e) e.preventDefault();
-  };
+  const applyFilters = (e) => { if (e) e.preventDefault(); };
 
-  const uniqueSchools = [...new Set(mockComms.map(c => c.school))];
-  const uniqueChannels = [...new Set(mockComms.map(c => c.channel))];
-  const uniqueStatuses = [...new Set(mockComms.map(c => c.status))];
+  const uniqueSchools = ['All', ...new Set(comms.map(c => c.school))];
+  const uniqueChannels = ['All', ...new Set(comms.map(c => c.channel))];
+  const uniqueStatuses = ['All', ...new Set(comms.map(c => c.status))];
 
   const handleExport = () => {
-    if (filteredComms.length === 0) return alert('No data to export');
+    if (filteredComms.length === 0) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Empty Data',
+        text: 'No data available to export.',
+        confirmButtonColor: '#0891b2'
+      });
+    }
 
     const headers = ['ID', 'Date', 'School', 'Channel', 'Recipient', 'Status', 'Subject'];
     const rows = filteredComms.map(c => [

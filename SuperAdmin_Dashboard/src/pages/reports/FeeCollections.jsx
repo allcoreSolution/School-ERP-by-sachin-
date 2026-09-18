@@ -1,73 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDown, Filter, RefreshCcw, Search, PieChart, Info, Calendar } from 'lucide-react';
-
-const mockFees = [
-  {
-    id: 1,
-    date: '02 Sep, 2026',
-    time: '12:13 AM',
-    receiptLink: '#YIS-2026-2027-26-0008',
-    student: 'Yash Kaur',
-    admissionNo: 'Adm: YISADM-133',
-    school: 'Yug International',
-    mode: 'CASH',
-    amount: '18,000.00'
-  },
-  {
-    id: 2,
-    date: '02 Sep, 2026',
-    time: '08:36 AM',
-    receiptLink: '#SUD-26-27-0027',
-    student: 'SAKSHI KUMARI',
-    admissionNo: 'Adm: 2273',
-    school: 'SUDHAKAR',
-    mode: 'CASH',
-    amount: '5,000.00'
-  }
-];
+import Swal from 'sweetalert2';
+import { tenantService } from '../../api/tenantService';
 
 export default function FeeCollections() {
+  const [fees, setFees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [inputs, setInputs] = useState({
     school: 'All Schools',
     mode: 'All Modes',
-    dateFrom: '09/01/2026',
+    dateFrom: '',
     dateTo: '',
     searchTerm: ''
   });
-
   const [activeFilters, setActiveFilters] = useState({ ...inputs });
 
-  const uniqueSchools = [...new Set(mockFees.map(f => f.school))];
-  const uniqueModes = [...new Set(mockFees.map(f => f.mode))];
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      const mapped = (res.data || []).map((t, i) => ({
+        id: i + 1,
+        school: t.schoolName,
+        student: t.schoolName + ' (School Fee)',
+        admissionNo: 'ADM-' + String(i + 1).padStart(4, '0'),
+        amount: t.planAmount || 0,
+        mode: 'Online',
+        date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A',
+        status: t.status === 'Active' ? 'Paid' : 'Pending',
+        receiptLink: '#',
+      }));
+      setFees(mapped);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
 
-  const handleSearch = () => {
-    setActiveFilters({ ...inputs });
-  };
+  const uniqueSchools = ['All Schools', ...new Set(fees.map(f => f.school))];
+  const uniqueModes = ['All Modes', ...new Set(fees.map(f => f.mode))];
 
+  const handleSearch = () => setActiveFilters({ ...inputs });
   const handleReset = () => {
-    const defaultState = {
-      school: 'All Schools',
-      mode: 'All Modes',
-      dateFrom: '09/01/2026',
-      dateTo: '',
-      searchTerm: ''
-    };
+    const defaultState = { school: 'All Schools', mode: 'All Modes', dateFrom: '', dateTo: '', searchTerm: '' };
     setInputs(defaultState);
     setActiveFilters(defaultState);
   };
 
-  const filteredFees = mockFees.filter((fee) => {
+  const filteredFees = fees.filter((fee) => {
     if (activeFilters.school !== 'All Schools' && fee.school !== activeFilters.school) return false;
     if (activeFilters.mode !== 'All Modes' && fee.mode !== activeFilters.mode) return false;
-    
-    // Mock date filtering
-    if (activeFilters.dateFrom && fee.date && !fee.date.includes('2026')) return false;
-
     if (activeFilters.searchTerm) {
       const term = activeFilters.searchTerm.toLowerCase();
       return (
         fee.student.toLowerCase().includes(term) ||
-        fee.receiptLink.toLowerCase().includes(term) ||
         fee.admissionNo.toLowerCase().includes(term) ||
         fee.school.toLowerCase().includes(term)
       );
@@ -76,7 +57,14 @@ export default function FeeCollections() {
   });
 
   const handleExport = () => {
-    if (filteredFees.length === 0) return alert('No data to export');
+    if (filteredFees.length === 0) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Empty Data',
+        text: 'No data available to export.',
+        confirmButtonColor: '#0891b2'
+      });
+    }
     const headers = ['ID', 'Date', 'Time', 'Receipt', 'Student', 'Admission No', 'School', 'Mode', 'Amount'];
     const rows = filteredFees.map(f => [
       f.id, 

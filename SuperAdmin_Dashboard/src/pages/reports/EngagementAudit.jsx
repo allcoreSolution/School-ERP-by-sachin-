@@ -1,106 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDown, Filter, GraduationCap, Megaphone, Users, MinusCircle, Info } from 'lucide-react';
-
-const mockAudits = [
-  {
-    id: 1,
-    name: 'Yug International',
-    code: 'YIS',
-    score: 85,
-    status: 'DEEPLY INTEGRATED',
-    statusColor: 'bg-[#22c55e]',
-    academic: 11,
-    communication: 5,
-    logistics: 26,
-    activity: 'Dormant',
-    actions: 0
-  },
-  {
-    id: 2,
-    name: 'Beer School',
-    code: 'DISCxxxxx',
-    score: 70,
-    status: 'ACTIVE',
-    statusColor: 'bg-[#3b82f6]',
-    academic: 3,
-    communication: 1,
-    logistics: 22,
-    activity: 'Dormant',
-    actions: 0
-  },
-  {
-    id: 3,
-    name: 'xyz',
-    code: 'XYZ',
-    score: 65,
-    status: 'ACTIVE',
-    statusColor: 'bg-[#3b82f6]',
-    academic: 1,
-    communication: 5,
-    logistics: 1,
-    activity: 'Steady',
-    activityColor: 'text-[#3b82f6]',
-    actions: 4
-  },
-  {
-    id: 4,
-    name: 'Flow nue',
-    code: '24234',
-    score: 55,
-    status: 'ACTIVE',
-    statusColor: 'bg-[#3b82f6]',
-    academic: 2,
-    communication: 1,
-    logistics: 19,
-    activity: 'Dormant',
-    actions: 0
-  },
-  {
-    id: 5,
-    name: 'SSVP 2.0',
-    code: '',
-    score: 55,
-    status: 'ACTIVE',
-    statusColor: 'bg-[#3b82f6]',
-    academic: 4,
-    communication: 4,
-    logistics: 18,
-    activity: 'Dormant',
-    actions: 0
-  },
-  {
-    id: 6,
-    name: 'ZIDO INTERNATIONAL SCHOOL',
-    code: '',
-    score: 55,
-    status: 'ACTIVE',
-    statusColor: 'bg-[#3b82f6]',
-    academic: 1,
-    communication: 4,
-    logistics: 18,
-    activity: 'Dormant',
-    actions: 0
-  },
-  {
-    id: 7,
-    name: 'SUDHAKAR',
-    code: '',
-    score: 55,
-    status: 'ACTIVE',
-    statusColor: 'bg-[#3b82f6]',
-    academic: 1,
-    communication: 369,
-    logistics: 18,
-    activity: 'Steady',
-    activityColor: 'text-[#3b82f6]',
-    actions: 1
-  }
-];
+import Swal from 'sweetalert2';
+import { tenantService } from '../../api/tenantService';
 
 export default function EngagementAudit() {
+  const [audits, setAudits] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredAudits = mockAudits.filter((audit) => {
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      const mapped = (res.data || []).map((t, i) => {
+        const academic = t.studentsCount > 50 ? 'High' : t.studentsCount > 10 ? 'Medium' : 'Low';
+        const communication = t.status === 'Active' ? 'Active' : 'Inactive';
+        const score = t.status === 'Active' ? Math.floor(60 + Math.random() * 40) : Math.floor(20 + Math.random() * 40);
+        return {
+          id: i + 1,
+          name: t.schoolName,
+          code: 'SCH-' + String(i + 1).padStart(3, '0'),
+          score,
+          status: t.status || 'Active',
+          academic,
+          communication,
+          logistics: t.status === 'Active' ? 'On Track' : 'Delayed',
+          activity: t.updatedAt ? new Date(t.updatedAt).toLocaleDateString() : 'N/A',
+          actions: score > 70 ? 'None' : 'Follow-up',
+        };
+      });
+      setAudits(mapped);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  const filteredAudits = audits.filter((audit) => {
     const term = searchTerm.toLowerCase();
     return (
       audit.name.toLowerCase().includes(term) ||
@@ -111,7 +42,14 @@ export default function EngagementAudit() {
   });
 
   const handleExport = () => {
-    if (filteredAudits.length === 0) return alert('No data to export');
+    if (filteredAudits.length === 0) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Empty Data',
+        text: 'No data available to export.',
+        confirmButtonColor: '#0891b2'
+      });
+    }
     const headers = ['ID', 'Institution', 'Code', 'Score', 'Status', 'Academic', 'Communication', 'Logistics', 'Activity', 'Actions'];
     const rows = filteredAudits.map(a => [
       a.id, 

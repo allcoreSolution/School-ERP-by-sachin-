@@ -78,7 +78,9 @@ module.exports = {
   uploadStudentAdmissionFiles,
   uploadStaffPhoto,
   uploadAttachment,
+  upload,
   photosDir,
   staffPhotosDir,
   docsDir,
 };
+

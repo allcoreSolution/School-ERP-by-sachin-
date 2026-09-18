@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LayoutTemplate, Star, Eye, CheckCircle, Search, Filter } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ALL_TEMPLATES = [
   { id: 1, name: 'Classic School', category: 'Education', desc: 'Clean, professional layout for K-12 schools with sidebar navigation.', popular: true, colors: ['#1e40af', '#ffffff', '#f8fafc'] },
@@ -34,10 +35,19 @@ export default function FullTemplates() {
 
   const handleApply = (t) => {
     if (applied === t.id) return;
-    if (window.confirm(`Apply "${t.name}" template? This will replace the current template.`)) {
-      setApplied(t.id);
-      showToast(`✅ "${t.name}" template applied successfully!`);
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `Apply "${t.name}" template? This will replace the current template.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0891b2',
+      confirmButtonText: 'Yes, apply it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setApplied(t.id);
+        showToast(`✅ "${t.name}" template applied successfully!`);
+      }
+    });
   };
 
   return (

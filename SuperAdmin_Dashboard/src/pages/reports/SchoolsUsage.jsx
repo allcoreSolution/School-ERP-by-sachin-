@@ -1,69 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileDown, Filter, RefreshCcw, Crown, Shield } from 'lucide-react';
-
-const mockSchools = [
-  {
-    id: 1,
-    name: 'Yug International',
-    plan: 'Enterprise Plan',
-    planIcon: Crown,
-    students: 281,
-    staff: 6,
-    classes: 15,
-    expiryDate: 'Feb 26, 2027',
-    expiryText: '176 days left',
-    isExpired: false,
-    status: 'ACTIVE',
-    revenue: '0.00'
-  },
-  {
-    id: 2,
-    name: 'Test',
-    plan: 'Trial Plan',
-    planIcon: Shield,
-    students: 0,
-    staff: 0,
-    classes: 0,
-    expiryDate: 'Mar 26, 2026',
-    expiryText: 'Expired',
-    isExpired: true,
-    status: 'SUSPENDED',
-    revenue: '0.00'
-  },
-  {
-    id: 3,
-    name: 'My School high school',
-    plan: 'Trial Plan',
-    planIcon: Shield,
-    students: 3,
-    staff: 1,
-    classes: 9,
-    expiryDate: 'Mar 26, 2026',
-    expiryText: 'Expired',
-    isExpired: true,
-    status: 'SUSPENDED',
-    revenue: '0.00'
-  },
-  {
-    id: 4,
-    name: 'Ratnakar North Point School',
-    plan: 'Enterprise Plan',
-    planIcon: Crown,
-    students: 52,
-    staff: 0,
-    classes: 1,
-    expiryDate: 'Dec 26, 2026',
-    expiryText: '114 days left',
-    isExpired: false,
-    status: 'ACTIVE',
-    revenue: '0.00'
-  }
-];
+import Swal from 'sweetalert2';
+import { tenantService } from '../../api/tenantService';
 
 export default function SchoolsUsage() {
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredSchools = mockSchools.filter((school) => {
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      const mapped = (res.data || []).map((t, i) => ({
+        id: i + 1,
+        name: t.schoolName,
+        plan: t.plan || 'Basic',
+        students: t.studentsCount || 0,
+        staff: t.staffCount || 0,
+        classes: t.classesCount || 0,
+        expiryDate: t.expiryDate ? new Date(t.expiryDate).toLocaleDateString() : 'N/A',
+        status: t.status || 'Active',
+        revenue: '₹' + (t.totalRevenue || 0).toLocaleString(),
+      }));
+      setSchools(mapped);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  const filteredSchools = schools.filter((school) => {
     const term = searchTerm.toLowerCase();
     return (
       school.name.toLowerCase().includes(term) ||
@@ -72,7 +34,14 @@ export default function SchoolsUsage() {
   });
 
   const handleExport = () => {
-    if (filteredSchools.length === 0) return alert('No data to export');
+    if (filteredSchools.length === 0) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Empty Data',
+        text: 'No data available to export.',
+        confirmButtonColor: '#0891b2'
+      });
+    }
     const headers = ['ID', 'Institution', 'Plan', 'Students', 'Staff', 'Classes', 'Expiry Date', 'Status', 'LTV Revenue'];
     const rows = filteredSchools.map(s => [
       s.id, 

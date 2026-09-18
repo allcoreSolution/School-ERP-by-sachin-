@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GripVertical, Lock, Pencil, Trash2, ExternalLink, Ban, Plus, CheckCircle } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const initSections = [
   { id: 1, title: 'Hero Slider', type: 'Hero (Image Carousel)', hash: '/#hero-slider', active: true },
@@ -32,10 +33,19 @@ export default function VisualBuilder() {
   };
 
   const deleteSection = (id) => {
-    if (window.confirm('Delete this section?')) {
-      setSections(prev => prev.filter(s => s.id !== id));
-      showToast('Section deleted.', 'error');
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Delete this section?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setSections(prev => prev.filter(s => s.id !== id));
+        showToast('Section deleted.', 'error');
+      }
+    });
   };
 
   const addSection = () => {

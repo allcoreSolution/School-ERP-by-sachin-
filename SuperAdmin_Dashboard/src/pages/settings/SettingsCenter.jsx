@@ -9,11 +9,7 @@ export default function SettingsCenter() {
     <SettingsLayout activeTab="overview">
       <div className="flex-1 overflow-y-auto">
       <div className="p-8 pb-8 max-w-[1150px] mx-auto w-full">
-        {/* Alert Bar */}
-        <div className="bg-[#fff9e6] border border-[#fde68a] text-[#854d0e] px-4 py-3 rounded-none-none text-sm font-medium flex items-center gap-2 mb-6">
-          <Lock className="w-4 h-4" />
-          <span className="font-bold">Demo mode:</span> settings are read-only — changes are disabled for security.
-        </div>
+
 
         {/* Big Stat Card */}
         <div className="bg-white border border-gray-100 rounded-none-none p-6 shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-6">

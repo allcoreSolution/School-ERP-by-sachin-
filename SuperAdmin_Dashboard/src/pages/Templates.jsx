@@ -1,20 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, Wand2, LayoutGrid, Edit2, ZoomIn, FileText, QrCode } from 'lucide-react';
 
-const mockTemplates = [
-  { id: 1, title: 'Standard ID Card (Vertical)', type: 'placeholder', color: 'blue', tags: ['ID Card', 'Staff'] },
-  { id: 2, title: 'CBSE Term Wise Report', type: 'report', color: 'red', tags: ['Marksheet', 'Academic'] },
-  { id: 3, title: 'State Board Weightage Mark...', type: 'report', color: 'blue', tags: ['Marksheet', 'Academic'] },
-  { id: 4, title: 'Primary Progress Report', type: 'report', color: 'green', tags: ['Marksheet'] },
-  { id: 5, title: 'Standard Secondary Report', type: 'report', color: 'purple', tags: ['Marksheet'] },
-  { id: 6, title: 'Annual Sports Meet Cert.', type: 'report', color: 'red', tags: ['Certificate'] },
-  { id: 7, title: 'Fee Payment Slip Formatting', type: 'placeholder', color: 'blue', tags: ['Fee Receipt'] },
-  { id: 8, title: 'Secondary Board Admit Card', type: 'placeholder', color: 'green', tags: ['Admit Card'] },
-  { id: 9, title: 'School Transfer Certificate', type: 'placeholder', color: 'purple', tags: ['Transfer Certificate'] },
-  { id: 10, title: 'Staff Identity Card (Hori...)', type: 'placeholder', color: 'gray', tags: ['ID Card', 'Staff'] },
-  { id: 11, title: 'Student Bonafide Template', type: 'placeholder', color: 'green', tags: ['Certificate'] },
-  { id: 12, title: 'Birthday Card Template', type: 'placeholder', color: 'blue', tags: ['Interactive', 'General'] },
-];
+const mockTemplates = [];
 
 export default function Templates() {
   const [activeTag, setActiveTag] = useState('All');

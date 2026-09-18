@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, CheckCircle, X, Save, AlertTriangle, ChevronDown, Wand2, EyeOff, Globe } from 'lucide-react';
 import { planService } from '../../api/planService';
-
-const mockPlans = [
-  { id: 14, name: 'PYG', type: 'Trial - 14 days', visibility: 'Public', capacity: 'Billed per student', storage: '1 GB', monthly: '50.00', yearly: '300.00', isTrial: true },
-  { id: 9, name: '[Showcase] Flat — Starter', type: 'Paid', visibility: 'Hidden', capacity: 'Up to 400 students', storage: '5 GB', monthly: '2,999.00', yearly: '29,990.00' },
-];
+import Swal from 'sweetalert2';
 
 export default function Plans() {
   const [search, setSearch] = useState('');
@@ -66,9 +62,9 @@ export default function Plans() {
       setShowAdd(false);
       setEditPlan(null);
       setFormData({ name: '', type: 'Paid', visibility: 'Public', capacity: 'Billed per student', storage: '5 GB', monthly: '', yearly: '' });
-      alert("Plan Saved successfully!");
+      Swal.fire({ icon: 'success', title: 'Success', text: 'Plan Saved successfully!', confirmButtonColor: '#0891b2' });
     } catch(err) {
-      alert("Error saving plan: " + err.message);
+      Swal.fire({ icon: 'error', title: 'Error', text: "Error saving plan: " + err.message, confirmButtonColor: '#0891b2' });
     }
   };
 

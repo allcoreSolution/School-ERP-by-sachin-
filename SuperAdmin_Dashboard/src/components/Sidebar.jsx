@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -119,9 +119,15 @@ const navSections = [
 ];
 
 const NavItem = ({ item, onClose }) => {
-  const [open, setOpen] = useState(false);
   const location = useLocation();
   const isChildActive = item.children?.some(c => location.pathname === c.to);
+  const [open, setOpen] = useState(isChildActive);
+
+  useEffect(() => {
+    if (isChildActive) {
+      setOpen(true);
+    }
+  }, [isChildActive]);
 
   if (item.children) {
     return (
@@ -139,22 +145,26 @@ const NavItem = ({ item, onClose }) => {
             </div>
             <span className={`text-[13px] tracking-wide relative z-10 pl-1 ${isChildActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
           </div>
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open || isChildActive ? 'rotate-180 text-white' : 'text-gray-400'}`} />
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180 text-white' : 'text-gray-400'}`} />
         </button>
-        {(open || isChildActive) && (
-          <ul className="mt-1 ml-4 pl-3 border-l border-white/10 space-y-0.5">
+        {open && (
+          <ul className="mt-1.5 mb-2 ml-11 space-y-1 pr-3">
             {item.children.map((child, i) => (
               <li key={i}>
                 <NavLink to={child.to} onClick={onClose}
                   className={({ isActive }) =>
-                    `block px-3 py-2 border-l-[3px] text-xs transition-all duration-150 ` +
+                    `flex items-center px-4 py-2 rounded-xl text-[12px] transition-all duration-200 cursor-pointer ` +
                     (isActive 
-                      ? 'text-white font-bold border-white/50' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5 border-transparent font-medium')
+                      ? 'text-white font-bold bg-white/10 backdrop-blur-sm shadow-[inset_0_1px_rgba(255,255,255,0.1)]' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium')
                   }
-                  style={({ isActive }) => isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
                 >
-                  {child.label}
+                  {({ isActive }) => (
+                    <>
+                      <div className={`w-1.5 h-1.5 rounded-full mr-3 transition-colors ${isActive ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: item.color }} />
+                      <span className="tracking-wide relative -left-1">{child.label}</span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}

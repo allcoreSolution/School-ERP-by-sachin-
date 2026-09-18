@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Download, Eye, Paperclip } from 'lucide-react';
-
-const mockPayments = [
-  { id: 78, school: 'RVS ACADEMY2', plan: 'Per Student — Pay As You Grow', amount: '1,200.00', method: 'Razorpay', txnId: '—', hasProof: false, status: 'Pending', date: '02 Sep,\n2026', time: '10:26 AM' },
-  { id: 76, school: 'vikash international school', plan: 'Trial Plan', amount: '0.00', method: 'UpiQr', txnId: 'paidtransaction12345', hasProof: true, status: 'Paid', date: '25 Aug,\n2026', time: '10:22 PM' },
-  { id: 75, school: 'vikash international school', plan: 'Per Student — Pay As You Grow', amount: '1,200.00', method: 'UpiQr', txnId: 'paidtransaction1234', hasProof: true, status: 'Paid', date: '25 Aug,\n2026', time: '10:19 PM' },
-  { id: 74, school: 'G. P. School', plan: 'Growth Plan', amount: '1,000.00', method: 'UpiQr', txnId: '623762941727', hasProof: true, status: 'Failed', date: '25 Aug,\n2026', time: '10:05 PM' },
-];
+import { tenantService } from '../../api/tenantService';
 
 export default function Payments() {
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('Newest');
-  
   const [viewInvoice, setViewInvoice] = useState(null);
   const [viewProof, setViewProof] = useState(null);
-  
-  const filtered = mockPayments.filter(p => {
+
+  useEffect(() => {
+    tenantService.getTenants().then(res => {
+      const mapped = (res.data || []).map((t, i) => ({
+        id: i + 1,
+        school: t.schoolName,
+        plan: t.plan || 'Basic',
+        amount: '₹' + (t.planAmount || 0).toLocaleString(),
+        txnId: 'TXN' + String(Date.now()).slice(-8) + i,
+        date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A',
+        status: t.status === 'Active' ? 'Paid' : 'Pending',
+        mode: 'Online',
+      }));
+      setPayments(mapped);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  const filtered = payments.filter(p => {
     const q = search.toLowerCase();
     const matchSearch = p.school.toLowerCase().includes(q) || p.txnId.toLowerCase().includes(q) || String(p.id).includes(q);
     if (filter === 'Paid') return matchSearch && p.status === 'Paid';
@@ -25,10 +36,8 @@ export default function Payments() {
     if (filter === 'Failed') return matchSearch && p.status === 'Failed';
     return matchSearch;
   }).sort((a, b) => {
-    if (sortOrder === 'Highest Amount') return parseFloat(b.amount.replace(/,/g, '')) - parseFloat(a.amount.replace(/,/g, ''));
-    if (sortOrder === 'Lowest Amount') return parseFloat(a.amount.replace(/,/g, '')) - parseFloat(b.amount.replace(/,/g, ''));
     if (sortOrder === 'Oldest') return a.id - b.id;
-    return b.id - a.id; // Newest
+    return b.id - a.id;
   });
 
   const handleSearch = () => {
@@ -41,18 +50,18 @@ export default function Payments() {
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-end gap-3">
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight leading-none">Payment History</h1>
-          <span className="text-[13px] text-gray-500 font-medium pb-0.5">{mockPayments.length} total</span>
+          <span className="text-[13px] text-gray-500 font-medium pb-0.5">{payments.length} total</span>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-8 border-b border-gray-100 mb-6 overflow-x-auto">
         {[
-          { label: 'All', count: mockPayments.length },
-          { label: 'Paid', count: mockPayments.filter(p => p.status === 'Paid').length },
-          { label: 'Pending', count: mockPayments.filter(p => p.status === 'Pending').length },
+          { label: 'All', count: payments.length },
+          { label: 'Paid', count: payments.filter(p => p.status === 'Paid').length },
+          { label: 'Pending', count: payments.filter(p => p.status === 'Pending').length },
           { label: 'Verify', count: 0 },
-          { label: 'Failed', count: mockPayments.filter(p => p.status === 'Failed').length },
+          { label: 'Failed', count: payments.filter(p => p.status === 'Failed').length },
         ].map(f => (
           <button key={f.label} onClick={() => setFilter(f.label)}
             className={`pb-3 text-[13px] font-bold transition-colors flex items-center gap-2 relative shrink-0 ${filter === f.label || (filter === 'All' && f.label === 'All') ? 'text-[#0891b2]' : 'text-gray-500 hover:text-gray-700'}`}>
@@ -70,10 +79,10 @@ export default function Payments() {
           <input type="text" placeholder="Search school, txn or order #..." value={searchInput} 
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] w-full bg-white font-medium placeholder-gray-400" />
+            className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] text-slate-900 bg-white font-medium placeholder-gray-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] w-full" />
         </div>
         <div className="flex gap-2">
-           <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="border border-gray-200 rounded-none px-4 py-2 text-[13px] text-gray-600 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] min-w-[140px] bg-white font-medium">
+           <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="border border-gray-200 rounded-none px-4 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] min-w-[140px] font-medium">
              <option>Newest</option>
              <option>Oldest</option>
              <option>Highest Amount</option>

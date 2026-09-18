@@ -1,13 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Radio, Info, Save, Smartphone, Palette, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 export default function AppBrandingSettings() {
   const [dynamicBranding, setDynamicBranding] = useState(true);
   const [appName, setAppName] = useState('Multi School ERP v3.6');
   const [colors, setColors] = useState({ primary: '#8b1c1c', secondary: '#d1241a', tertiary: '#d9a826', accent: '#ef4444' });
   const [saved, setSaved] = useState(false);
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+
+  useEffect(() => {
+    settingsService.getSetting('app_branding').then(res => {
+      if (res.success && res.data) {
+        setDynamicBranding(res.data.dynamicBranding ?? true);
+        setAppName(res.data.appName || 'Multi School ERP v3.6');
+        if (res.data.colors) setColors(res.data.colors);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = async () => { 
+    try {
+      await settingsService.saveSetting('app_branding', { dynamicBranding, appName, colors });
+      setSaved(true); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Settings Saved',
+        text: 'Your changes have been saved to the database successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setTimeout(() => setSaved(false), 2500); 
+    } catch (error) {
+      Swal.fire('Error', 'Failed to save configuration: ' + error.message, 'error');
+    }
+  };
 
   return (
     <SettingsLayout activeTab="branding">

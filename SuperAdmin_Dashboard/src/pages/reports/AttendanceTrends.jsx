@@ -1,36 +1,19 @@
 import React from 'react';
 import { FileDown, Calendar, RefreshCw, List, TrendingUp, AlertTriangle } from 'lucide-react';
+import Swal from 'sweetalert2';
 
-const mockAttendance = [
-  {
-    id: 1,
-    school: 'Yug International',
-    studPresent: 14,
-    studTotal: 279,
-    staffPresent: 2,
-    staffTotal: 5,
-    presenceRaw: 5.6,
-    presenceStr: '5.6%',
-    status: 'CRITICAL ABSENTEEISM (>50%)',
-    statusType: 'critical'
-  },
-  {
-    id: 2,
-    school: 'Test',
-    studPresent: 0,
-    studTotal: 0,
-    staffPresent: 0,
-    staffTotal: 0,
-    presenceRaw: 0.0,
-    presenceStr: '0.0%',
-    status: 'NO ACTIVE USERS',
-    statusType: 'inactive'
-  }
-];
+const mockAttendance = [];
 
 export default function AttendanceTrends() {
   const handleExport = () => {
-    if (mockAttendance.length === 0) return alert('No data to export');
+    if (mockAttendance.length === 0) {
+      return Swal.fire({
+        icon: 'info',
+        title: 'Empty Data',
+        text: 'No data available to export.',
+        confirmButtonColor: '#0891b2'
+      });
+    }
     const headers = ['ID', 'School', 'StudPresent', 'StudTotal', 'StaffPresent', 'StaffTotal', 'PresenceRaw', 'Status'];
     const rows = mockAttendance.map(a => [
       a.id, 

@@ -4,6 +4,7 @@ import {
   FileText, FileSpreadsheet, Printer, Columns, Search,
   ChevronUp, ChevronDown, Folder
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ICON_COLORS = [
   'text-blue-500', 'text-purple-500', 'text-indigo-500',
@@ -91,10 +92,19 @@ export default function BlogCategories() {
 
   // Delete
   const handleDelete = (id) => {
-    if (window.confirm('Delete this category?')) {
-      setCategories(prev => prev.filter(c => c.id !== id));
-      showToast('Category deleted.', 'error');
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Delete this category?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setCategories(prev => prev.filter(c => c.id !== id));
+        showToast('Category deleted.', 'error');
+      }
+    });
   };
 
   // Reorder
@@ -125,7 +135,7 @@ export default function BlogCategories() {
   const startIndex = (currentPage - 1) * pageSize;
   const displayed = filtered.slice(startIndex, startIndex + pageSize);
 
-  const handleExport = (type) => alert(`${type} export coming soon.`);
+  const handleExport = (type) => Swal.fire({ icon: 'info', text: `${type} export coming soon.`, confirmButtonColor: '#0891b2' });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -246,7 +256,7 @@ export default function BlogCategories() {
                 {btn.icon}{btn.label}
               </button>
             ))}
-            <button onClick={() => alert('Column settings')}
+            <button onClick={() => Swal.fire({ icon: 'info', text: 'Column settings', confirmButtonColor: '#0891b2' })}
               className="flex items-center gap-1 px-2 py-1 text-xs font-medium border border-gray-300 bg-white rounded-none hover:bg-gray-100 text-gray-600 transition-colors">
               <Columns className="w-3 h-3" /> Columns ▾
             </button>

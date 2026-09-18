@@ -3,6 +3,21 @@ import { Plug, ChevronDown, ChevronRight, Search, Download, Lock, Globe, ShieldC
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const ALL_ENDPOINTS = [
+  // SuperAdmin ERP (Original APIs)
+  { group: 'SuperAdmin Core', subgroup: 'TENANT', method: 'GET',  path: '/tenant/list', desc: 'Fetch all registered schools/tenants', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'TENANT', method: 'GET',  path: '/tenant/:id', desc: 'Get a single tenant profile details', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'TENANT', method: 'POST', path: '/tenant/register', desc: 'Register a newly onboarded school', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'TENANT', method: 'PUT',  path: '/tenant/:id', desc: 'Update existing tenant configuration', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'TENANT', method: 'PUT',  path: '/tenant/:id/suspend', desc: 'Suspend or deactivate a tenant', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'TENANT', method: 'DELETE', path: '/tenant/:id', desc: 'Hard delete a school from system', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'BILLING', method: 'GET',  path: '/plans/list', desc: 'List all platform subscription plans', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'BILLING', method: 'POST', path: '/plans/create', desc: 'Create a new SaaS pricing plan', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'BILLING', method: 'PUT',  path: '/plans/:id', desc: 'Update plan feature limits & pricing', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'BILLING', method: 'DELETE', path: '/plans/:id', desc: 'Remove a subscription plan from offering', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'COMMS', method: 'PUT',  path: '/tenant/wallet/recharge', desc: 'Recharge school communication notification wallet', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'SUPPORT', method: 'GET',  path: '/tenant/tickets', desc: 'Get all global support tickets', access: 'Token' },
+  { group: 'SuperAdmin Core', subgroup: 'SYSTEM', method: 'GET',  path: '/tenant/stats', desc: 'Dashboard global server KPI stats', access: 'Token' },
+
   // Auth & Core (29)
   { group: 'Auth & Core', subgroup: 'GENERAL', method: 'GET',  path: '/api/v1/app-info',          desc: 'Get app info',                   access: 'Public' },
   { group: 'Auth & Core', subgroup: 'GENERAL', method: 'GET',  path: '/api/v1/branding',           desc: 'List branding',                  access: 'Public' },
@@ -44,6 +59,7 @@ const ALL_ENDPOINTS = [
 ];
 
 const GROUPS = [
+  { key: 'SuperAdmin Core', icon: '🚀', color: 'bg-indigo-500',  light: 'bg-indigo-50',  text: 'text-indigo-700' },
   { key: 'Auth & Core',  icon: '🔐', color: 'bg-violet-500',  light: 'bg-violet-50',  text: 'text-violet-700' },
   { key: 'Parent App',   icon: '👨‍👩‍👧', color: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-700' },
   { key: 'Staff App',    icon: '👩‍💼', color: 'bg-blue-500',    light: 'bg-blue-50',    text: 'text-blue-700' },
@@ -70,7 +86,7 @@ export default function ApiDocs() {
   const [activeGroup, setActiveGroup] = useState('All');
   const [activeMethod, setActiveMethod] = useState('All');
   const [activeAccess, setActiveAccess] = useState('All');
-  const [openGroups, setOpenGroups] = useState({ 'Auth & Core': true });
+  const [openGroups, setOpenGroups] = useState({ 'SuperAdmin Core': true });
 
   const countPerGroup = useMemo(() =>
     ALL_ENDPOINTS.reduce((acc, e) => { acc[e.group] = (acc[e.group] || 0) + 1; return acc; }, {}),

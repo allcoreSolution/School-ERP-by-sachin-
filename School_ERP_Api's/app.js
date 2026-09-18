@@ -55,8 +55,11 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
 const tenantRoutes = require('./routes/tenantRoutes');
 const planRoutes = require('./routes/planRoutes');
+const globalSettingRoutes = require('./routes/globalSettingRoutes');
+const superAdminRoutes = require('./routes/superAdminRoutes');
 
 const app = express();
+
 
 // Standard middlewares
 const corsOptions = {
@@ -125,6 +128,8 @@ app.use('/api/alumni', alumniRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/tenant', tenantRoutes);
 app.use('/api/plans', planRoutes);
+app.use('/api/settings', globalSettingRoutes);
+app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/webhooks', webhookRoutes);
 
 // Base Status Route

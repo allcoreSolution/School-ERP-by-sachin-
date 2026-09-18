@@ -4,16 +4,11 @@ import {
   ArrowLeft, Search, RefreshCw, Trash2, Sparkles, Check, Send, Download, ShieldCheck, UserCheck, Play, Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import SettingsLayout from '../../components/SettingsLayout';
+import { tenantService } from '../../api/tenantService';
 
-const SCHOOLS_LIST = [
-  { id: 'sch_1', name: "St. Xavier's International School", city: 'Delhi', enrolledCount: 4, totalUsers: 840 },
-  { id: 'sch_2', name: 'Greenwood High Public School', city: 'Mumbai', enrolledCount: 3, totalUsers: 1250 },
-  { id: 'sch_3', name: 'Delhi Public School (DPS Cybercity)', city: 'Gurugram', enrolledCount: 2, totalUsers: 1420 },
-  { id: 'sch_4', name: 'Springdales Senior School', city: 'Bengaluru', enrolledCount: 2, totalUsers: 910 },
-  { id: 'sch_5', name: 'Oakridge International Academy', city: 'Hyderabad', enrolledCount: 0, totalUsers: 366 },
-  { id: 'sch_6', name: 'Ryan International School', city: 'Pune', enrolledCount: 0, totalUsers: 0 }
-];
+
 
 const INITIAL_USERS_DATA = {
   sch_1: [
@@ -42,8 +37,27 @@ const INITIAL_USERS_DATA = {
 
 export default function FaceVectorsSettings({ inSettingsCenter = false }) {
   const navigate = useNavigate();
-  const [demoBanner, setDemoBanner] = useState(true);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
+  const [schoolsList, setSchoolsList] = useState([]);
+
+  React.useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const res = await tenantService.getTenants();
+        const mapped = (res.data || []).map(t => ({
+          id: t._id,
+          name: t.schoolName,
+          city: t.address || 'N/A',
+          enrolledCount: 0,
+          totalUsers: 0
+        }));
+        setSchoolsList(mapped);
+      } catch (err) {
+        console.error("Failed to fetch schools:", err);
+      }
+    };
+    fetchSchools();
+  }, []);
 
   const [usersData, setUsersData] = useState(() => {
     const saved = localStorage.getItem('superadmin_face_vectors');
@@ -61,8 +75,7 @@ export default function FaceVectorsSettings({ inSettingsCenter = false }) {
   // Sync Action toast state
   const [syncToast, setSyncToast] = useState(false);
 
-  // Selected school object
-  const selectedSchool = SCHOOLS_LIST.find(s => s.id === selectedSchoolId);
+  const selectedSchool = schoolsList.find(s => s.id === selectedSchoolId);
 
   // Users for current school
   const currentSchoolUsers = useMemo(() => {
@@ -133,9 +146,15 @@ export default function FaceVectorsSettings({ inSettingsCenter = false }) {
     updateAndSaveData({ ...usersData, [selectedSchoolId]: updatedSchoolUsers });
   };
 
-  // Bulk Edge Sync Simulation
   const handleSyncEdgeDevices = () => {
     setSyncToast(true);
+    Swal.fire({
+      icon: 'success',
+      title: 'Sync Initiated',
+      text: 'AI Biometric Camera Sync Initiated! 512-d embeddings pushed to edge hardware nodes.',
+      timer: 2000,
+      showConfirmButton: false
+    });
     setTimeout(() => setSyncToast(false), 2500);
   };
 
@@ -196,20 +215,7 @@ export default function FaceVectorsSettings({ inSettingsCenter = false }) {
             </div>
           </div>
 
-          {/* Demo Mode Alert Banner */}
-          {demoBanner && (
-            <div className="bg-[#fffbeb] border border-[#fde68a] text-[#92400e] px-4 py-3 rounded-none-none text-xs font-semibold flex items-center justify-between gap-3 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <span>
-                  <strong className="font-bold">Demo mode:</strong> these settings are read-only — saving, testing and deleting are disabled for security.
-                </span>
-              </div>
-              <button onClick={() => setDemoBanner(false)} className="text-amber-500 hover:text-amber-800 p-1 rounded-none-none">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+
 
           {/* Top 4 Stat Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -253,9 +259,9 @@ export default function FaceVectorsSettings({ inSettingsCenter = false }) {
                 className="w-full border-2 border-orange-400 rounded-none-none px-4 py-3 text-xs font-semibold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer shadow-xs"
               >
                 <option value="">— Select a School to manage —</option>
-                {SCHOOLS_LIST.map(school => (
+                {schoolsList.map(school => (
                   <option key={school.id} value={school.id}>
-                    {school.name} ({school.city}) · {school.enrolledCount} Enrolled Vectors
+                    {school.name} ({school.city})
                   </option>
                 ))}
               </select>

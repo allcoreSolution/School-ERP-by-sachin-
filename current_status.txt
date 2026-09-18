@@ -1,0 +1,63 @@
+﻿ M School_ERP_Api's/app.js
+ M SuperAdmin_Dashboard/src/components/Sidebar.jsx
+ M SuperAdmin_Dashboard/src/components/dashboard/KpiCards.jsx
+ M SuperAdmin_Dashboard/src/components/dashboard/LiveActivity.jsx
+ M SuperAdmin_Dashboard/src/pages/ApiDocs.jsx
+ M SuperAdmin_Dashboard/src/pages/Dashboard.jsx
+ M SuperAdmin_Dashboard/src/pages/SupportTickets.jsx
+ M SuperAdmin_Dashboard/src/pages/Templates.jsx
+ M SuperAdmin_Dashboard/src/pages/comms/RateCards.jsx
+ M SuperAdmin_Dashboard/src/pages/content/BlogCategories.jsx
+ M SuperAdmin_Dashboard/src/pages/content/BlogPosts.jsx
+ M SuperAdmin_Dashboard/src/pages/payments/Payments.jsx
+ M SuperAdmin_Dashboard/src/pages/plans/PlanAddons.jsx
+ M SuperAdmin_Dashboard/src/pages/plans/Plans.jsx
+ M SuperAdmin_Dashboard/src/pages/platform/NewOnboardingTemplate.jsx
+ M SuperAdmin_Dashboard/src/pages/reports/AttendanceTrends.jsx
+ M SuperAdmin_Dashboard/src/pages/reports/Communications.jsx
+ M SuperAdmin_Dashboard/src/pages/reports/EngagementAudit.jsx
+ M SuperAdmin_Dashboard/src/pages/reports/FeeCollections.jsx
+ M SuperAdmin_Dashboard/src/pages/reports/LoginLogs.jsx
+ M SuperAdmin_Dashboard/src/pages/reports/SchoolsUsage.jsx
+ M SuperAdmin_Dashboard/src/pages/schools/AddSchool.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/AcademicWordingSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/AiManagementSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/ApiDocumentationSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/AppBrandingSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/AppDistributionSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/AppearanceSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/CommsWalletSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/DashboardThemesSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/FaceVectorsSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/GeneralSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/LoginPageDesignsSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/MailSmtpSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/MenuBuilderSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/MetaDltConfigSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/NotificationTypesSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/PaymentGatewaysSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/PaymentSettingsPage.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/PushNotificationsSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/RegistrationSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/ServerHealthSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/SettingsCenter.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/SmsGatewaysSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/SubscriptionsSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/TelegramBotSettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/WhatsAppGatewaySettings.jsx
+ M SuperAdmin_Dashboard/src/pages/settings/shared.jsx
+ M SuperAdmin_Dashboard/src/pages/team/Team.jsx
+ M SuperAdmin_Dashboard/src/pages/website/FullTemplates.jsx
+ M SuperAdmin_Dashboard/src/pages/website/LandingTemplates.jsx
+ M SuperAdmin_Dashboard/src/pages/website/SchoolSiteTemplates.jsx
+ M SuperAdmin_Dashboard/src/pages/website/Sitemap.jsx
+ M SuperAdmin_Dashboard/src/pages/website/VisualBuilder.jsx
+ M SuperAdmin_Dashboard/src/pages/website/WebsiteMenu.jsx
+ M SuperAdmin_Dashboard/src/pages/website/WebsitePages.jsx
+?? School_ERP_Api's/controllers/globalSettingController.js
+?? School_ERP_Api's/models/GlobalSetting.js
+?? School_ERP_Api's/routes/globalSettingRoutes.js
+?? SuperAdmin_Dashboard/script.py
+?? SuperAdmin_Dashboard/script2.py
+?? SuperAdmin_Dashboard/src/api/settingsService.js
+?? current_status.txt

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, Save, Upload, CheckCircle, User, Globe } from 'lucide-react';
 import { tenantService } from '../../api/tenantService';
+import Swal from 'sweetalert2';
 import { planService } from '../../api/planService';
 
 const EMPTY = {
@@ -25,6 +26,7 @@ const AddSchool = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
+  const [logo, setLogo] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [plans, setPlans] = useState([]);
@@ -38,6 +40,18 @@ const AddSchool = () => {
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        Swal.fire({ icon: 'error', title: 'File Too Large', text: 'File size should not exceed 2MB', confirmButtonColor: '#0891b2' });
+        return;
+      }
+      setLogo(URL.createObjectURL(file));
+      setForm({ ...form, logoFile: file });
+    }
   };
 
   const validate = () => {
@@ -74,7 +88,7 @@ const AddSchool = () => {
       setSuccess(true);
       // Removed the 1800ms auto redirect so they can copy the credentials
     } catch (err) {
-      alert("Registration failed: " + err.message);
+      Swal.fire({ icon: 'error', title: 'Registration Failed', text: err.message || 'An error occurred', confirmButtonColor: '#0891b2' });
     } finally {
       setLoading(false);
     }
@@ -203,11 +217,21 @@ const AddSchool = () => {
 
           <div className="bg-white rounded-none border border-gray-200 p-6 shadow-sm">
             <h2 className="text-sm font-bold text-gray-700 mb-4">School Logo</h2>
-            <div className="border-2 border-dashed border-gray-200 rounded-none p-6 text-center cursor-pointer hover:border-orange-300 transition-colors">
-              <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-xs text-gray-500">Click to upload logo</p>
-              <p className="text-[10px] text-gray-400 mt-1">PNG, JPG up to 2MB</p>
-            </div>
+            <label className="border-2 border-dashed border-gray-200 rounded-none p-6 text-center cursor-pointer hover:border-orange-300 transition-colors block relative">
+              <input type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleLogoChange} />
+              {logo ? (
+                <div className="flex flex-col items-center">
+                  <img src={logo} alt="Logo Preview" className="mx-auto max-h-24 object-contain mb-2" />
+                  <p className="text-[10px] text-[#0891b2] font-semibold hover:underline">Change Logo</p>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">Click to upload logo</p>
+                  <p className="text-[10px] text-gray-400 mt-1">PNG, JPG up to 2MB</p>
+                </>
+              )}
+            </label>
           </div>
 
           <div className="flex gap-3">

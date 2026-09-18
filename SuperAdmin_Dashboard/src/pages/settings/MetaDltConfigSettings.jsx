@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Settings, Save, Info, MessageCircle, MessageSquare, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 export default function MetaDltConfigSettings() {
   const [form, setForm] = useState({
@@ -8,19 +10,39 @@ export default function MetaDltConfigSettings() {
     apiVersion: 'v21.0', appSecret: '', dltSenderId: '', dltPeId: '',
   });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    settingsService.getSetting('meta_dlt_config').then(res => {
+      if (res.success && res.data) {
+        setForm(prev => ({ ...prev, ...res.data }));
+      }
+    }).catch(console.error);
+  }, []);
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+  const handleSave = async () => { 
+    try {
+      await settingsService.saveSetting('meta_dlt_config', form);
+      setSaved(true); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Settings Saved',
+        text: 'Your DLT configuration has been saved successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setTimeout(() => setSaved(false), 2500); 
+    } catch (error) {
+      Swal.fire('Error', 'Failed to save configuration: ' + error.message, 'error');
+    }
+  };
 
   return (
     <SettingsLayout activeTab="meta-dlt">
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-6 max-w-[1150px] mx-auto w-full">
 
-          {/* Demo Banner */}
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center gap-2 mb-6">
-            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-            <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-          </div>
+          
 
           {/* Header */}
           <div className="mb-6">

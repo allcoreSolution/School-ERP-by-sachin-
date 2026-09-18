@@ -7,10 +7,7 @@ export default function AiManagementSettings() {
     <SettingsLayout activeTab="ai-mgmt">
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-6 max-w-[1150px] mx-auto w-full">
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center gap-2 mb-6">
-            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-            <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-          </div>
+          
           <div className="bg-white border border-gray-200 rounded-none-none shadow-sm p-10 flex flex-col items-center text-center">
             <div className="w-14 h-14 rounded-none-none bg-blue-50 flex items-center justify-center mb-4">
               <BrainCircuit className="w-7 h-7 text-blue-500" />

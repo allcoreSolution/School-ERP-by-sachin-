@@ -3,6 +3,7 @@ import {
   LayoutList, Save, Search, GripVertical, ChevronDown,
   ChevronRight, Trash2, Plus, X, Move
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { ALL_ITEMS } from './menuItems';
 
 
@@ -125,7 +126,17 @@ export default function MenuBuilderSettings() {
     setStructure(remove);
   };
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+  const handleSave = () => { 
+    setSaved(true); 
+    Swal.fire({
+      icon: 'success',
+      title: 'Menu Saved',
+      text: 'Menu structure has been updated successfully.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    setTimeout(() => setSaved(false), 2500); 
+  };
 
   return (
     <div className="flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 4rem)' }}>

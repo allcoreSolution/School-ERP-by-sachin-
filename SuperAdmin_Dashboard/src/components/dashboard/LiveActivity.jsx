@@ -38,8 +38,6 @@ const LiveActivity = () => {
               minsAgo: Math.floor(msAgo / 60000)
             };
          });
-         // Add super admin login as fixed recent event since we don't have auth logs yet
-         acts.unshift({ action: 'Super Admin logged in', user: 'admin', type: 'login', minsAgo: 0 });
          setActivities(acts.sort((a,b) => a.minsAgo - b.minsAgo));
       }
     } catch(err) {

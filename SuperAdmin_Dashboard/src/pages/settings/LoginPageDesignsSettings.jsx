@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Monitor, Save, Info, Eye, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 function Toggle({ checked, onChange }) {
   return (
@@ -22,16 +24,47 @@ export default function LoginPageDesignsSettings() {
   const [showTestimonials, setShowTestimonials] = useState(false);
   const [layout, setLayout] = useState('split');
   const [saved, setSaved] = useState(false);
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+
+  useEffect(() => {
+    settingsService.getSetting('login_page_designs').then(res => {
+      if (res.success && res.data) {
+        setHeadline(res.data.headline || 'Welcome to Multi School ERP');
+        setSubtext(res.data.subtext || 'The all-in-one school management platform');
+        setBgType(res.data.bgType || 'gradient');
+        setPrimaryColor(res.data.primaryColor || '#1d4ed8');
+        setAccentColor(res.data.accentColor || '#e8400c');
+        setShowLogo(res.data.showLogo ?? true);
+        setShowFeatures(res.data.showFeatures ?? true);
+        setShowTestimonials(res.data.showTestimonials ?? false);
+        setLayout(res.data.layout || 'split');
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = async () => { 
+    try {
+      await settingsService.saveSetting('login_page_designs', {
+        headline, subtext, bgType, primaryColor, accentColor, showLogo, showFeatures, showTestimonials, layout
+      });
+      setSaved(true); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Settings Saved',
+        text: 'Your changes have been saved to the database successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setTimeout(() => setSaved(false), 2500); 
+    } catch (error) {
+      Swal.fire('Error', 'Failed to save configuration: ' + error.message, 'error');
+    }
+  };
 
   return (
     <SettingsLayout activeTab="login-designs">
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-6 max-w-[1150px] mx-auto w-full">
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center gap-2 mb-6">
-            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-            <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-          </div>
+          
           <div className="mb-6">
             <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-1">
               <Monitor className="w-5 h-5 text-blue-600" /> Login Page Designs

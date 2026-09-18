@@ -33,7 +33,7 @@ const Dashboard = () => {
             PLATFORM CONSOLE
           </div>
           <h1 className="text-[26px] font-extrabold text-slate-800 tracking-tight">
-            Good Evening, Super <span className="text-[26px]">👋</span>
+            {greeting}, Super Admin <span className="text-[26px]">👋</span>
           </h1>
           <p className="text-[13px] font-medium text-slate-500 mt-1.5">
             Platform overview — {dateStr} · {timeStr}
@@ -47,9 +47,9 @@ const Dashboard = () => {
           </div>
           <div className="w-[400px] overflow-hidden whitespace-nowrap relative h-full flex items-center text-[12px] font-medium text-slate-600 pl-4">
             <div className="animate-[marquee_20s_linear_infinite] flex items-center gap-1.5">
-              <Key className="w-3.5 h-3.5 text-emerald-500" /> User Logged In — Super Admin <span className="text-slate-400 font-normal">({timeStr})</span>
+              <Key className="w-3.5 h-3.5 text-emerald-500" /> Super Admin Session Active <span className="text-slate-400 font-normal">({timeStr})</span>
               <span className="opacity-0">___</span>
-              <Key className="w-3.5 h-3.5 text-emerald-500" /> System Online <span className="text-slate-400 font-normal">({dateStr})</span>
+              <Key className="w-3.5 h-3.5 text-emerald-500" /> Platform Online — {dateStr}
             </div>
           </div>
         </div>

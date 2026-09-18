@@ -2,10 +2,11 @@ import React, { useState, useRef } from 'react';
 import {
   Lock, Palette, Check, Moon, RefreshCw, X, Minus, Lock as LockIcon, CheckCircle2, Sliders, Layout, Monitor
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import SettingsLayout from '../../components/SettingsLayout';
 
 export default function AppearanceSettings({ inSettingsCenter = false }) {
-  const [demoBanner, setDemoBanner] = useState(true);
+  const [demoBanner, setDemoBanner] = useState(false);
   const [brandingOpen, setBrandingOpen] = useState(true);
 
   // Global Branding Colors
@@ -42,11 +43,25 @@ export default function AppearanceSettings({ inSettingsCenter = false }) {
 
   const handleApplyGlobal = () => {
     setSavedToast(true);
+    Swal.fire({
+      icon: 'success',
+      title: 'Aesthetic Changes Applied',
+      text: 'Changes have been applied globally to the system.',
+      timer: 1500,
+      showConfirmButton: false
+    });
     setTimeout(() => setSavedToast(false), 2000);
   };
 
   const handleSaveBranding = () => {
     setBrandingSaved(true);
+    Swal.fire({
+      icon: 'success',
+      title: 'Branding Saved',
+      text: 'Global UI branding preferences updated.',
+      timer: 1500,
+      showConfirmButton: false
+    });
     setTimeout(() => setBrandingSaved(false), 2000);
   };
 
@@ -111,20 +126,7 @@ export default function AppearanceSettings({ inSettingsCenter = false }) {
             </div>
           </div>
 
-          {/* Demo Mode Alert Banner */}
-          {demoBanner && (
-            <div className="bg-[#fffbeb] border border-[#fde68a] text-[#92400e] px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center justify-between gap-3 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <span>
-                  <strong className="font-bold">Demo mode:</strong> these settings are read-only — saving and applying changes are disabled for security.
-                </span>
-              </div>
-              <button onClick={() => setDemoBanner(false)} className="text-amber-500 hover:text-amber-800 p-1 rounded-none-none cursor-pointer">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+
 
           {/* Section 1: Global Frontend Branding */}
           <div className={`border rounded-none-none overflow-hidden shadow-xs transition-colors ${systemDarkMode ? 'bg-[#1e293b] border-slate-700' : 'bg-white border-slate-200/90'}`}>

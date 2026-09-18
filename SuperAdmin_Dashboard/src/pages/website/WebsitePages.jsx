@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Plus, Edit, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const initPages = [
   { id: 1, title: 'About Us', slug: '/about-us', status: 'Published', lastUpdated: '7 months ago' },
@@ -27,13 +28,21 @@ export default function WebsitePages() {
 
   // Actions
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this page?')) {
-      setPages(pages.filter(p => p.id !== id));
-      // Adjust page if current page becomes empty
-      if (displayedPages.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to delete this page?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setPages(pages.filter(p => p.id !== id));
+        if (displayedPages.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
       }
-    }
+    });
   };
 
   return (
@@ -42,7 +51,7 @@ export default function WebsitePages() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <h1 className="text-[22px] font-medium text-gray-800">Manage Pages</h1>
         <button 
-          onClick={() => alert('Add Page functionality would open a modal/form here.')}
+          onClick={() => Swal.fire({ icon: 'info', text: 'Add Page functionality would open a modal/form here.', confirmButtonColor: '#0891b2' })}
           className="flex items-center gap-2 px-4 py-2 bg-[#f97316] text-white rounded-none hover:bg-orange-600 text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4 text-white" strokeWidth={3} />

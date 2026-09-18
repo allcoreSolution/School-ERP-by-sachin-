@@ -1,24 +1,53 @@
-import React, { useState } from 'react';
-import { Plus, Search, ChevronDown, CheckCircle, Info, ChevronUp, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, ChevronDown, CheckCircle, Info, ChevronUp, X, Trash2, Edit } from 'lucide-react';
+import Swal from 'sweetalert2';
 
-const mockAddons = [
-  { id: 1, name: '[Showcase] WhatsApp Channel', desc: 'Send notices and fee reminders over WhatsApp.', type: 'Channel', grants: '—', monthly: '299.00', yearly: '2,990.00', plans: '2 plans', status: 'Active' },
-  { id: 2, name: '[Showcase] Priority Support', desc: 'Named account manager and a 4-hour response target.', type: 'Flat', grants: '—', monthly: '999.00', yearly: '9,990.00', plans: '3 plans', status: 'Active' },
-  { id: 3, name: '[Showcase] Online Exams Module', desc: 'Question banks, scheduled online tests and auto-marking.', type: 'Module', grants: 'online_exam', monthly: '399.00', yearly: '3,990.00', plans: '2 plans', status: 'Active' },
-  { id: 4, name: '[Showcase] Transport Module', desc: 'Bus routes, stops, live tracking and the driver app.', type: 'Module', grants: 'transport', monthly: '499.00', yearly: '4,990.00', plans: '3 plans', status: 'Active' },
-];
+const DEFAULT_ADDONS = [];
 
 export default function PlanAddons() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
-  const [addons, setAddons] = useState(mockAddons);
+  const [addons, setAddons] = useState(() => {
+    const saved = localStorage.getItem('plan_addons');
+    return saved ? JSON.parse(saved) : DEFAULT_ADDONS;
+  });
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [form, setForm] = useState({ name: '', type: 'Module', price: '', description: '', active: true });
+
+  useEffect(() => {
+    localStorage.setItem('plan_addons', JSON.stringify(addons));
+  }, [addons]);
 
   const handleSave = (e) => {
     e.preventDefault();
+    if (!form.name || !form.price) return Swal.fire('Error', 'Name and Price are required', 'error');
+    if (editItem) {
+      setAddons(prev => prev.map(a => a.id === editItem.id ? { ...a, ...form } : a));
+      Swal.fire({ icon: 'success', title: 'Updated!', timer: 1200, showConfirmButton: false });
+    } else {
+      setAddons(prev => [...prev, { ...form, id: Date.now() }]);
+      Swal.fire({ icon: 'success', title: 'Add-on Created!', timer: 1200, showConfirmButton: false });
+    }
     setShowAdd(false);
     setEditItem(null);
+    setForm({ name: '', type: 'Module', price: '', description: '', active: true });
+  };
+
+  const handleDelete = (id) => {
+    Swal.fire({ title: 'Delete Add-on?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete' })
+      .then(r => {
+        if (r.isConfirmed) {
+          setAddons(prev => prev.filter(a => a.id !== id));
+          Swal.fire({ icon: 'success', title: 'Deleted!', timer: 1000, showConfirmButton: false });
+        }
+      });
+  };
+
+  const openEdit = (addon) => {
+    setForm({ name: addon.name, type: addon.type, price: addon.price, description: addon.description || '', active: addon.active });
+    setEditItem(addon);
+    setShowAdd(true);
   };
 
   const filtered = addons.filter(p => {
@@ -79,7 +108,7 @@ export default function PlanAddons() {
           <div className="relative w-full">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Search add-ons..." value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] focus:outline-none focus:ring-1 focus:ring-[#0891b2] w-full" />
+              className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0891b2] w-full" />
           </div>
           <div className="flex gap-2">
              <select className="border border-gray-200 rounded-none px-4 py-2 text-[13px] text-gray-600 focus:outline-none focus:ring-1 focus:ring-[#0891b2] min-w-[120px] bg-white">
@@ -168,17 +197,17 @@ export default function PlanAddons() {
               <div className="grid grid-cols-2 gap-5 mb-5 bg-white p-5 border border-slate-200">
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Add-on Name</label>
-                  <input required defaultValue={editItem?.name || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. Priority Support" />
+                  <input required defaultValue={editItem?.name || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. Priority Support" />
                 </div>
                 
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Description</label>
-                  <input required defaultValue={editItem?.desc || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="Short description" />
+                  <input required defaultValue={editItem?.desc || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="Short description" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Type</label>
-                  <select defaultValue={editItem?.type || 'Module'} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select defaultValue={editItem?.type || 'Module'} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                     <option>Module</option>
                     <option>Channel</option>
                     <option>Storage</option>
@@ -189,30 +218,30 @@ export default function PlanAddons() {
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Included in Plans</label>
-                  <input defaultValue={editItem?.plans || '2 plans'} className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. 2 plans" />
+                  <input defaultValue={editItem?.plans || '2 plans'} className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. 2 plans" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-5 mb-5 bg-white p-5 border border-slate-200">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Pricing Strategy</label>
-                  <select className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                  <select className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                     <option>Flat rate (per school)</option>
                     <option>Per student scaling</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">System Grants</label>
-                  <input defaultValue={editItem?.grants || '—'} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. online_exam" />
+                  <input defaultValue={editItem?.grants || '—'} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. online_exam" />
                 </div>
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Monthly Add-on Price (₹)</label>
-                  <input required type="number" defaultValue={editItem?.monthly?.replace(',','') || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
+                  <input required type="number" defaultValue={editItem?.monthly?.replace(',','') || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Yearly Add-on Price (₹)</label>
-                  <input required type="number" defaultValue={editItem?.yearly?.replace(',','') || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
+                  <input required type="number" defaultValue={editItem?.yearly?.replace(',','') || ''} className="w-full border border-gray-200 px-3 py-2 text-[13px] font-mono text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="0.00" />
                 </div>
               </div>
             </form>

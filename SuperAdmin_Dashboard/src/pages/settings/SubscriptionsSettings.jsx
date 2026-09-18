@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, RefreshCw, Save, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 function Toggle({ checked, onChange }) {
   return (
@@ -16,18 +18,40 @@ export default function SubscriptionsSettings() {
   const [gracePeriod, setGracePeriod] = useState('7');
   const [smsReminders, setSmsReminders] = useState(true);
   const [saved, setSaved] = useState(false);
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+
+  useEffect(() => {
+    settingsService.getSetting('subscription_settings').then(res => {
+      if (res.success && res.data) {
+        setReminderDays(res.data.reminderDays || '7, 3, 1');
+        setGracePeriod(res.data.gracePeriod || '7');
+        setSmsReminders(res.data.smsReminders ?? true);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = async () => { 
+    try {
+      await settingsService.saveSetting('subscription_settings', { reminderDays, gracePeriod, smsReminders });
+      setSaved(true); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Settings Saved',
+        text: 'Your changes have been saved to the database successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setTimeout(() => setSaved(false), 2500); 
+    } catch (error) {
+      Swal.fire('Error', 'Failed to save settings: ' + error.message, 'error');
+    }
+  };
 
   return (
     <SettingsLayout activeTab="subscriptions">
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-6 max-w-[1150px] mx-auto w-full">
 
-          {/* Demo Banner */}
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center gap-2 mb-6">
-            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-            <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-          </div>
+          
 
           {/* Header */}
           <div className="mb-6">

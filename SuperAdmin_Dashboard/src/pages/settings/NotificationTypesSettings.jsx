@@ -3,6 +3,7 @@ import {
   Lock, Bell, CheckCircle2, PauseCircle, Search, Edit3, Settings,
   X, Check, Sparkles, MessageSquare, Smartphone, Mail, Copy, Download
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import SettingsLayout from '../../components/SettingsLayout';
 
 const INITIAL_NOTIF_TYPES = [
@@ -404,7 +405,7 @@ export default function NotificationTypesSettings({ inSettingsCenter = false }) 
     return saved ? JSON.parse(saved) : INITIAL_NOTIF_TYPES;
   });
 
-  const [demoBanner, setDemoBanner] = useState(true);
+  const [demoBanner, setDemoBanner] = useState(false);
   const [search, setSearch] = useState('');
 
   // Edit Defaults Modal State
@@ -467,6 +468,13 @@ export default function NotificationTypesSettings({ inSettingsCenter = false }) 
     });
     updateAndSave(updated);
     setSavedToast(true);
+    Swal.fire({
+      icon: 'success',
+      title: 'Templates Saved',
+      text: 'Notification templates have been updated.',
+      timer: 1500,
+      showConfirmButton: false
+    });
     setTimeout(() => {
       setSavedToast(false);
       setEditingItem(null);
@@ -520,20 +528,7 @@ export default function NotificationTypesSettings({ inSettingsCenter = false }) 
             </button>
           </div>
 
-          {/* Demo Mode Alert Banner */}
-          {demoBanner && (
-            <div className="bg-[#fffbeb] border border-[#fde68a] text-[#92400e] px-4 py-3 rounded-none-none text-xs font-semibold flex items-center justify-between gap-3 mb-6 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <span>
-                  <strong className="font-bold">Demo mode:</strong> these settings are read-only — saving, testing and deleting are disabled for security.
-                </span>
-              </div>
-              <button onClick={() => setDemoBanner(false)} className="text-amber-500 hover:text-amber-800 p-1 rounded-none-none">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+
 
           {/* Top 3 Stat Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

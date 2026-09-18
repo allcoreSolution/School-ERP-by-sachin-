@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tag, PlusCircle, Save, Trash2, Wallet, CheckCircle, X } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const initRates = [
   { id: 1, channel: 'WhatsApp', category: 'Any (fallback)', country: 'Any', rate: '1.1000', cost: '', active: true },
@@ -14,8 +15,16 @@ const initRates = [
 
 export default function RateCards() {
   const navigate = useNavigate();
-  const [rates, setRates] = useState(initRates);
-  const [toast, setToast] = useState(null);
+  const [rates, setRates] = useState(() => {
+    const saved = localStorage.getItem('comms_rate_cards');
+    if (saved) return JSON.parse(saved);
+    return initRates;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('comms_rate_cards', JSON.stringify(rates));
+  }, [rates]);
+
   const [showModal, setShowModal] = useState(false);
 
   // Add Rate Form State
@@ -25,11 +34,6 @@ export default function RateCards() {
   const [newRate, setNewRate] = useState('');
   const [newCost, setNewCost] = useState('');
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
-
   const handleRateChange = (id, field, value) => {
     setRates(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
@@ -38,13 +42,37 @@ export default function RateCards() {
     setRates(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
   };
 
-  const saveRate = () =>  showToast('Rate updated successfully!');
+  const saveRate = () => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: 'Rate updated successfully!',
+      timer: 1500,
+      showConfirmButton: false,
+      confirmButtonColor: '#554bb9'
+    });
+  };
 
   const deleteRate = (id) => {
-    if (window.confirm('Delete this rate card?')) {
-      setRates(prev => prev.filter(r => r.id !== id));
-      showToast('Rate deleted!');
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Delete this rate card?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setRates(prev => prev.filter(r => r.id !== id));
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Rate deleted!',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    });
   };
 
   const calculateMargin = (rate, cost) => {
@@ -66,7 +94,15 @@ export default function RateCards() {
       cost: newCost ? parseFloat(newCost).toFixed(4) : '',
       active: true,
     }]);
-    showToast('New rate added!');
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Added!',
+      text: 'New rate added successfully!',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    
     setShowModal(false);
     setNewCountry(''); setNewRate(''); setNewCost('');
   };
@@ -74,12 +110,7 @@ export default function RateCards() {
   return (
     <div className="p-4 sm:p-6 pb-12 w-full bg-[#f8f9fa] min-h-screen">
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-none text-sm font-semibold shadow bg-gray-900 text-white border border-gray-700">
-          <CheckCircle className="w-4 h-4 text-green-400 shrink-0" /> {toast}
-        </div>
-      )}
+      {/* Toast removed in favor of SweetAlert2 */}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-3">

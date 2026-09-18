@@ -4,6 +4,7 @@ import {
   Monitor, UserCheck, MessageCircle, Mail, Bell, Send,
   Wallet, BookOpen, Image, Globe, Settings, ChevronRight, CheckCircle2
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 
 // ─── Reusable Toggle ──────────────────────────────────────────────────────────
@@ -19,7 +20,17 @@ function Toggle({ checked, onChange }) {
 // ─── Save Bar ────────────────────────────────────────────────────────────────
 function SaveBar({ label = 'Save Changes', note = 'Changes apply immediately.' }) {
   const [saved, setSaved] = useState(false);
-  const handle = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+  const handle = () => { 
+    setSaved(true); 
+    Swal.fire({
+      icon: 'success',
+      title: 'Settings Saved',
+      text: 'Your changes have been saved successfully.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    setTimeout(() => setSaved(false), 2500); 
+  };
   return (
     <div className="border-t border-gray-200 bg-white px-8 py-3 flex items-center justify-between flex-shrink-0 shadow-[0_-2px_6px_rgba(0,0,0,0.04)]">
       <span className="text-[12px] text-gray-400">{note}</span>
@@ -631,11 +642,6 @@ export default function GeneralSettings() {
 
         {/* Right content — demo banner at top, panel below */}
         <div className="flex-1 bg-white overflow-hidden flex flex-col">
-          {/* Demo banner — sticky at top of right area */}
-          <div className="bg-[#fff9e6] border-b border-[#fde68a] text-[#854d0e] px-5 py-2 text-[13px] font-medium flex items-center gap-2 flex-shrink-0">
-            <Lock className="w-4 h-4 flex-shrink-0" />
-            <span className="font-bold">Demo mode:</span> these settings are read-only — saving, testing and deleting are disabled for security.
-          </div>
           {/* Active panel */}
           {panelMap[active] ? React.createElement(panelMap[active]) : null}
         </div>

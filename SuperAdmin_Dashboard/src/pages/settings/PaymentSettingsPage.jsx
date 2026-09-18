@@ -1,23 +1,30 @@
 import React, { useState } from 'react';
 import { Lock, CreditCard, Save, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
 
 export default function PaymentSettingsPage() {
   const [currency, setCurrency] = useState('Indian Rupee (₹)');
   const [mode, setMode] = useState('Live (Accept Real Payments)');
   const [saved, setSaved] = useState(false);
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+  const handleSave = () => { 
+    setSaved(true); 
+    Swal.fire({
+      icon: 'success',
+      title: 'Settings Saved',
+      text: 'Your changes have been saved successfully.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    setTimeout(() => setSaved(false), 2500); 
+  };
 
   return (
     <SettingsLayout activeTab="payment-settings">
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-6 max-w-[1150px] mx-auto w-full">
 
-          {/* Demo Banner */}
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center gap-2 mb-6">
-            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-            <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-          </div>
+          
 
           {/* Header */}
           <div className="mb-6">

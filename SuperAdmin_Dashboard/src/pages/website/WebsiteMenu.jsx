@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GripVertical, Trash2, ChevronDown, Plus } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const INIT_MENU = [
   { id: 1, label: 'Home', url: 'https://multischoolv2.projectworlds.com', badge: null, visible: true },
@@ -25,9 +26,18 @@ export default function WebsiteMenu() {
 
   // Delete item
   const handleDelete = (id) => {
-    if (window.confirm('Remove this menu item?')) {
-      setItems(items.filter(item => item.id !== id));
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Remove this menu item?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setItems(items.filter(item => item.id !== id));
+      }
+    });
   };
 
   // Add new item

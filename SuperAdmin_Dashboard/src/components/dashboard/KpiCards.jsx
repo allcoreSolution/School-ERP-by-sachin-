@@ -70,13 +70,18 @@ const KpiCards = () => {
     activeSchools: 0,
     totalSchools: 0,
     totalRevenue: 0,
-    totalStudentsTarget: 0
+    totalStudents: 0
   });
 
   useEffect(() => {
     tenantService.getDashboardStats().then(res => {
       if(res?.data) {
-        setStats(res.data);
+        setStats({
+          activeSchools: res.data.activeSchools || 0,
+          totalSchools: res.data.totalSchools || 0,
+          totalRevenue: res.data.totalRevenue || 0,
+          totalStudents: res.data.totalStudents || res.data.totalStudentsTarget || 0,
+        });
       }
     }).catch(console.error);
   }, []);
@@ -97,7 +102,7 @@ const KpiCards = () => {
       title: 'Platform Schools',
       value: stats.totalSchools.toLocaleString(),
       icon: Landmark,
-      stroke: '#3b82f6', // Blue
+      stroke: '#3b82f6',
       iconBg: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
       iconColor: '#ffffff',
       glowColor: '#3b82f6',
@@ -107,7 +112,7 @@ const KpiCards = () => {
       title: 'Active Accounts',
       value: stats.activeSchools.toLocaleString(),
       icon: Users,
-      stroke: '#10b981', // Emerald
+      stroke: '#10b981',
       iconBg: 'linear-gradient(135deg, #34d399, #10b981)',
       iconColor: '#ffffff',
       glowColor: '#10b981',
@@ -115,34 +120,34 @@ const KpiCards = () => {
     },
     {
       title: 'Current Revenue',
-      value: '₹' + stats.totalRevenue.toLocaleString(),
+      value: stats.totalRevenue > 0 ? '₹' + stats.totalRevenue.toLocaleString() : '₹0',
       icon: ReceiptText,
-      stroke: '#f59e0b', // Amber
+      stroke: '#f59e0b',
       iconBg: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
       iconColor: '#ffffff',
       glowColor: '#f59e0b',
       spark: genSpark(100, 30),
     },
     {
-      title: 'Active Sessions',
-      value: '14', // Placeholder for live socket data
-      isLive: true,
-      icon: Activity,
-      stroke: '#8b5cf6', // Violet
-      iconBg: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
-      iconColor: '#ffffff',
-      glowColor: '#8b5cf6',
-      spark: [{v:2}, {v:5}, {v:3}, {v:7}, {v:4}, {v:8}, {v:14}],
-    },
-    {
-      title: 'Target Students',
-      value: stats.totalStudentsTarget.toLocaleString(),
+      title: 'Total Students',
+      value: stats.totalStudents > 0 ? stats.totalStudents.toLocaleString() : '0',
       icon: FileText,
-      stroke: '#ec4899', // Pink
+      stroke: '#ec4899',
       iconBg: 'linear-gradient(135deg, #f472b6, #ec4899)',
       iconColor: '#ffffff',
       glowColor: '#ec4899',
       spark: genSpark(50, 15),
+    },
+    {
+      title: 'Active Sessions',
+      value: '--',
+      isLive: true,
+      icon: Activity,
+      stroke: '#8b5cf6',
+      iconBg: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
+      iconColor: '#ffffff',
+      glowColor: '#8b5cf6',
+      spark: [{v:1}, {v:1}, {v:1}, {v:1}, {v:1}, {v:1}, {v:1}],
     },
   ];
 

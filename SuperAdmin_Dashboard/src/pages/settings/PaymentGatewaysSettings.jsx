@@ -4,6 +4,7 @@ import {
   X, Check, Key, ShieldCheck, RefreshCw, ChevronRight, Eye, EyeOff,
   Copy, ExternalLink, SlidersHorizontal, AlertCircle
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import SettingsLayout from '../../components/SettingsLayout';
 
 // 43 Comprehensive Payment Gateways across 7 Regions
@@ -73,7 +74,7 @@ export default function PaymentGatewaysSettings({ inSettingsCenter = false }) {
   });
 
   const [mode, setMode] = useState('LIVE');
-  const [demoBanner, setDemoBanner] = useState(true);
+  const [demoBanner, setDemoBanner] = useState(false); // Demo banner disabled
   const [search, setSearch] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('All regions');
   const [selectedFlow, setSelectedFlow] = useState('All flows');
@@ -185,6 +186,13 @@ export default function PaymentGatewaysSettings({ inSettingsCenter = false }) {
     });
     updateAndSaveGateways(updated);
     setSavedSuccess(true);
+    Swal.fire({
+      icon: 'success',
+      title: 'Gateway Configured',
+      text: `${editingGw.name} settings saved.`,
+      timer: 1500,
+      showConfirmButton: false
+    });
     setTimeout(() => {
       setSavedSuccess(false);
       setEditingGw(null);
@@ -260,20 +268,7 @@ export default function PaymentGatewaysSettings({ inSettingsCenter = false }) {
             </div>
           </div>
 
-          {/* Demo Mode Alert Bar */}
-          {demoBanner && (
-            <div className="bg-[#fffbeb] border border-[#fde68a] text-[#92400e] px-4 py-3 rounded-none-none text-xs font-semibold flex items-center justify-between gap-3 mb-6 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <span>
-                  <strong className="font-bold">Demo mode:</strong> these settings are read-only — saving, testing and deleting are disabled for security.
-                </span>
-              </div>
-              <button onClick={() => setDemoBanner(false)} className="text-amber-500 hover:text-amber-800 p-1 rounded-none-none">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+
 
           {/* Stat Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

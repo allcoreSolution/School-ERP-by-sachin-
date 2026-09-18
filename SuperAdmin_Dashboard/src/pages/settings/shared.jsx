@@ -30,17 +30,6 @@ export function SaveBar({ label = 'Save Changes', note = 'Changes apply immediat
   );
 }
 
-export function DemoBanner({ onClose }) {
-  return (
-    <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center justify-between gap-3 mb-6">
-      <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-      {onClose && (
-        <button onClick={onClose} className="text-amber-500 hover:text-amber-700 font-bold text-sm leading-none">×</button>
-      )}
-    </div>
-  );
-}
-
 export function PageHeader({ title, subtitle, icon: Icon, iconColor = 'text-blue-600' }) {
   return (
     <div className="mb-6">

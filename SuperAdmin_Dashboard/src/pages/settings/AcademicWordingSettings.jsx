@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Type, Lock, Info, Save, Building2, Check } from 'lucide-react';
 import SettingsLayout from '../../components/SettingsLayout';
+import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 const SCHOOLS_DATA = [
   { school: 'Yug International', vocab: 'Class / Section / Subject' },
@@ -13,18 +15,39 @@ export default function AcademicWordingSettings() {
   const [enabled, setEnabled] = useState(true);
   const [defaultVocab, setDefaultVocab] = useState('Indian / CBSE (default) — Class / Section / Subject');
   const [saved, setSaved] = useState(false);
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2500); };
+
+  useEffect(() => {
+    settingsService.getSetting('academic_wording').then(res => {
+      if (res.success && res.data) {
+        setEnabled(res.data.enabled ?? true);
+        setDefaultVocab(res.data.defaultVocab || 'Indian / CBSE (default) — Class / Section / Subject');
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = async () => { 
+    try {
+      await settingsService.saveSetting('academic_wording', { enabled, defaultVocab });
+      setSaved(true); 
+      Swal.fire({
+        icon: 'success',
+        title: 'Settings Saved',
+        text: 'Your changes have been saved to the database successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setTimeout(() => setSaved(false), 2500); 
+    } catch (error) {
+      Swal.fire('Error', 'Failed to save configuration: ' + error.message, 'error');
+    }
+  };
 
   return (
     <SettingsLayout activeTab="wording">
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-6 max-w-[1150px] mx-auto w-full">
 
-          {/* Demo Banner */}
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-none-none text-xs font-medium flex items-center gap-2 mb-5">
-            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-            <span><strong>Demo mode:</strong> settings are read-only — changes are disabled for security.</span>
-          </div>
+          
 
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-100 text-blue-800 px-4 py-3 rounded-none-none text-xs flex items-start gap-2 mb-6">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, CheckCircle, ExternalLink, Globe, RefreshCcw } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const initSitemapData = [
   { id: 1, type: 'Homepage', subtitle: 'homepage', enabled: true, prefix: '/', priority: '1.0', freq: 'Daily' },
@@ -52,7 +53,7 @@ export default function Sitemap() {
           <h1 className="text-[22px] font-medium text-gray-800">Sitemap Generator</h1>
         </div>
         <button
-          onClick={() => alert('XML Sitemap generated!')}
+          onClick={() => Swal.fire({ icon: 'success', title: 'Success', text: 'XML Sitemap generated!', confirmButtonColor: '#0891b2' })}
           className="flex items-center gap-2 px-4 py-2 bg-[#28a745] text-white rounded-none hover:bg-green-700 text-sm font-bold transition-colors"
         >
           <RefreshCcw className="w-4 h-4" />

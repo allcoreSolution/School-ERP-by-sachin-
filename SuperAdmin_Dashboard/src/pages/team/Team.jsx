@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Mail, Phone, X, Save, AlertTriangle, Circle } from 'lucide-react';
+import Swal from 'sweetalert2';
 
-const initTeam = [
-  { id: 1, name: 'Rahul Sharma', email: 'rahul@erp.com', phone: '+91 98765 43210', role: 'Super Admin', status: 'Active', joined: 'Jan 2023' },
-  { id: 2, name: 'Priya Singh', email: 'priya@erp.com', phone: '+91 87654 32109', role: 'Support Manager', status: 'Active', joined: 'Mar 2023' },
-  { id: 3, name: 'Amit Kumar', email: 'amit@erp.com', phone: '+91 76543 21098', role: 'Developer', status: 'Active', joined: 'Jun 2023' },
-  { id: 4, name: 'Neha Gupta', email: 'neha@erp.com', phone: '+91 65432 10987', role: 'Sales Manager', status: 'Inactive', joined: 'Aug 2023' },
-  { id: 5, name: 'Vikram Patel', email: 'vikram@erp.com', phone: '+91 54321 09876', role: 'Support Agent', status: 'Active', joined: 'Oct 2023' },
-];
+const initTeam = [];
 
 const roles = ['Super Admin', 'Support Manager', 'Developer', 'Sales Manager', 'Support Agent', 'Content Manager'];
 const avatarColors = ['bg-[#2563eb]', 'bg-[#9333ea]', 'bg-[#16a34a]', 'bg-[#ef4444]', 'bg-[#f97316]'];
 const emptyForm = { name: '', email: '', phone: '', role: 'Support Agent', status: 'Active' };
 
 export default function Team() {
-  const [team, setTeam] = useState(initTeam);
+  const [team, setTeam] = useState(() => {
+    const saved = localStorage.getItem('team_members');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editMember, setEditMember] = useState(null);
   const [deleteMember, setDeleteMember] = useState(null);
   const [form, setForm] = useState(emptyForm);
+
+  useEffect(() => {
+    localStorage.setItem('team_members', JSON.stringify(team));
+  }, [team]);
 
   const filtered = team.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -27,19 +29,23 @@ export default function Team() {
   );
 
   const handleAdd = () => {
+    if (!form.name || !form.email) return Swal.fire('Error', 'Name and Email are required', 'error');
     setTeam(prev => [...prev, { ...form, id: Date.now(), joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) }]);
     setShowAdd(false);
     setForm(emptyForm);
+    Swal.fire({ icon: 'success', title: 'Team member added!', timer: 1200, showConfirmButton: false });
   };
 
   const handleSaveEdit = () => {
     setTeam(prev => prev.map(m => m.id === editMember.id ? editMember : m));
     setEditMember(null);
+    Swal.fire({ icon: 'success', title: 'Member updated!', timer: 1200, showConfirmButton: false });
   };
 
   const handleDelete = () => {
     setTeam(prev => prev.filter(m => m.id !== deleteMember.id));
     setDeleteMember(null);
+    Swal.fire({ icon: 'success', title: 'Member removed!', timer: 1200, showConfirmButton: false });
   };
 
   const initials = (name) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -57,19 +63,19 @@ export default function Team() {
             <div className="col-span-2">
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Full Name</label>
               <input value={member.name || ''} onChange={e => setMember({ ...member, name: e.target.value })}
-                className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. John Doe" />
+                className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="e.g. John Doe" />
             </div>
             
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Email Address</label>
               <input type="email" value={member.email || ''} onChange={e => setMember({ ...member, email: e.target.value })}
-                className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="john@company.com" />
+                className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="john@company.com" />
             </div>
             
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Phone Number</label>
               <input value={member.phone || ''} onChange={e => setMember({ ...member, phone: e.target.value })}
-                className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="+91 98765 43210" />
+                className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]" placeholder="+91 98765 43210" />
             </div>
           </div>
           
@@ -77,14 +83,14 @@ export default function Team() {
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Platform Role</label>
               <select value={member.role} onChange={e => setMember({ ...member, role: e.target.value })}
-                className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                 {roles.map(r => <option key={r}>{r}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Status</label>
               <select value={member.status} onChange={e => setMember({ ...member, status: e.target.value })}
-                className="w-full border border-gray-200 px-3 py-2 text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] bg-white">
+                className="w-full border border-gray-200 px-3 py-2 text-[13px] text-slate-900 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2]">
                 <option>Active</option>
                 <option>Inactive</option>
               </select>
@@ -137,7 +143,7 @@ export default function Team() {
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Search team members by name or email..." value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] w-full bg-white placeholder-gray-400" />
+              className="pl-9 pr-4 py-2 border border-gray-200 rounded-none text-[13px] text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:border-[#0891b2] focus:ring-1 focus:ring-[#0891b2] w-full" />
           </div>
         </div>
 
