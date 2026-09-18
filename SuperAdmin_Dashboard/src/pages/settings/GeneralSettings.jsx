@@ -5,6 +5,7 @@ import {
   Wallet, BookOpen, Image, Globe, Settings, ChevronRight, CheckCircle2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { settingsService } from '../../api/settingsService';
 
 
 // ─── Reusable Toggle ──────────────────────────────────────────────────────────
@@ -17,10 +18,10 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-// ─── Save Bar ────────────────────────────────────────────────────────────────
-function SaveBar({ label = 'Save Changes', note = 'Changes apply immediately.' }) {
+function SaveBar({ label = 'Save Changes', note = 'Changes apply immediately.', onSave }) {
   const [saved, setSaved] = useState(false);
-  const handle = () => { 
+  const handle = async () => { 
+    if(onSave) await onSave();
     setSaved(true); 
     Swal.fire({
       icon: 'success',
@@ -47,6 +48,21 @@ function GeneralBrandingPanel() {
   const [siteName, setSiteName] = useState('Multi School ERP v3.6');
   const [country, setCountry] = useState('India (+91)');
   const [footer, setFooter] = useState('Projectworlds Multi School ERP v3.6');
+
+  React.useEffect(() => {
+    settingsService.getSetting('general').then(res => {
+      if(res?.data) {
+        setSiteName(res.data.siteName || '');
+        setCountry(res.data.country || 'India (+91)');
+        setFooter(res.data.footer || '');
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = () => {
+    return settingsService.saveSetting('general', { siteName, country, footer });
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-7">
@@ -91,7 +107,7 @@ function GeneralBrandingPanel() {
           </div>
         </div>
       </div>
-      <SaveBar label="💾 Save Branding" note="Visible on landing page and all admin panels." />
+      <SaveBar onSave={handleSave} label="💾 Save Branding" note="Visible on landing page and all admin panels." />
     </div>
   );
 }
@@ -419,6 +435,35 @@ function MailPanel() {
   const [fromName, setFromName] = useState('Multi School ERP');
   const [fromEmail, setFromEmail] = useState('noreply@yourplatform.com');
   const [encryption, setEncryption] = useState('TLS');
+
+  React.useEffect(() => {
+    settingsService.getSetting('smtp').then(res => {
+      if(res?.data) {
+        setHost(res.data.host || '');
+        setPort(res.data.port || '');
+        setUser(res.data.user || '');
+        setPass(res.data.pass || '');
+        setFromName(res.data.fromName || '');
+        setFromEmail(res.data.fromEmail || '');
+        setEncryption(res.data.encryption || '');
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleSave = () => {
+    return settingsService.saveSetting('smtp', { host, port, user, pass, fromName, fromEmail, encryption });
+  };
+
+  const handleTest = async () => {
+    try {
+      const res = await settingsService.testSmtp({ host, port, username: user, password: pass });
+      if(res.success) Swal.fire('Success', res.message, 'success');
+      else Swal.fire('Error', res.message, 'error');
+    } catch (e) {
+      Swal.fire('Error', 'Failed to test connection', 'error');
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-7">
@@ -448,10 +493,15 @@ function MailPanel() {
           <div><label className="block text-[13px] font-bold text-gray-700 mb-1.5">Encryption</label>
             <select value={encryption} onChange={e => setEncryption(e.target.value)} className="w-40 border border-gray-300 rounded-none-none px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
               <option>TLS</option><option>SSL</option><option>None</option>
-            </select></div>
+            </select>
+          </div>
+          
+          <div className="pt-3">
+             <button onClick={handleTest} className="text-blue-600 border border-blue-500 px-4 py-2 text-[12px] font-bold hover:bg-blue-50">Test Connection</button>
+          </div>
         </div>
       </div>
-      <SaveBar label="Save Mail Settings" />
+      <SaveBar onSave={handleSave} label="Save Mail Settings" />
     </div>
   );
 }

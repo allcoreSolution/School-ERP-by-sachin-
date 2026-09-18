@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Landmark, Users, FileText, Banknote, ReceiptText, Activity } from 'lucide-react';
-import { tenantService } from '../../api/tenantService';
+import { superAdminService } from '../../api/superAdminService';
 
 const KpiCard = ({ title, value, isLive, icon: Icon, glowColor, stroke, iconBg, iconColor, spark }) => (
   <div className="bg-white rounded-xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] border border-slate-200/60 relative overflow-hidden group hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-400 ease-out h-[110px] flex flex-col justify-between">
@@ -74,13 +74,13 @@ const KpiCards = () => {
   });
 
   useEffect(() => {
-    tenantService.getDashboardStats().then(res => {
+    superAdminService.getDashboardAnalytics().then(res => {
       if(res?.data) {
         setStats({
           activeSchools: res.data.activeSchools || 0,
           totalSchools: res.data.totalSchools || 0,
-          totalRevenue: res.data.totalRevenue || 0,
-          totalStudents: res.data.totalStudents || res.data.totalStudentsTarget || 0,
+          totalRevenue: res.data.revenue || 0,
+          totalStudents: res.data.activeStudents || 0,
         });
       }
     }).catch(console.error);
