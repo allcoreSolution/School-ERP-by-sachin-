@@ -7,10 +7,7 @@ import {
 
 export default function ManageUploads() {
   const [viewMode, setViewMode] = useState('list');
-  const [uploads, setUploads] = useState([
-    { id: 1, student: 'Kabir Singh', adm: 'YISADM-004', class: 'Nursery', section: 'A', title: 'Reports', exam: 'Term 2', published: true },
-    { id: 2, student: 'Kabir Singh', adm: 'YISADM-004', class: 'Nursery', section: 'A', title: 'Annual Exam 2026-27', exam: 'Annual Examination', published: false },
-  ]);
+  const [uploads, setUploads] = useState([]);
 
   const togglePublish = (id) => {
     setUploads(uploads.map(u => {

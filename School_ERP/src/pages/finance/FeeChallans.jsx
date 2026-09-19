@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Info, Zap, Search, Download, Printer, LayoutGrid, List as ListIcon, Grid,
@@ -9,18 +9,40 @@ import {
 import QuickSetupModal from '../../components/finance/QuickSetupModal';
 import FinanceTabs from '../../components/finance/FinanceTabs';
 import HowItWorksModal from '../../components/finance/HowItWorksModal';
-
-const initialChallans = [
-  { id: '1', challanNo: 'VCH/YIS/2026/00001', student: 'Krish Yadav', admissionNo: 'YISADM 012', class: 'Nursery (A)', type: 'Fee Payment', amount: 15000, dueDate: '20 Aug, 2026', status: 'Paid' },
-  { id: '2', challanNo: 'VCH/YIS/2026/00002', student: 'Daksh Tiwari', admissionNo: 'YISADM 018', class: 'Nursery (A)', type: 'Fee Payment', amount: 2000, dueDate: '26 Aug, 2026', status: 'Paid' },
-  { id: '3', challanNo: 'VCH/YIS/2026/00003', student: 'Raaj kumar Rai', admissionNo: 'YISADM 53', class: 'Class II (A)', type: 'Fee Payment', amount: 9000, dueDate: '26 Aug, 2026', status: 'Paid' },
-  { id: '4', challanNo: 'VCH/YIS/2026/00004', student: 'Raaj kumar Rai', admissionNo: 'YISADM 53', class: 'Class II (A)', type: 'Fee Payment', amount: 2000, dueDate: '26 Aug, 2026', status: 'Paid' },
-  { id: '5', challanNo: 'VCH/YIS/2026/00005', student: 'Diya Reddy', admissionNo: 'YISADM 007', class: 'Nursery (A)', type: 'Fee Payment', amount: 300, dueDate: '31 Aug, 2026', status: 'Paid' },
-  { id: '6', challanNo: 'VCH/YIS/2026/00006', student: 'Amit Singh', admissionNo: 'YISADM 022', class: 'Class I (B)', type: 'Fee Payment', amount: 2000, dueDate: '05 Sep, 2026', status: 'Awaiting Payment' },
-];
+import { financeService } from '../../api/financeService';
 
 const FeeChallans = () => {
   const navigate = useNavigate();
+  const [challansData, setChallansData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchChallans();
+  }, []);
+
+  const fetchChallans = async () => {
+    try {
+      setLoading(true);
+      const res = await financeService.getFeeChallans();
+      const mapped = (res.data || []).map((c, i) => ({
+        id: c._id,
+        challanNo: c.challanNo || `VCH/2026/${1000+i}`,
+        student: c.studentId ? `${c.studentId.firstName} ${c.studentId.lastName}` : 'Unknown',
+        admissionNo: c.studentId?.admissionNo || 'N/A',
+        class: c.classId?.className || 'N/A',
+        type: 'Fee Payment',
+        amount: c.totalAmount || 0,
+        dueDate: c.dueDate ? new Date(c.dueDate).toLocaleDateString() : 'N/A',
+        status: c.status || 'Awaiting Payment'
+      }));
+      setChallansData(mapped);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [isQuickSetupOpen, setIsQuickSetupOpen] = useState(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
 
@@ -46,7 +68,7 @@ const FeeChallans = () => {
   };
 
   const filteredChallans = useMemo(() => {
-    return initialChallans.filter(c => {
+    return challansData.filter(c => {
       // Main Filter Bar
       if (appliedSearch.status !== 'All' && c.status !== appliedSearch.status) return false;
       if (appliedSearch.class !== 'All Classes' && !c.class.includes(appliedSearch.class)) return false;
@@ -319,7 +341,9 @@ const FeeChallans = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 text-gray-700">
-              {filteredChallans.length > 0 ? filteredChallans.map((c, i) => (
+              {loading ? (
+                <tr><td colSpan="10" className="p-6 text-center text-gray-500">Loading challans...</td></tr>
+              ) : filteredChallans.length > 0 ? filteredChallans.map((c, i) => (
                 <tr key={c.id} className="hover:bg-gray-50 transition-colors font-medium">
                   <td className="p-3 border-r border-gray-200 text-center text-gray-500">{i + 1}</td>
                   <td className="p-3 border-r border-gray-200">{c.challanNo}</td>

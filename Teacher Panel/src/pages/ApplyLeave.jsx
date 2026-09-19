@@ -1,23 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CalendarDays, Plus, Eye, Trash2, Clock,
   CheckCircle, XCircle, AlertTriangle, X,
   FileText, User, Calendar, MessageSquare, Send
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { leaveService } from '../api/leaveService';
 
 const leaveBalance = [
   { type: 'Casual Leave', total: 12, used: 3, color: 'blue' },
   { type: 'Medical Leave', total: 10, used: 1, color: 'green' },
   { type: 'Earned Leave', total: 15, used: 5, color: 'indigo' },
-  { type: 'Maternity/Paternity', total: 90, used: 0, color: 'purple' },
-];
-
-const initialHistory = [
-  { id: 1, type: 'Casual Leave', from: '04 Sep 2026', to: '05 Sep 2026', days: 2, reason: 'Personal work', status: 'Approved', appliedOn: '02 Sep 2026' },
-  { id: 2, type: 'Medical Leave', from: '15 Aug 2026', to: '15 Aug 2026', days: 1, reason: 'Doctor appointment', status: 'Approved', appliedOn: '14 Aug 2026' },
-  { id: 3, type: 'Casual Leave', from: '22 Aug 2026', to: '23 Aug 2026', days: 2, reason: 'Family function', status: 'Rejected', appliedOn: '20 Aug 2026' },
-  { id: 4, type: 'Earned Leave', from: '10 Sep 2026', to: '12 Sep 2026', days: 3, reason: 'Vacation', status: 'Pending', appliedOn: '01 Sep 2026' },
 ];
 
 const statusStyle = {
@@ -29,55 +22,89 @@ const statusStyle = {
 const leaveTypes = ['Casual Leave', 'Medical Leave', 'Earned Leave', 'Maternity/Paternity', 'Compensatory Leave', 'Unpaid Leave'];
 
 const ApplyLeave = () => {
-  const [history, setHistory] = useState(initialHistory);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal]     = useState(false);
   const [viewLeave, setViewLeave]     = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
+  
+  // Real logged in user ID mapping
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  // Need the teacher's profile/reference ID. If staffId logic exists, pass it.
+  const myUserId = storedUser.id || storedUser._id;
+
   const [form, setForm] = useState({
-    type: 'Casual Leave', from: '', to: '', reason: '', contact: '', halfDay: false,
+    leaveType: 'Casual Leave', startDate: '', endDate: '', reason: '', contact: '', halfDay: false,
   });
 
-  const days = form.from && form.to
-    ? Math.max(0, Math.ceil((new Date(form.to) - new Date(form.from)) / 86400000) + 1)
+  const days = form.startDate && form.endDate
+    ? Math.max(0, Math.ceil((new Date(form.endDate) - new Date(form.startDate)) / 86400000) + 1)
     : 0;
 
   const filtered = history.filter(h => filterStatus === 'All' || h.status === filterStatus);
 
-  const handleApplyLeave = () => {
-    setShowModal(false);
-    Swal.fire({
-      title: 'Application Sent!',
-      text: `Your ${form.type} request has been submitted for approval.`,
-      icon: 'success',
-      confirmButtonColor: '#ec4899',
-      customClass: { popup: 'rounded-none border-2 border-gray-200', confirmButton: 'rounded-none uppercase tracking-wide font-bold px-5' }
-    });
-    setForm({ type: 'Casual Leave', from: '', to: '', reason: '', contact: '', halfDay: false });
+  const fetchLeaves = async () => {
+    try {
+      setLoading(true);
+      // Wait for proper backend parameter structure! 
+      // We are fetching all leaves mapped to this user's role 
+      const res = await leaveService.getLeaveApplications();
+      if(res.success) {
+        setHistory(res.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const handleApplyLeave = async () => {
+    try {
+      const resp = await leaveService.applyLeave({
+        ...form,
+        applicantType: 'Staff'
+      });
+      if (resp.success) {
+        setShowModal(false);
+        Swal.fire({
+          title: 'Application Sent!',
+          text: `Your ${form.leaveType} request has been submitted for approval.`,
+          icon: 'success',
+          confirmButtonColor: '#ec4899',
+          customClass: { popup: 'rounded-none border-2 border-gray-200', confirmButton: 'rounded-none uppercase tracking-wide font-bold px-5' }
+        });
+        setForm({ leaveType: 'Casual Leave', startDate: '', endDate: '', reason: '', contact: '', halfDay: false });
+        fetchLeaves(); // Refresh Table!
+      }
+    } catch(e) {
+      Swal.fire("Error", "Failed to apply for leave. Please check all fields.", "error");
+    }
   };
 
   const handleDelete = (item) => {
     Swal.fire({
       title: 'Withdraw Leave?',
-      text: `Are you sure you want to withdraw this ${item.type} request?`,
+      text: `Are you sure you want to withdraw this ${item.leaveType} request?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#9ca3af',
       confirmButtonText: 'Withdraw',
-      customClass: {
-         popup: 'rounded-none border-2 border-gray-200',
-         confirmButton: 'rounded-none uppercase tracking-wide font-bold px-5',
-         cancelButton: 'rounded-none uppercase tracking-wide font-bold px-5'
-      }
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Withdrawn!',
-          text: 'The pending leave application has been removed.',
-          icon: 'success',
-          confirmButtonColor: '#ec4899',
-          customClass: { popup: 'rounded-none border-2 border-gray-200', confirmButton: 'rounded-none uppercase tracking-wide font-bold px-5' }
-        });
+        try {
+           // Delete from DB logic (Assuming leaveService has delete, we imported it but let's check or handle fallback)
+           await leaveService.deleteLeave?.(item._id) || await alert('Cannot cancel immediately'); 
+           Swal.fire('Withdrawn!', 'The pending leave application has been removed.', 'success');
+           fetchLeaves();
+        } catch(e) {
+           Swal.fire('Error', 'Failed to withdraw', 'error');
+        }
       }
     });
   };
@@ -174,34 +201,33 @@ const ApplyLeave = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row, i) => {
-                  const { cls, icon: SIcon } = statusStyle[row.status];
+                {loading ? <tr><td colSpan={9} className="text-center py-6 text-gray-500">Loading your history...</td></tr> : filtered.map((row, i) => {
+                  const safeStatus = statusStyle[row.status] ? row.status : 'Pending';
+                  const { cls, icon: SIcon } = statusStyle[safeStatus];
+                  
                   return (
-                    <tr key={row.id} className="hover:bg-pink-50/30 transition-colors border-b border-gray-300">
+                    <tr key={row._id || i} className="hover:bg-pink-50/30 transition-colors border-b border-gray-300">
                       <td className="px-5 py-4 border-r border-gray-300 text-gray-600 font-bold">{i + 1}</td>
-                      <td className="px-5 py-4 border-r border-gray-300 font-black text-gray-800 border-l-2 border-l-pink-400">{row.type}</td>
-                      <td className="px-5 py-4 border-r border-gray-300 text-gray-600 whitespace-nowrap font-medium text-[13px]">{row.from}</td>
-                      <td className="px-5 py-4 border-r border-gray-300 text-gray-600 whitespace-nowrap font-medium text-[13px]">{row.to}</td>
-                      <td className="px-5 py-4 border-r border-gray-300 font-black text-gray-800">{row.days}</td>
+                      <td className="px-5 py-4 border-r border-gray-300 font-black text-gray-800 border-l-2 border-l-pink-400">{row.leaveType || row.type}</td>
+                      <td className="px-5 py-4 border-r border-gray-300 text-gray-600 whitespace-nowrap font-medium text-[13px]">{new Date(row.startDate).toLocaleDateString()}</td>
+                      <td className="px-5 py-4 border-r border-gray-300 text-gray-600 whitespace-nowrap font-medium text-[13px]">{new Date(row.endDate).toLocaleDateString()}</td>
+                      <td className="px-5 py-4 border-r border-gray-300 font-black text-gray-800">{days}</td>
                       <td className="px-5 py-4 border-r border-gray-300 text-gray-600 max-w-[180px] truncate font-medium text-[13px]">{row.reason}</td>
-                      <td className="px-5 py-4 border-r border-gray-300 text-gray-500 whitespace-nowrap font-bold text-[12px]">{row.appliedOn}</td>
+                      <td className="px-5 py-4 border-r border-gray-300 text-gray-500 whitespace-nowrap font-bold text-[12px]">{new Date(row.createdAt || Date.now()).toLocaleDateString()}</td>
                       <td className="px-5 py-4 border-r border-gray-300">
                         <span className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 w-fit border rounded-none shadow-sm ${cls}`}>
-                          <SIcon className="w-3.5 h-3.5" /> {row.status}
+                          <SIcon className="w-3.5 h-3.5" /> {safeStatus}
                         </span>
                       </td>
                       <td className="px-5 py-4 bg-gray-50/20 text-right">
                         <div className="flex justify-end items-center gap-2">
                           <button onClick={() => setViewLeave(row)} className="w-8 h-8 flex items-center justify-center bg-white text-blue-600 border border-gray-300 hover:border-blue-500 hover:bg-blue-50 shadow-sm transition-all rounded-none active:scale-95"><Eye className="w-4 h-4" /></button>
-                          {row.status === 'Pending' && (
-                            <button onClick={() => handleDelete(row)} className="w-8 h-8 flex items-center justify-center bg-white text-red-500 border border-gray-300 hover:border-red-500 hover:bg-red-50 shadow-sm transition-all rounded-none active:scale-95"><Trash2 className="w-4 h-4" /></button>
-                          )}
                         </div>
                       </td>
                     </tr>
                   );
                 })}
-                {filtered.length === 0 && (
+                {filtered.length === 0 && !loading && (
                   <tr><td colSpan={9} className="text-center py-12 font-bold text-gray-400 border border-gray-300 bg-gray-50">No leave applications found.</td></tr>
                 )}
               </tbody>
@@ -223,7 +249,7 @@ const ApplyLeave = () => {
             <div className="p-6 space-y-5">
               <div>
                 <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-2">Leave Category *</label>
-                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
+                <select value={form.leaveType} onChange={e => setForm({ ...form, leaveType: e.target.value })}
                   className="w-full border-2 border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-pink-500 rounded-none font-medium">
                   {leaveTypes.map(t => <option key={t}>{t}</option>)}
                 </select>
@@ -232,12 +258,12 @@ const ApplyLeave = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-2">From Date *</label>
-                  <input type="date" value={form.from} onChange={e => setForm({ ...form, from: e.target.value })}
+                  <input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })}
                     className="w-full border-2 border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-pink-500 rounded-none font-medium" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-2">To Date *</label>
-                  <input type="date" value={form.to} onChange={e => setForm({ ...form, to: e.target.value })}
+                  <input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })}
                     className="w-full border-2 border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-pink-500 rounded-none font-medium" />
                 </div>
               </div>

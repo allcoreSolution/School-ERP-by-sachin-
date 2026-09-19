@@ -8,7 +8,9 @@ class AuthService extends ChangeNotifier {
   static final AuthService instance = AuthService._();
   AuthService._();
 
-  static const String baseUrl = 'https://all-core-school-erp-backend.onrender.com/';
+  // Changed to Local Host Backend IP so Flutter hits the Local DB where the Teacher Accounts were actually created!
+  // Note: 192.168.1.12 is the specific IP of the PC so that PHYSICAL mobile devices connected via WiFi can hit it.
+  static const String baseUrl = 'http://192.168.1.12:5050/';
 
   SharedPreferences? _prefs;
   Timer? _gpsTimer;
@@ -196,6 +198,10 @@ class AuthService extends ChangeNotifier {
   String get teacherExperience => _teacherExperience;
   String get teacherJoiningDate => _teacherJoiningDate;
 
+  // Staff Getters
+  String get staffName => _prefs?.getString('sp_staff_name') ?? 'Employee';
+  String get staffEmpId => _prefs?.getString('sp_staff_emp_id') ?? 'EMP';
+
   // Driver Getters
   String get driverName => _driverName;
   String get driverEmpId => _driverEmpId;
@@ -216,8 +222,12 @@ class AuthService extends ChangeNotifier {
       await _prefs?.clear();
     }
     
+    // TEMPORARY OVERRIDE: The user requested that the app always starts at the Portal Selection screen,
+    // so we clear the login session on init.
+    await _prefs?.setBool('sp_is_logged_in', false);
+    
     _isRegistered = _prefs?.getBool('sp_is_registered') ?? false;
-    _isLoggedIn = _prefs?.getBool('sp_is_logged_in') ?? false;
+    _isLoggedIn = false; // Forced false so Splash screen goes to selection portal
     _activeRole = _prefs?.getString('sp_active_role') ?? 'student';
     _studentToken = _prefs?.getString('sp_student_token') ?? '';
     _studentId = _prefs?.getString('sp_student_id') ?? '';

@@ -5,6 +5,7 @@ import {
   Info, LayoutDashboard, Book, ArrowDownToLine, ArrowUpFromLine, 
   Calendar, FileText, Tags, Wallet, Plus, Edit, Trash2, Building2, Banknote, BookOpen, X, Save
 } from 'lucide-react';
+import { financeService } from '../../api/financeService';
 
 const BankAccounts = () => {
   const [editingRecord, setEditingRecord] = useState(null);
@@ -17,32 +18,42 @@ const BankAccounts = () => {
     branchIfsc: '',
     openingBalance: '0.00'
   });
+  const [accountsData, setAccountsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const initialData = [
-    { 
-      id: 1, 
-      accountName: 'Cash Account', 
-      type: 'Cash', 
-      bankBranch: '—', 
-      accountNo: '—', 
-      currentBalance: '₹ 1,926,231.08' 
-    },
-    { 
-      id: 2, 
-      accountName: 'SBI Bank Account', 
-      type: 'Bank', 
-      bankBranch: 'STATE BANK OF INDIA\nMain Branch', 
-      accountNo: '23111313131', 
-      currentBalance: '₹ 223,639.75' 
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      const res = await financeService.getBankAccounts();
+      const accounts = (res.data || []).map(b => ({
+        id: b._id,
+        accountName: b.accountTitle || b.bankName,
+        type: 'Bank',
+        bankBranch: `${b.bankName || 'Unknown'}\n${b.branchName || '—'}\n${b.ifscCode ? b.ifscCode : ''}`,
+        accountNo: b.accountNumber || '—',
+        currentBalance: `₹ ${Number(b.openingBalance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`
+      }));
+      setAccountsData(accounts);
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const [accountsData, setAccountsData] = useState(initialData);
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this account?")) {
-      setAccountsData(prev => prev.filter(item => item.id !== id));
-      alert("Account deleted successfully!");
+      try {
+        await financeService.deleteBankAccount(id);
+        setAccountsData(prev => prev.filter(item => item.id !== id));
+        alert("Account deleted successfully!");
+      } catch (err) {
+        alert("Error deleting record");
+      }
     }
   };
 
@@ -57,33 +68,32 @@ const BankAccounts = () => {
     alert("Account updated successfully!");
   };
 
-  const handleAddAccount = (e) => {
+  const handleAddAccount = async (e) => {
     e.preventDefault();
-    const newId = accountsData.length > 0 ? Math.max(...accountsData.map(a => a.id)) + 1 : 1;
-    
-    const typeText = newAccountData.type === 'Bank Account' ? 'Bank' : 'Cash';
-    const bankBranchText = typeText === 'Bank' ? `${newAccountData.bankName}\n${newAccountData.branchIfsc}` : '—';
-    
-    const newAccount = {
-      id: newId,
-      accountName: newAccountData.accountName,
-      type: typeText,
-      bankBranch: bankBranchText,
-      accountNo: typeText === 'Bank' ? newAccountData.accountNo : '—',
-      currentBalance: `₹ ${Number(newAccountData.openingBalance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`
-    };
-    
-    setAccountsData([...accountsData, newAccount]);
-    setIsAddModalOpen(false);
-    setNewAccountData({
-      accountName: '',
-      type: 'Bank Account',
-      bankName: '',
-      accountNo: '',
-      branchIfsc: '',
-      openingBalance: '0.00'
-    });
-    alert("New account added successfully!");
+    try {
+      const payload = {
+        accountTitle: newAccountData.accountName,
+        bankName: newAccountData.bankName,
+        accountNumber: newAccountData.accountNo,
+        ifscCode: newAccountData.branchIfsc,
+        openingBalance: Number(newAccountData.openingBalance || 0)
+      };
+      await financeService.createBankAccount(payload);
+      setIsAddModalOpen(false);
+      setNewAccountData({
+        accountName: '',
+        type: 'Bank Account',
+        bankName: '',
+        accountNo: '',
+        branchIfsc: '',
+        openingBalance: '0.00'
+      });
+      alert("New account added successfully!");
+      fetchAccounts();
+    } catch (err) {
+      console.error(err);
+      alert("Error adding account");
+    }
   };
 
   return (

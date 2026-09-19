@@ -17,6 +17,15 @@ export const examService = {
     const response = await axiosInstance.delete(`/exams/${id}`);
     return response.data;
   },
+  // Marks
+  getMarks: async (params = {}) => {
+    const response = await axiosInstance.get('/exams/marks', { params });
+    return response.data;
+  },
+  saveMarks: async (data) => {
+    const response = await axiosInstance.post('/exams/marks', data);
+    return response.data;
+  },
   // Online Exams
   getOnlineExams: async (params = {}) => {
     const response = await axiosInstance.get('/online-exams', { params });

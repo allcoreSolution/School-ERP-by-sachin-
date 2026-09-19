@@ -6,6 +6,7 @@ import {
   Calendar, FileText, Tags, Wallet, FileText as FileTextIcon, 
   Printer, Columns, ChevronDown, List, Grid, Plus, Edit, Trash2, X
 } from 'lucide-react';
+import { financeService } from '../../api/financeService';
 
 const Income = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,15 +14,31 @@ const Income = () => {
   const [viewMode, setViewMode] = useState('list');
   const [editingRecord, setEditingRecord] = useState(null);
   
-  const initialData = [
-    { id: 1, name: 'Donation', head: 'Donation', headColor: 'bg-blue-50 text-blue-600', date: '21 Aug, 2026', amount: '₹ 55,000.00' },
-    { id: 2, name: 'rahul', head: 'Uniform Sale', headColor: 'bg-purple-50 text-purple-600', date: '08 Aug, 2026', amount: '₹ 500.00' },
-    { id: 3, name: 'Challan Collection: VCH/YIS/2026/00004', head: '—', headColor: 'text-gray-400', date: '19 May, 2026', amount: '₹ 567.00' },
-    { id: 4, name: 'Wallet Top up: Yug Verma (YISADM-001)', head: '—', headColor: 'text-gray-400', date: '19 May, 2026', amount: '₹ 50,000.00' },
-    { id: 5, name: 'School Donation', head: 'Donation', headColor: 'bg-blue-50 text-blue-600', date: '26 Feb, 2026', amount: '₹ 500,000.00' },
-  ];
+  const [incomeData, setIncomeData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [incomeData, setIncomeData] = useState(initialData);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await financeService.getIncomes();
+        const data = (res.data || []).map(inc => ({
+           id: inc._id, 
+           name: inc.name || inc.description || 'Unknown Income',
+           head: inc.incomeHead?.name || '—',
+           headColor: 'bg-blue-50 text-blue-600',
+           date: new Date(inc.date || inc.createdAt).toLocaleDateString(),
+           amount: `₹ ${inc.amount || 0}`
+        }));
+        setIncomeData(data);
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Filtering Logic
   const filteredData = useMemo(() => {
@@ -36,10 +53,15 @@ const Income = () => {
     }).slice(0, showCount);
   }, [incomeData, searchTerm, showCount]);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
-      setIncomeData(prev => prev.filter(item => item.id !== id));
-      alert("Record deleted successfully!");
+      try {
+        await financeService.deleteIncome(id);
+        setIncomeData(prev => prev.filter(item => item.id !== id));
+        alert("Record deleted successfully!");
+      } catch(err) {
+        alert("Error deleting record");
+      }
     }
   };
 
@@ -208,7 +230,11 @@ const Income = () => {
                 </tr>
               </thead>
               <tbody className="text-[13px]">
-                {filteredData.length > 0 ? (
+                {loading ? (
+                  <tr className="print:hidden">
+                    <td colSpan="6" className="p-6 text-center text-gray-500">Loading records...</td>
+                  </tr>
+                ) : filteredData.length > 0 ? (
                   filteredData.map((row, index) => (
                     <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors print:border-gray-300">
                       <td className="p-4 border-r border-gray-100 text-center text-gray-500 print:border-gray-300">{index + 1}</td>
@@ -237,7 +263,9 @@ const Income = () => {
             </table>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 print:block">
-              {filteredData.length > 0 ? (
+              {loading ? (
+                  <div className="print:hidden p-6 text-center text-gray-500">Loading records...</div>
+              ) : filteredData.length > 0 ? (
                 filteredData.map(row => (
                   <div key={row.id} className="bg-white border border-gray-200 rounded-none p-4 shadow-sm hover:shadow-md transition-shadow print:mb-4 print:break-inside-avoid">
                     <div className="flex justify-between items-start mb-3">

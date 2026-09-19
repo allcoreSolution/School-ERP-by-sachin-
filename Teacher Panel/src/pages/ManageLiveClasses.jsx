@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Video, Plus, Search, Eye, Trash2, Edit, Users,
   Clock, Calendar, Play, StopCircle, Radio, X, CheckCircle, Link
 } from 'lucide-react';
-
-const classes = [
-  { id: 1, title: 'Mathematics - Chapter 5: Polynomials', subject: 'Mathematics', class: 'Class X A', date: '04 Sep 2026', time: '09:00 AM', duration: '45 min', status: 'Live', students: 28, link: 'https://meet.google.com/xyz-abc-123' },
-  { id: 2, title: 'Algebra Review Session', subject: 'Mathematics', class: 'Class IX B', date: '04 Sep 2026', time: '11:00 AM', duration: '45 min', status: 'Scheduled', students: 32, link: 'https://meet.google.com/def-ghi-456' },
-  { id: 3, title: 'Geometry Basics', subject: 'Mathematics', class: 'Class VIII A', date: '03 Sep 2026', time: '10:00 AM', duration: '45 min', status: 'Completed', students: 30, link: '' },
-  { id: 4, title: 'Trigonometry Introduction', subject: 'Mathematics', class: 'Class X B', date: '02 Sep 2026', time: '09:00 AM', duration: '45 min', status: 'Completed', students: 27, link: '' },
-];
+import { liveClassService } from '../api/liveClassService';
+import { academicService } from '../api/academicService';
 
 const statusStyle = {
   Live: 'bg-red-100 text-red-600 border border-red-200 animate-pulse',
@@ -21,7 +16,78 @@ const ManageLiveClasses = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ title: '', class: '', subject: '', date: '', time: '', duration: '45', platform: 'Google Meet', link: '' });
+  const [classes, setClasses] = useState([]);
+  
+  const [academicClasses, setAcademicClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+
+  const [form, setForm] = useState({ title: '', classId: '', sectionId: '', subjectId: '', date: '', time: '', duration: '45', platform: 'Zoom', link: '' });
+
+  useEffect(() => {
+    fetchMetadata();
+    fetchLiveClasses();
+  }, []);
+
+  const fetchMetadata = async () => {
+    try {
+      const clsM = await academicService.getClasses();
+      const secM = await academicService.getSections();
+      const subM = await academicService.getSubjects();
+      
+      if(clsM.data) setAcademicClasses(clsM.data);
+      if(secM.data) setSections(secM.data);
+      if(subM.data) setSubjects(subM.data);
+    } catch(e) { console.error(e); }
+  };
+
+  const fetchLiveClasses = async () => {
+    try {
+      const res = await liveClassService.getLiveClasses();
+      if (res.success) {
+        setClasses(res.data.map(c => ({
+          id: c._id,
+          title: c.title,
+          subject: c.subject?.subjectName || 'N/A',
+          class: 'Academic', // can combine class/section if populated
+          date: new Date(c.startTime).toLocaleDateString(),
+          time: new Date(c.startTime).toLocaleTimeString(),
+          duration: `${c.durationMinutes} min`,
+          status: c.status,
+          students: 0,
+          link: c.meetingUrl
+        })));
+      }
+    } catch(e) { console.error(e); }
+  };
+
+  const handleSchedule = async () => {
+    try {
+      const loggedUser = JSON.parse(localStorage.getItem('user') || '{}'); 
+      const payload = {
+        title: form.title,
+        hostId: loggedUser.id || loggedUser._id || '65fac00d41e7d23a670dbfed',
+        academicClass: form.classId,
+        section: form.sectionId,
+        subject: form.subjectId,
+        meetingUrl: form.link || 'https://zoom.us/j/12345678',
+        platform: form.platform,
+        startTime: `${form.date}T${form.time}:00`,
+        durationMinutes: parseInt(form.duration),
+        status: 'Scheduled'
+      };
+      
+      const res = await liveClassService.scheduleClass(payload);
+      if(res.success) {
+         setShowModal(false);
+         fetchLiveClasses();
+         setForm({ title: '', classId: '', sectionId: '', subjectId: '', date: '', time: '', duration: '45', platform: 'Zoom', link: '' });
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error scheduling class");
+    }
+  };
 
   const filtered = classes.filter(c =>
     (filter === 'All' || c.status === filter) &&
@@ -168,17 +234,34 @@ const ManageLiveClasses = () => {
               <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-gray-100 text-gray-500"><X className="w-4 h-4" /></button>
             </div>
             <div className="p-6 space-y-4">
-              {[
-                { label: 'Class Title', key: 'title', type: 'text', placeholder: 'e.g. Chapter 5: Polynomials' },
-                { label: 'Subject', key: 'subject', type: 'text', placeholder: 'e.g. Mathematics' },
-                { label: 'Class / Section', key: 'class', type: 'text', placeholder: 'e.g. Class X A' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">{f.label}</label>
-                  <input type={f.type} placeholder={f.placeholder} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Class Title</label>
+                <input type="text" placeholder="e.g. Chapter 5: Polynomials" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
                     className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/20" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Class</label>
+                  <select value={form.classId} onChange={e => setForm({ ...form, classId: e.target.value })} className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none">
+                    <option value="">Select</option>
+                    {academicClasses.map(c => <option key={c._id} value={c._id}>{c.className}</option>)}
+                  </select>
                 </div>
-              ))}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Section</label>
+                  <select value={form.sectionId} onChange={e => setForm({ ...form, sectionId: e.target.value })} className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none">
+                    <option value="">Select</option>
+                    {sections.map(s => <option key={s._id} value={s._id}>{s.sectionName}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Subject</label>
+                  <select value={form.subjectId} onChange={e => setForm({ ...form, subjectId: e.target.value })} className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none">
+                    <option value="">Select</option>
+                    {subjects.map(s => <option key={s._id} value={s._id}>{s.subjectName}</option>)}
+                  </select>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Date</label>
@@ -210,7 +293,7 @@ const ManageLiveClasses = () => {
               </div>
             </div>
             <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
-              <button onClick={() => setShowModal(false)} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 text-sm transition-colors">
+              <button onClick={handleSchedule} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 text-sm transition-colors">
                 Schedule Class
               </button>
               <button onClick={() => setShowModal(false)} className="px-5 border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">Cancel</button>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Landmark, Users, FileText, Banknote, ReceiptText, Activity } from 'lucide-react';
-import { superAdminService } from '../../api/superAdminService';
+import { tenantService } from '../../api/tenantService';
 
 const KpiCard = ({ title, value, isLive, icon: Icon, glowColor, stroke, iconBg, iconColor, spark }) => (
   <div className="bg-white rounded-xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] border border-slate-200/60 relative overflow-hidden group hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-400 ease-out h-[110px] flex flex-col justify-between">
@@ -74,7 +74,7 @@ const KpiCards = () => {
   });
 
   useEffect(() => {
-    superAdminService.getDashboardAnalytics().then(res => {
+    tenantService.getDashboardStats().then(res => {
       if(res?.data) {
         setStats({
           activeSchools: res.data.activeSchools || 0,

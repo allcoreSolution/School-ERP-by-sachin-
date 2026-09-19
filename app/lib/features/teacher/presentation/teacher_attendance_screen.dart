@@ -101,16 +101,17 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
   }
 
   Future<void> _saveAttendance() async {
-    // Generate the payload
     List<Map<String, dynamic>> submitData = _students.map((s) => {
       'studentId': s['id'],
-      'status': s['status']
+      'status': s['status'],
+      'classId': s['classId'],
+      'sectionId': s['sectionId'],
     }).toList();
 
     // Call API (will send to real rendering server but might not appear correctly if we can't fetch it, however the POST will succeed assuming no strict foreign key constraints in attendanceController.js as we saw)
     await TeacherDataRepository.instance.submitAttendance(
-      classId: '64f9b233a1e2f3001abc9876', // Mock class ObjectId
-      sectionId: '64f9b251a1e2f3001abc9880', // Mock section ObjectId
+      classId: '', 
+      sectionId: '', 
       attendanceData: submitData,
     );
 

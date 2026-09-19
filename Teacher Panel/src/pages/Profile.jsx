@@ -24,6 +24,16 @@ const tabs = ['Profile', 'Payroll', 'Leaves', 'Attendance', 'Documents', 'Career
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('Profile');
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  const userName = storedUser.name || storedUser.username || 'Teacher';
+  const userRole = storedUser.role || 'Teacher';
+  const userEmail = storedUser.email || 'N/A';
+  const userPhone = storedUser.mobile || storedUser.phone || 'N/A';
+  const staffId = storedUser.id || storedUser.employeeId || 'STF-000';
+  const department = storedUser.department || 'Academics';
+  const designation = storedUser.designation || 'Staff Member';
+  const joinDate = storedUser.joinDate || storedUser.createdAt ? new Date(storedUser.createdAt).toLocaleDateString() : 'N/A';
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#f4f7f6] theme-app-bg">
@@ -46,8 +56,8 @@ const Profile = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h2 className="text-lg font-bold text-gray-800">Amit Sharma</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Senior Teacher</p>
+              <h2 className="text-lg font-bold text-gray-800">{userName}</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{designation}</p>
 
               <button className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 px-4 rounded-none flex items-center justify-center gap-2 transition-colors">
                 <Settings className="w-4 h-4" />
@@ -58,13 +68,13 @@ const Profile = () => {
             {/* Info Card */}
             <div className="bg-white border border-gray-200 shadow-sm p-4 space-y-3">
               {[
-                { label: 'Staff ID', value: 'STF-001', cls: 'text-blue-600 font-semibold' },
+                { label: 'Staff ID', value: staffId, cls: 'text-blue-600 font-semibold' },
                 { label: 'Biometric ID', value: 'Not Assigned', cls: 'text-orange-500 font-semibold' },
-                { label: 'Role', value: 'Teacher', cls: 'text-orange-500 font-semibold' },
-                { label: 'Designation', value: 'Senior Teacher', cls: 'text-orange-500 font-semibold' },
-                { label: 'Department', value: 'Mathematics', cls: 'text-orange-500 font-semibold' },
+                { label: 'Role', value: userRole, cls: 'text-orange-500 font-semibold' },
+                { label: 'Designation', value: designation, cls: 'text-orange-500 font-semibold' },
+                { label: 'Department', value: department, cls: 'text-orange-500 font-semibold' },
                 { label: 'Basic Salary', value: '₹35,000.00', cls: 'text-orange-500 font-semibold' },
-                { label: 'Date Of Joining', value: '10/01/2023', cls: 'text-orange-500 font-semibold' },
+                { label: 'Date Of Joining', value: joinDate, cls: 'text-orange-500 font-semibold' },
               ].map(({ label, value, cls }) => (
                 <div key={label} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
                   <span className="text-xs text-gray-500 font-medium">{label}</span>
@@ -93,7 +103,7 @@ const Profile = () => {
                     />
                   ))}
                 </svg>
-                <span className="text-[9px] font-mono font-bold text-gray-600 mt-1 tracking-widest">STF-001</span>
+                <span className="text-[9px] font-mono font-bold text-gray-600 mt-1 tracking-widest">{staffId}</span>
               </div>
             </div>
 
@@ -144,9 +154,9 @@ const Profile = () => {
                 <div>
                   {/* Personal Info */}
                   <div>
-                    <InfoRow label="Phone" value="9876543210" />
-                    <InfoRow label="Email" value="amit@example.com" valueClass="text-blue-600" />
-                    <InfoRow label="Gender" value="Male" valueClass="text-blue-600" />
+                    <InfoRow label="Phone" value={userPhone} />
+                    <InfoRow label="Email" value={userEmail} valueClass="text-blue-600" />
+                    <InfoRow label="Gender" value={storedUser.gender || 'N/A'} valueClass="text-blue-600" />
                     <InfoRow label="Date of Birth" value="04/08/1985" />
                     <InfoRow label="Marital Status" value="N/A" />
                     <InfoRow label="Father Name" value="N/A" />

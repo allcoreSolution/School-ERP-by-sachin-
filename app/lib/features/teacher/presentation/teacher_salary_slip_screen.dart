@@ -12,9 +12,44 @@ class TeacherSalarySlipScreen extends StatefulWidget {
 }
 
 class _TeacherSalarySlipScreenState extends State<TeacherSalarySlipScreen> {
-  String _selectedMonth = 'May 2025';
+  String _selectedMonth = '';
+  List<Map<String, dynamic>> _payslips = [];
+  bool _isLoading = true;
 
-  final List<String> _months = ['May 2025', 'April 2025', 'March 2025', 'February 2025'];
+  @override
+  void initState() {
+    super.initState();
+    _loadPayslips();
+  }
+
+  Future<void> _loadPayslips() async {
+    final repo = TeacherDataRepository.instance;
+    await repo.fetchPayslips();
+    if(mounted) {
+      setState(() {
+         // Transform payload
+         _payslips = repo.payslips.map((p) => {
+            'id': p['_id'],
+            'monthLabel': '${p['month']}/${p['year']}',
+            'status': p['status'] ?? 'Pending',
+            'netSalary': (p['netSalary'] ?? 0).toString(),
+            'basicSalary': (p['basicSalary'] ?? 0).toString(),
+            'allowances': (p['allowances'] ?? 0).toString(),
+            'deductions': (p['deductions'] ?? 0).toString(),
+            'paymentDate': p['paymentDate'] != null ? DateTime.parse(p['paymentDate']).toString().split(' ')[0] : 'Not Paid',
+         }).toList();
+         
+         if(_payslips.isEmpty) {
+            _payslips = [{
+              'id': 'mock', 'monthLabel': 'No Data', 'status': 'Pending', 
+              'netSalary': '0', 'basicSalary': '0', 'allowances': '0', 'deductions': '0', 'paymentDate': '-'
+            }];
+         }
+         _selectedMonth = _payslips.first['monthLabel'] as String;
+         _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,13 +99,13 @@ class _TeacherSalarySlipScreenState extends State<TeacherSalarySlipScreen> {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: _selectedMonth,
+                          value: _selectedMonth.isEmpty ? null : _selectedMonth,
                           isExpanded: true,
                           icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
-                          items: _months
+                          items: _payslips
                               .map((m) => DropdownMenuItem(
-                                    value: m,
-                                    child: Text(m, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                                    value: m['monthLabel'] as String,
+                                    child: Text(m['monthLabel'] as String, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                                   ))
                               .toList(),
                           onChanged: (val) {
@@ -82,79 +117,83 @@ class _TeacherSalarySlipScreenState extends State<TeacherSalarySlipScreen> {
 
                     const SizedBox(height: 18),
 
-                    // Net Salary Dark Purple Header Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF2E1065), Color(0xFF3B0764), Color(0xFF4C1D95)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [BoxShadow(color: const Color(0xFF3B0764).withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 4))],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Builder(builder: (context) {
+                      final slip = _payslips.firstWhere((p) => p['monthLabel'] == _selectedMonth, orElse: () => _payslips.first);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          // Net Salary Dark Purple Header Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF2E1065), Color(0xFF3B0764), Color(0xFF4C1D95)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [BoxShadow(color: const Color(0xFF3B0764).withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 4))],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Net Salary', style: GoogleFonts.inter(fontSize: 12.5, color: Colors.white70)),
+                                    const SizedBox(height: 4),
+                                    Text('₹ ${slip['netSalary']}', style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                                    const SizedBox(height: 4),
+                                    Text('Status: ${slip['status']} | Date: ${slip['paymentDate']}', style: GoogleFonts.inter(fontSize: 11.5, color: Colors.white60)),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 24),
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(duration: 350.ms),
+
+                          const SizedBox(height: 22),
+
+                          // Earnings Section
+                          Text('Earnings', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                          const SizedBox(height: 10),
+                          _buildRow('Basic Salary', '₹ ${slip['basicSalary']}', isDark),
+                          _buildRow('Allowances', '₹ ${slip['allowances']}', isDark),
+                          const Divider(height: 16),
+                          _buildRow('Total Earnings', '₹ ${double.parse(slip['basicSalary']) + double.parse(slip['allowances'])}', isDark, isBold: true),
+
+                          const SizedBox(height: 22),
+
+                          // Deductions Section
+                          Text('Deductions', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                          const SizedBox(height: 10),
+                          _buildRow('Deductions', '₹ ${slip['deductions']}', isDark),
+                          const Divider(height: 16),
+                          _buildRow('Total Deductions', '₹ ${slip['deductions']}', isDark, isBold: true),
+
+                          const SizedBox(height: 22),
+                          const Divider(height: 1, thickness: 1.5),
+                          const SizedBox(height: 14),
+
+                          // Summary Net Salary
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Net Salary', style: GoogleFonts.inter(fontSize: 12.5, color: Colors.white70)),
-                              const SizedBox(height: 4),
-                              Text('₹ 42,000', style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
-                              const SizedBox(height: 4),
-                              Text('Paid on 31 May 2025', style: GoogleFonts.inter(fontSize: 11.5, color: Colors.white60)),
+                              Text('Net Salary', style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                              Text('₹ ${slip['netSalary']}', style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w900, color: AppTheme.teacherPurple)),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.download_rounded, color: Colors.white, size: 24),
-                          ),
-                        ],
-                      ),
-                    ).animate().fadeIn(duration: 350.ms),
-
-                    const SizedBox(height: 22),
-
-                    // Earnings Section
-                    Text('Earnings', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
-                    const SizedBox(height: 10),
-                    _buildRow('Basic Salary', '₹ 25,000', isDark),
-                    _buildRow('Dearness Allowance', '₹ 10,000', isDark),
-                    _buildRow('House Rent Allowance', '₹ 4,000', isDark),
-                    _buildRow('Special Allowance', '₹ 3,000', isDark),
-                    const Divider(height: 16),
-                    _buildRow('Total Earnings', '₹ 42,000', isDark, isBold: true),
-
-                    const SizedBox(height: 22),
-
-                    // Deductions Section
-                    Text('Deductions', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
-                    const SizedBox(height: 10),
-                    _buildRow('Provident Fund', '₹ 2,700', isDark),
-                    _buildRow('Professional Tax', '₹ 200', isDark),
-                    _buildRow('TDS', '₹ 1,100', isDark),
-                    const Divider(height: 16),
-                    _buildRow('Total Deductions', '₹ 4,000', isDark, isBold: true),
-
-                    const SizedBox(height: 22),
-                    const Divider(height: 1, thickness: 1.5),
-                    const SizedBox(height: 14),
-
-                    // Summary Net Salary
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Net Salary', style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
-                        Text('₹ 42,000', style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w900, color: AppTheme.teacherPurple)),
-                      ],
-                    ),
+                        ]
+                      );
+                    }),
                   ],
                 ),
               ),

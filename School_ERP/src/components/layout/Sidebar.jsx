@@ -214,6 +214,7 @@ const Sidebar = ({ isCollapsed }) => {
       path: "#",
       children: [
         { name: "HR Dashboard", path: "/hr/dashboard" },
+        { name: "Add New Staff", path: "/hr/staff/new" },
         { name: "Staff Directory", path: "/hr/staff" },
         { name: "Staff Attendance", path: "/hr/staff-attendance" },
         { name: "Payroll", path: "/hr/payroll" },

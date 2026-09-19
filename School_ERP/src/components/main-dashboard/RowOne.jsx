@@ -31,19 +31,19 @@ const AttendanceWidget = () => {
       
       <div className="grid grid-cols-4 gap-2 mb-4 text-center">
         <div>
-          <div className="text-emerald-500 font-extrabold text-lg">17</div>
+          <div className="text-emerald-500 font-extrabold text-lg">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Present</div>
         </div>
         <div>
-          <div className="text-red-500 font-extrabold text-lg">2</div>
+          <div className="text-red-500 font-extrabold text-lg">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Absent</div>
         </div>
         <div>
-          <div className="text-orange-500 font-extrabold text-lg">1</div>
+          <div className="text-orange-500 font-extrabold text-lg">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Late</div>
         </div>
         <div>
-          <div className="text-amber-600 font-extrabold text-lg">258</div>
+          <div className="text-amber-600 font-extrabold text-lg">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Not Marked</div>
         </div>
       </div>
@@ -57,15 +57,15 @@ const AttendanceWidget = () => {
       <div className="flex-1 flex flex-col justify-end min-h-[90px]">
         {activeTab === 'Overview' && (
           <>
-            <div className="text-[11px] text-slate-500 mb-1">Today's attendance (24 Aug 2026) <span className="float-right font-bold text-slate-800">6%</span></div>
+            <div className="text-[11px] text-slate-500 mb-1">Today's attendance <span className="float-right font-bold text-slate-800">0%</span></div>
             <div className="w-full bg-slate-100 h-2 rounded-none mb-2 overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-none" style={{ width: '6%' }}></div>
+              <div className="bg-emerald-500 h-full rounded-none" style={{ width: '0%' }}></div>
             </div>
-            <div className="text-[10px] text-slate-400 mb-4">19 of 277 students marked · 1 of 12 sections done</div>
+            <div className="text-[10px] text-slate-400 mb-4">0 of 0 students marked · 0 of 0 sections done</div>
 
             <div className="bg-amber-50 text-amber-700 text-[10px] font-bold px-3 py-2 rounded-none flex items-center gap-1.5 border border-amber-100">
               <div className="w-3 h-3 bg-amber-500 text-white rounded-none flex items-center justify-center text-[8px]">!</div>
-              11 section(s) have not taken attendance today
+              Loading section attendance data...
             </div>
           </>
         )}
@@ -93,15 +93,15 @@ const FeesFinanceWidget = () => {
       
       <div className="grid grid-cols-3 gap-2 mb-4 text-center">
         <div>
-          <div className="text-slate-800 font-extrabold text-sm">₹1.16Cr</div>
+          <div className="text-slate-800 font-extrabold text-sm">₹0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Annual Demand</div>
         </div>
         <div>
-          <div className="text-emerald-500 font-extrabold text-sm">₹18.66L</div>
+          <div className="text-emerald-500 font-extrabold text-sm">₹0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Collected</div>
         </div>
         <div>
-          <div className="text-red-500 font-extrabold text-sm">₹93.71L</div>
+          <div className="text-red-500 font-extrabold text-sm">₹0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Pending</div>
         </div>
       </div>
@@ -115,24 +115,24 @@ const FeesFinanceWidget = () => {
       <div className="flex-1 flex flex-col justify-end min-h-[90px]">
         {activeTab === 'Overview' && (
           <>
-            <div className="text-[11px] text-slate-500 mb-1">Collection progress <span className="float-right font-bold text-slate-800">16%</span></div>
+            <div className="text-[11px] text-slate-500 mb-1">Collection progress <span className="float-right font-bold text-slate-800">0%</span></div>
             <div className="w-full bg-slate-100 h-2 rounded-none mb-4 overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-none" style={{ width: '16%' }}></div>
+              <div className="bg-emerald-500 h-full rounded-none" style={{ width: '0%' }}></div>
             </div>
             
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="bg-emerald-50 rounded-none p-2 text-center border border-emerald-100">
-                <div className="text-emerald-700 font-extrabold text-sm">₹55.5K</div>
+                <div className="text-emerald-700 font-extrabold text-sm">₹0</div>
                 <div className="text-[9px] font-bold text-emerald-600 uppercase">Income (This Month)</div>
               </div>
               <div className="bg-red-50 rounded-none p-2 text-center border border-red-100">
-                <div className="text-slate-800 font-extrabold text-sm">₹50K</div>
+                <div className="text-slate-800 font-extrabold text-sm">₹0</div>
                 <div className="text-[9px] font-bold text-slate-500 uppercase">Expense (This Month)</div>
               </div>
             </div>
             
             <div className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div> Today's collection: ₹5,600
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div> Today's collection: ₹0
             </div>
           </>
         )}
@@ -160,11 +160,11 @@ const StudentInfoWidget = () => {
       
       <div className="grid grid-cols-4 gap-2 mb-4 text-center">
         <div>
-          <div className="text-slate-800 font-extrabold text-sm">283</div>
+          <div className="text-slate-800 font-extrabold text-sm">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Total</div>
         </div>
         <div>
-          <div className="text-emerald-500 font-extrabold text-sm">6</div>
+          <div className="text-emerald-500 font-extrabold text-sm">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">New this month</div>
         </div>
         <div>
@@ -172,7 +172,7 @@ const StudentInfoWidget = () => {
           <div className="text-[9px] font-bold text-slate-500 uppercase">Drop-outs</div>
         </div>
         <div>
-          <div className="text-orange-500 font-extrabold text-sm">1</div>
+          <div className="text-orange-500 font-extrabold text-sm">0</div>
           <div className="text-[9px] font-bold text-slate-500 uppercase">Inactive</div>
         </div>
       </div>
@@ -187,20 +187,20 @@ const StudentInfoWidget = () => {
           <div className="flex flex-col gap-4">
             <div>
               <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                <span>Male 142</span>
-                <span>50%</span>
+                <span>Male 0</span>
+                <span>0%</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-none overflow-hidden">
-                <div className="bg-blue-500 h-full rounded-none" style={{ width: '50%' }}></div>
+                <div className="bg-blue-500 h-full rounded-none" style={{ width: '0%' }}></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                <span>Female 141</span>
-                <span>50%</span>
+                <span>Female 0</span>
+                <span>0%</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-none overflow-hidden">
-                <div className="bg-red-500 h-full rounded-none" style={{ width: '50%' }}></div>
+                <div className="bg-red-500 h-full rounded-none" style={{ width: '0%' }}></div>
               </div>
             </div>
           </div>

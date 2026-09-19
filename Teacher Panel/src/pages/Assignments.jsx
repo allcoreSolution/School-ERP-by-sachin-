@@ -4,22 +4,61 @@ import {
   Search, ChevronDown, Eye, Trash2, CheckCircle, FileText
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const mockAssignments = [
-  { id: 1, title: 'Chapter 1 Exercises', classSec: 'X - A', subject: 'Mathematics', dueDate: '15/12/2024', status: 'Active', submissions: '32/40', assignedBy: 'Ramesh Sharma' },
-  { id: 2, title: 'Gravity Project Report', classSec: 'IX - B', subject: 'Science', dueDate: '10/11/2024', status: 'Overdue', submissions: '38/40', assignedBy: 'Ramesh Sharma' },
-  { id: 3, title: 'Term 1 Revision Test', classSec: 'X - A', subject: 'Mathematics', dueDate: '01/10/2024', status: 'Evaluated', submissions: '40/40', assignedBy: 'Ramesh Sharma' },
-];
+import { homeworkService } from '../api/homeworkService';
+import { academicService } from '../api/academicService';
 
 const Assignments = () => {
   const navigate = useNavigate();
   const activeTab = 'Homework & Assignments';
   
-  const [assignments, setAssignments] = useState(mockAssignments);
+  const [assignments, setAssignments] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('All Classes');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newAssignment, setNewAssignment] = useState({ title: '', classSec: '', subject: 'Mathematics', dueDate: '' });
+  const [newAssignment, setNewAssignment] = useState({ title: '', description: '', classId: '', sectionId: '', subjectId: '', dueDate: '' });
+
+  useEffect(() => {
+    fetchMetadata();
+    fetchAssignments();
+  }, []);
+
+  const fetchMetadata = async () => {
+    try {
+      const clsRes = await academicService.getClasses();
+      const secRes = await academicService.getSections();
+      const subRes = await academicService.getSubjects();
+      
+      if (clsRes.success) setClasses(clsRes.data || []);
+      if (secRes.success) setSections(secRes.data || []);
+      if (subRes.success) setSubjects(subRes.data || []);
+    } catch (e) {
+      console.error('Error fetching academics metadata', e);
+    }
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const res = await homeworkService.getHomework();
+      if (res.success) {
+        setAssignments(res.data.map(hw => ({
+          id: hw._id,
+          title: hw.title,
+          classSec: `${hw.academicClass?.className || 'N/A'} - ${hw.section?.sectionName || 'N/A'}`,
+          subject: hw.subject?.subjectName || 'N/A',
+          dueDate: hw.dueDate ? new Date(hw.dueDate).toLocaleDateString() : 'N/A',
+          status: hw.status || 'Active',
+          submissions: '0/0',
+          assignedBy: hw.assignedBy ? `${hw.assignedBy.firstName} ${hw.assignedBy.lastName}` : 'Teacher'
+        })));
+      }
+    } catch (e) {
+      console.error('Error fetching homework', e);
+    }
+  };
 
   const tabs = [
     { name: 'Classwork & Logbook', icon: <BookOpen className="w-4 h-4" />, path: '/classwork' },
@@ -46,37 +85,40 @@ const Assignments = () => {
   const overdueCount = filteredAssignments.filter(a => a.status === 'Overdue').length;
   const evaluatedCount = filteredAssignments.filter(a => a.status === 'Evaluated').length;
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    if (!newAssignment.title || !newAssignment.classSec || !newAssignment.dueDate) {
-      alert("Please fill required fields.");
+    if (!newAssignment.title || !newAssignment.description || !newAssignment.classId || !newAssignment.sectionId || !newAssignment.subjectId || !newAssignment.dueDate) {
+      alert("Please fill all required fields.");
       return;
     }
     
-    // Format YYYY-MM-DD -> DD/MM/YYYY for UI
-    let formattedDate = newAssignment.dueDate;
-    if (newAssignment.dueDate.includes('-')) {
-       const [y, m, d] = newAssignment.dueDate.split('-');
-       formattedDate = `${d}/${m}/${y}`;
+    try {
+       const fd = new FormData();
+       fd.append('title', newAssignment.title);
+       fd.append('description', newAssignment.description);
+       fd.append('academicClass', newAssignment.classId);
+       fd.append('section', newAssignment.sectionId);
+       fd.append('subject', newAssignment.subjectId);
+       fd.append('dueDate', newAssignment.dueDate);
+       
+       await homeworkService.assignHomework(fd);
+       setNewAssignment({ title: '', description: '', classId: '', sectionId: '', subjectId: '', dueDate: '' });
+       setShowAddModal(false);
+       fetchAssignments();
+    } catch (e) {
+       console.error(e);
+       alert("Error saving homework");
     }
-
-    const assignment = {
-      id: Date.now(),
-      ...newAssignment,
-      dueDate: formattedDate,
-      status: 'Active',
-      submissions: '0/40',
-      assignedBy: 'Current User'
-    };
-    
-    setAssignments([assignment, ...assignments]);
-    setShowAddModal(false);
-    setNewAssignment({ title: '', classSec: '', subject: 'Mathematics', dueDate: '' });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if(window.confirm('Delete this assignment?')) {
-      setAssignments(assignments.filter(a => a.id !== id));
+      try {
+        await homeworkService.deleteHomework(id);
+        fetchAssignments();
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 
@@ -154,8 +196,7 @@ const Assignments = () => {
                className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-600 focus:outline-none focus:border-blue-400"
              >
                <option value="All Classes">All Classes</option>
-               <option value="Class X">Class X</option>
-               <option value="Class IX">Class IX</option>
+               {classes.map(c => <option key={c._id} value={c.className}>{c.className}</option>)}
              </select>
           </div>
         </div>
@@ -288,29 +329,53 @@ const Assignments = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <textarea 
+                  required
+                  rows="3"
+                  value={newAssignment.description}
+                  onChange={e => setNewAssignment({...newAssignment, description: e.target.value})}
+                  placeholder="e.g. Please solve the odd numbered questions..." 
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500" 
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Class & Section *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={newAssignment.classSec}
-                    onChange={e => setNewAssignment({...newAssignment, classSec: e.target.value})}
-                    placeholder="e.g. X - A" 
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Class *</label>
                   <select 
-                    value={newAssignment.subject}
-                    onChange={e => setNewAssignment({...newAssignment, subject: e.target.value})}
+                    required
+                    value={newAssignment.classId}
+                    onChange={e => setNewAssignment({...newAssignment, classId: e.target.value})}
                     className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                   >
-                    <option>Mathematics</option>
-                    <option>Science</option>
-                    <option>English</option>
-                    <option>History</option>
+                    <option value="">Select Class</option>
+                    {classes.map(c => <option key={c._id} value={c._id}>{c.className}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Section *</label>
+                  <select 
+                    required
+                    value={newAssignment.sectionId}
+                    onChange={e => setNewAssignment({...newAssignment, sectionId: e.target.value})}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Section</option>
+                    {sections.map(s => <option key={s._id} value={s._id}>{s.sectionName}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                  <select 
+                    required
+                    value={newAssignment.subjectId}
+                    onChange={e => setNewAssignment({...newAssignment, subjectId: e.target.value})}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Subject</option>
+                    {subjects.map(sub => <option key={sub._id} value={sub._id}>{sub.subjectName}</option>)}
                   </select>
                 </div>
               </div>

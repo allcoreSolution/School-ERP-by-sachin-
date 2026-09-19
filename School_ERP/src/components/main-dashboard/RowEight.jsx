@@ -28,52 +28,33 @@ const LessonPlannerWidget = () => (
     
     <div className="grid grid-cols-4 gap-2 mb-4 text-center">
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">10</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Total Plans</div>
       </div>
       <div>
-        <div className="text-orange-500 font-extrabold text-sm">1</div>
+        <div className="text-orange-500 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Pending</div>
       </div>
       <div>
-        <div className="text-emerald-500 font-extrabold text-sm">6</div>
+        <div className="text-emerald-500 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Approved</div>
       </div>
       <div>
-        <div className="text-[#5F52FF] font-extrabold text-sm">2</div>
+        <div className="text-[#5F52FF] font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">This Week</div>
       </div>
     </div>
 
     <div className="flex-1 flex flex-col mb-4">
-      <div className="text-[11px] text-slate-500 mb-1">Approved share <span className="float-right font-bold text-slate-800">60%</span></div>
+      <div className="text-[11px] text-slate-500 mb-1">Approved share <span className="float-right font-bold text-slate-800">0%</span></div>
       <div className="w-full bg-slate-100 h-2 rounded-none mb-6 overflow-hidden">
-        <div className="bg-emerald-500 h-full rounded-none" style={{ width: '60%' }}></div>
+        <div className="bg-emerald-500 h-full rounded-none" style={{ width: '0%' }}></div>
       </div>
 
       <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-3">Recent Plans</div>
       
-      <div className="space-y-3">
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">Mathematics Standard</div>
-          <div className="text-[10px] text-slate-400">Class IX · draft</div>
-        </div>
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">Mathematics Standard</div>
-          <div className="text-[10px] text-slate-400">Class IX · pending principal</div>
-        </div>
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">English</div>
-          <div className="text-[10px] text-slate-400">Nursery · draft</div>
-        </div>
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">English</div>
-          <div className="text-[10px] text-slate-400">Nursery · approved</div>
-        </div>
-        <div className="flex justify-between items-center text-xs">
-          <div className="text-slate-700 font-medium">Mathematics</div>
-          <div className="text-[10px] text-slate-400">Nursery · approved</div>
-        </div>
+      <div className="space-y-3 flex items-center justify-center h-full">
+        <div className="text-slate-400 text-xs">No recent plans</div>
       </div>
     </div>
   </div>
@@ -85,23 +66,23 @@ const DigitalEvaluationWidget = () => (
     
     <div className="grid grid-cols-3 gap-2 mb-4 text-center">
       <div>
-        <div className="text-[#5F52FF] font-extrabold text-sm">1</div>
+        <div className="text-[#5F52FF] font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Active Sessions</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">95</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Answer Sheets</div>
       </div>
       <div>
-        <div className="text-orange-500 font-extrabold text-sm">1</div>
+        <div className="text-orange-500 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Pending</div>
       </div>
     </div>
 
     <div className="flex-1 flex flex-col">
-      <div className="text-[11px] text-slate-500 mb-1">Evaluation progress <span className="float-right font-bold text-slate-800">99%</span></div>
+      <div className="text-[11px] text-slate-500 mb-1">Evaluation progress <span className="float-right font-bold text-slate-800">0%</span></div>
       <div className="w-full bg-slate-100 h-2 rounded-none overflow-hidden">
-        <div className="bg-emerald-500 h-full rounded-none" style={{ width: '99%' }}></div>
+        <div className="bg-emerald-500 h-full rounded-none" style={{ width: '0%' }}></div>
       </div>
     </div>
   </div>
@@ -113,7 +94,7 @@ const StudyCenterWidget = () => (
     
     <div className="grid grid-cols-3 gap-2 mb-4 text-center">
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">1</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Materials</div>
       </div>
       <div>
@@ -129,23 +110,8 @@ const StudyCenterWidget = () => (
     <div className="flex-1 flex flex-col mb-4">
       <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-3">Upcoming Live Classes</div>
       
-      <div className="space-y-3">
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">demo</div>
-          <div className="text-[10px] text-slate-400">09 Aug, 08:00 AM</div>
-        </div>
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">demo</div>
-          <div className="text-[10px] text-slate-400">10 Aug, 08:00 AM</div>
-        </div>
-        <div className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 border-dotted">
-          <div className="text-slate-700 font-medium">demo</div>
-          <div className="text-[10px] text-slate-400">25 Aug, 08:00 AM</div>
-        </div>
-        <div className="flex justify-between items-center text-xs">
-          <div className="text-slate-700 font-medium">demo</div>
-          <div className="text-[10px] text-slate-400">27 Aug, 08:00 AM</div>
-        </div>
+      <div className="space-y-3 flex items-center justify-center h-full text-slate-400 text-xs">
+        No upcoming classes
       </div>
     </div>
     
@@ -172,27 +138,27 @@ const HostelWidget = () => (
     
     <div className="grid grid-cols-4 gap-2 mb-4 text-center">
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">2</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Hostels</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">10</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Rooms</div>
       </div>
       <div>
-        <div className="text-[#5F52FF] font-extrabold text-sm">6</div>
+        <div className="text-[#5F52FF] font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Occupied</div>
       </div>
       <div>
-        <div className="text-emerald-500 font-extrabold text-sm">79</div>
+        <div className="text-emerald-500 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Available</div>
       </div>
     </div>
 
     <div className="flex-1 flex flex-col">
-      <div className="text-[11px] text-slate-500 mb-1">Occupancy <span className="float-right font-bold text-slate-800">7%</span></div>
+      <div className="text-[11px] text-slate-500 mb-1">Occupancy <span className="float-right font-bold text-slate-800">0%</span></div>
       <div className="w-full bg-slate-100 h-2 rounded-none overflow-hidden">
-        <div className="bg-[#5F52FF] h-full rounded-none" style={{ width: '7%' }}></div>
+        <div className="bg-[#5F52FF] h-full rounded-none" style={{ width: '0%' }}></div>
       </div>
     </div>
   </div>
@@ -204,15 +170,15 @@ const CBCAcademicsWidget = () => (
     
     <div className="grid grid-cols-3 gap-2 text-center mt-2">
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">13</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Strands</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">20</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Competencies</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">9</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Assessments</div>
       </div>
     </div>

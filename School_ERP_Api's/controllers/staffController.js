@@ -1,4 +1,5 @@
 const Staff = require('../models/Staff');
+const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 
@@ -22,7 +23,22 @@ const createStaff = async (req, res) => {
 
     // Check if Staff ID or Email already exists
     if (!staffData.staffId || !staffData.email) {
-      return res.status(400).json({ success: false, message: 'Staff ID and Email are required' });
+      // If staffId is missing, try using employeeCode
+      if (staffData.employeeCode) staffData.staffId = staffData.employeeCode;
+      else return res.status(400).json({ success: false, message: 'Staff ID and Email are required' });
+    }
+
+    // Default missing fields required by Schema
+    if (!staffData.designation) staffData.designation = staffData.roleName || staffData.role || 'Staff';
+    if (!staffData.gender) staffData.gender = 'Select';
+    if (staffData.firstName && !staffData.fullName) staffData.fullName = staffData.firstName;
+
+    // Map role string to Role ObjectId
+    if (staffData.role && !mongoose.Types.ObjectId.isValid(staffData.role)) {
+      const Role = require('../models/Role');
+      const roleDoc = await Role.findOne({ name: staffData.role });
+      if (roleDoc) staffData.role = roleDoc._id;
+      else return res.status(400).json({ success: false, message: `Role '${staffData.role}' not found in database.` });
     }
 
     const exists = await Staff.findOne({ $or: [{ staffId: staffData.staffId }, { email: staffData.email }] });

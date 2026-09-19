@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -15,6 +18,74 @@ class TeacherDashboardScreen extends StatefulWidget {
 class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isCheckedIn = true;
+  
+  // Real-time Dashboard State
+  bool _isLoading = true;
+  String _workingHours = '08h 00m';
+  String _leaveBalance = '10.0';
+  String _salaryStatus = 'Pending';
+  List<dynamic> _notices = [];
+  List<dynamic> _events = [];
+  int _totalStudents = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLiveDashboardData();
+  }
+
+  Future<void> _fetchLiveDashboardData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sp_teacher_token') ?? '';
+      final header = {'Authorization': 'Bearer $token'};
+
+      // 1. Fetch Notices
+      try {
+        final noticeRes = await http.get(Uri.parse('${AuthService.baseUrl}api/notices?audience=Teacher'), headers: header).timeout(const Duration(seconds: 15));
+        if (noticeRes.statusCode == 200) {
+          final data = jsonDecode(noticeRes.body);
+          if (data['data'] != null) _notices = data['data'];
+        }
+      } catch (e) {}
+
+      // 2. Fetch Leaves
+      try {
+        final leaveRes = await http.get(Uri.parse('${AuthService.baseUrl}api/leaves'), headers: header).timeout(const Duration(seconds: 15));
+        if (leaveRes.statusCode == 200) {
+           final data = jsonDecode(leaveRes.body);
+           final allLeaves = data['data'] as List? ?? [];
+           final myLeaves = allLeaves.where((l) => l['staffId'] == AuthService.instance.teacherEmpId).toList();
+           _leaveBalance = '${14 - myLeaves.length}';
+        }
+      } catch (e) {}
+
+      // 3. Fetch Student Count
+      try {
+        final stRes = await http.get(Uri.parse('${AuthService.baseUrl}api/students'), headers: header).timeout(const Duration(seconds: 15));
+        if (stRes.statusCode == 200) {
+           final data = jsonDecode(stRes.body);
+           _totalStudents = (data['data'] as List? ?? []).length;
+        }
+      } catch (e) {}
+
+      // 4. Fetch Events
+      try {
+        final evRes = await http.get(Uri.parse('${AuthService.baseUrl}api/events'), headers: header).timeout(const Duration(seconds: 15));
+        if (evRes.statusCode == 200) {
+           final data = jsonDecode(evRes.body);
+           if (data['data'] != null) _events = data['data'];
+        }
+      } catch (e) {}
+
+    } catch (e) {
+      debugPrint('Dashboard data fetch failed: $e');
+    }
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   // 3 Primary Important Quick Action Cards (Remaining tools accessible via View All)
   final List<Map<String, dynamic>> _quickActions = [
@@ -127,7 +198,9 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Mr. Rajesh Sharma',
+                          AuthService.instance.teacherName.isNotEmpty
+                              ? AuthService.instance.teacherName
+                              : 'Faculty Member',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.outfit(
@@ -137,7 +210,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                           ),
                         ),
                         Text(
-                          'Senior Mathematics Teacher',
+                          'Senior Faculty Member',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
@@ -186,11 +259,13 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     childAspectRatio: aspect,
-                    children: [
-                      _buildStatCard('Present Today', '01', 'Jun 08, 2024', Icons.calendar_today_rounded, const Color(0xFF10B981), isDark),
-                      _buildStatCard('Working Hours', '08h 45m', 'Today', Icons.access_time_rounded, const Color(0xFF2563EB), isDark),
-                      _buildStatCard('Leave Balance', '12.5', 'Days', Icons.work_outline_rounded, const Color(0xFF8B5CF6), isDark, onTap: () => context.push('/teacher-leaves')),
-                      _buildStatCard('Salary Status', 'Paid', 'May 2024', Icons.account_balance_wallet_rounded, const Color(0xFFF59E0B), isDark, onTap: () => context.push('/teacher-salary-slip')),
+                    children: _isLoading 
+                        ? [ const Center(child: CircularProgressIndicator(color: AppTheme.teacherPurple)) ] 
+                        : [
+                      _buildStatCard('Total Students', '$_totalStudents', 'Assigned', Icons.groups_rounded, const Color(0xFF10B981), isDark),
+                      _buildStatCard('Working Hours', _workingHours, 'Today', Icons.access_time_rounded, const Color(0xFF2563EB), isDark),
+                      _buildStatCard('Leave Balance', _leaveBalance, 'Days left', Icons.work_outline_rounded, const Color(0xFF8B5CF6), isDark, onTap: () => context.push('/teacher-leaves')),
+                      _buildStatCard('Salary Status', _salaryStatus, 'Current Month', Icons.account_balance_wallet_rounded, const Color(0xFFF59E0B), isDark, onTap: () => context.push('/teacher-salary-slip')),
                     ],
                   );
                 },
@@ -396,18 +471,26 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
               const SizedBox(height: 12),
 
-              SizedBox(
-                height: 76,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  children: [
-                    _buildEventCard('Birthday', 'Neha Singh', '10 Jun', const Color(0xFFEF4444), Icons.cake_rounded, isDark),
-                    _buildEventCard('Meeting', 'Staff Meeting', '11:00 AM', const Color(0xFF2563EB), Icons.calendar_month_rounded, isDark),
-                    _buildEventCard('Holiday', 'Bakrid', '17 Jun', const Color(0xFF10B981), Icons.beach_access_rounded, isDark),
-                  ],
-                ),
-              ),
+              _isLoading 
+                 ? const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: AppTheme.teacherPurple)))
+                 : (_events.isEmpty ? Center(child: Text("No upcoming events", style: GoogleFonts.inter(color: Colors.grey))) 
+                   : SizedBox(
+                        height: 76,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          children: _events.take(5).map((e) {
+                            return _buildEventCard(
+                              e['type']?.toString() ?? 'Event',
+                              e['title']?.toString() ?? 'Untitled',
+                              e['date']?.toString().substring(0, 10) ?? '',
+                              const Color(0xFF2563EB),
+                              Icons.event_available_rounded,
+                              isDark
+                            );
+                          }).toList(),
+                        ),
+                      )),
 
               const SizedBox(height: 22),
 
@@ -425,37 +508,43 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
               const SizedBox(height: 12),
 
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFE2E8F0)),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.03), blurRadius: 6)],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: const Color(0xFF2563EB).withValues(alpha: 0.12), shape: BoxShape.circle),
-                      child: const Icon(Icons.campaign_rounded, color: Color(0xFF2563EB), size: 24),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('New Office Timing', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
-                          const SizedBox(height: 2),
-                          Text('Office timing from 10 June 2024 will be 9:30 AM to 6:30 PM.', style: GoogleFonts.inter(fontSize: 11.5, color: Colors.grey)),
-                          const SizedBox(height: 4),
-                          Text('2 hours ago', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+              _isLoading 
+                 ? const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: AppTheme.teacherPurple)))
+                 : (_notices.isEmpty ? Center(child: Text("No new announcements", style: GoogleFonts.inter(color: Colors.grey))) 
+                   : Column(
+                      children: _notices.take(3).map((notice) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFE2E8F0)),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.03), blurRadius: 6)],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(color: const Color(0xFF2563EB).withValues(alpha: 0.12), shape: BoxShape.circle),
+                                child: const Icon(Icons.campaign_rounded, color: Color(0xFF2563EB), size: 24),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(notice['title']?.toString() ?? 'Notice', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                                    const SizedBox(height: 2),
+                                    Text(notice['content']?.toString() ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 11.5, color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(duration: 400.ms);
+                      }).toList(),
+                   )),
 
               const SizedBox(height: 20),
             ],
@@ -603,13 +692,15 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Mr. Rajesh Sharma',
+                              AuthService.instance.teacherName.isNotEmpty
+                                  ? AuthService.instance.teacherName
+                                  : 'Faculty Member',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
                             ),
                             Text(
-                              'Senior Math Faculty',
+                              'Senior Faculty',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.inter(fontSize: 11, color: Colors.white70),
@@ -622,7 +713,9 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'EMP001',
+                                AuthService.instance.teacherEmpId.isNotEmpty
+                                    ? AuthService.instance.teacherEmpId
+                                    : 'EMP-TCH',
                                 style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
                               ),
                             ),

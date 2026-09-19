@@ -6,18 +6,7 @@ import {
   Filter, Edit, Trash2, Database,
   PenSquare, MonitorPlay, Grid, Send, TrendingUp, Info, FileSpreadsheet, Printer, Laptop
 } from 'lucide-react';
-
-const mockAssessments = [
-  { id: 1, title: 'ass', type: 'Quiz', subject: 'Drawing & Coloring', classSec: 'Nursery', marks: 20, sittings: 1 },
-  { id: 2, title: 'Itaque soluta sit r', type: 'Quiz', subject: 'Biology', classSec: 'Class 11 science', marks: 50, sittings: 1 },
-  { id: 3, title: 'Maths Half Book Test', type: 'Test', subject: 'Mathematics', classSec: 'Nursery', marks: 50, sittings: 1 },
-  { id: 4, title: 'DEMO — Assessment — Unit Test — Mathematics — Nursery', type: 'Assignment', subject: 'Mathematics', classSec: 'Nursery / B', marks: 50, sittings: 1 },
-  { id: 5, title: 'DEMO — Assessment — Weekly Quiz — English Core — Class XII', type: 'Quiz', subject: 'English Core', classSec: 'Class XII / A', marks: 20, sittings: 4 },
-  { id: 6, title: 'DEMO — Assessment — Unit Test — English Core — Class XII', type: 'Test', subject: 'English Core', classSec: 'Class XII / A', marks: 50, sittings: 1 },
-  { id: 7, title: 'DEMO — Assessment — Weekly Quiz — Physics — Class XII', type: 'Quiz', subject: 'Physics', classSec: 'Class XII / A', marks: 20, sittings: 4 },
-  { id: 8, title: 'DEMO — Assessment — Unit Test — Physics — Class XII', type: 'Assignment', subject: 'Physics', classSec: 'Class XII / A', marks: 50, sittings: 1 },
-  { id: 9, title: 'DEMO — Assessment — Weekly Quiz — English — Class VII', type: 'Quiz', subject: 'English', classSec: 'Class VII / A', marks: 20, sittings: 4 },
-];
+import { examService } from '../../api/examService';
 
 export default function AssessmentDashboard() {
   const navigate = useNavigate();
@@ -37,23 +26,44 @@ export default function AssessmentDashboard() {
   else if (isRankList) activeTab = 'Rank List';
   else if (isGuide) activeTab = 'Guide';
 
+  const [assessments, setAssessments] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    const fetchAssessments = async () => {
+      try {
+        setLoading(true);
+        const res = await examService.getExams();
+        // Fallback to array if res.data is undefined
+        setAssessments(res.data || []);
+      } catch (error) {
+        console.error("Failed to fetch assessments", error);
+        setAssessments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssessments();
+  }, []);
+
   // Filters State
   const [filterType, setFilterType] = useState('All');
   const [filterClass, setFilterClass] = useState('All');
   const [filterSubject, setFilterSubject] = useState('All');
 
   // Filter Logic
-  const filteredAssessments = mockAssessments.filter(item => {
+  const filteredAssessments = assessments.filter(item => {
     let typeMatch = filterType === 'All' || item.type === filterType;
-    let classMatch = filterClass === 'All' || item.classSec.includes(filterClass);
+    // Safely check classSec strings
+    let classMatch = filterClass === 'All' || (item.classSec && item.classSec.includes(filterClass));
     let subjectMatch = filterSubject === 'All' || item.subject === filterSubject;
     return typeMatch && classMatch && subjectMatch;
   });
 
-  // Extract unique options for dropdowns
-  const uniqueTypes = ['All', ...new Set(mockAssessments.map(i => i.type))];
-  const uniqueClasses = ['All', ...new Set(mockAssessments.map(i => i.classSec.split(' / ')[0]))];
-  const uniqueSubjects = ['All', ...new Set(mockAssessments.map(i => i.subject))];
+  // Extract unique options for dropdowns safely
+  const uniqueTypes = ['All', ...new Set(assessments.filter(i => i.type).map(i => i.type))];
+  const uniqueClasses = ['All', ...new Set(assessments.filter(i => i.classSec).map(i => i.classSec.split(' / ')[0]))];
+  const uniqueSubjects = ['All', ...new Set(assessments.filter(i => i.subject).map(i => i.subject))];
 
   // Student Report State
   const [reportClass, setReportClass] = useState('');
@@ -284,7 +294,11 @@ export default function AssessmentDashboard() {
                     </tr>
                   </thead>
                   <tbody className="text-xs font-bold">
-                    {filteredAssessments.length > 0 ? filteredAssessments.map(item => (
+                    {loading ? (
+                       <tr>
+                         <td colSpan="7" className="py-8 text-center text-slate-500 font-medium">Loading assessments...</td>
+                       </tr>
+                    ) : filteredAssessments.length > 0 ? filteredAssessments.map(item => (
                       <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="py-3 px-5 text-[#fd7e14]">{item.title}</td>
                         <td className="py-3 px-5">
@@ -659,7 +673,7 @@ export default function AssessmentDashboard() {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 tracking-wider uppercase mb-0.5">Assessments</div>
-                  <div className="text-2xl font-black text-slate-800">28</div>
+                  <div className="text-2xl font-black text-slate-800">{assessments.length}</div>
                 </div>
               </div>
               <div className="bg-white border border-slate-200 rounded-none p-5 shadow-3xs flex items-center gap-4">
@@ -668,7 +682,7 @@ export default function AssessmentDashboard() {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 tracking-wider uppercase mb-0.5">Sittings</div>
-                  <div className="text-2xl font-black text-slate-800">64</div>
+                  <div className="text-2xl font-black text-slate-800">0</div>
                 </div>
               </div>
               <div className="bg-white border border-slate-200 rounded-none p-5 shadow-3xs flex items-center gap-4">
@@ -677,7 +691,7 @@ export default function AssessmentDashboard() {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 tracking-wider uppercase mb-0.5">Published</div>
-                  <div className="text-2xl font-black text-slate-800">60</div>
+                  <div className="text-2xl font-black text-slate-800">0</div>
                 </div>
               </div>
               <div className="bg-white border border-slate-200 rounded-none p-5 shadow-3xs flex items-center gap-4">
@@ -686,7 +700,7 @@ export default function AssessmentDashboard() {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 tracking-wider uppercase mb-0.5">Average Score</div>
-                  <div className="text-2xl font-black text-slate-800">71.6%</div>
+                  <div className="text-2xl font-black text-slate-800">0%</div>
                 </div>
               </div>
             </div>
@@ -715,8 +729,16 @@ export default function AssessmentDashboard() {
                     </tr>
                   </thead>
                   <tbody className="text-xs font-bold text-slate-700">
-                    {mockAssessments.slice(0, 6).map(item => (
-                      <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    {loading ? (
+                       <tr>
+                         <td colSpan="6" className="py-8 text-center text-slate-500 font-medium">Loading recent...</td>
+                       </tr>
+                    ) : assessments.length === 0 ? (
+                       <tr>
+                         <td colSpan="6" className="py-8 text-center text-slate-500 font-medium">No recent assessments</td>
+                       </tr>
+                    ) : assessments.slice(0, 6).map(item => (
+                      <tr key={item.id || item._id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="py-4 px-5">{item.title}</td>
                         <td className="py-4 px-5">
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-none text-[9px] uppercase tracking-wide border border-slate-200">

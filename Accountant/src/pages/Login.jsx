@@ -1,24 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LogIn, Lock, User, CheckCircle, GraduationCap, ShieldCheck, PieChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { authService } from '../api/authService';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState('accountant@yug.edu');
+  const [password, setPassword] = useState('password123');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    Swal.fire({
-      title: 'Login Successful',
-      text: 'Welcome back to the Accountant Portal!',
-      icon: 'success',
-      timer: 1500,
-      showConfirmButton: false,
-      background: '#ffffff',
-      confirmButtonColor: '#3c8dbc'
-    }).then(() => {
-      navigate('/accounts/dashboard');
-    });
+    setLoading(true);
+    try {
+      const res = await authService.login({ username: identifier, email: identifier, password });
+      if (res.success) {
+         Swal.fire({
+           title: 'Login Successful',
+           text: 'Welcome back to the Accountant Portal!',
+           icon: 'success',
+           timer: 1500,
+           showConfirmButton: false,
+           background: '#ffffff',
+           confirmButtonColor: '#3c8dbc'
+         }).then(() => {
+           navigate('/accounts/dashboard');
+         });
+      } else {
+         Swal.fire('Error', res.message || 'Login failed', 'error');
+      }
+    } catch (err) {
+       Swal.fire('Error', err.response?.data?.message || 'Invalid credentials', 'error');
+    } finally {
+       setLoading(false);
+    }
   };
 
   return (
@@ -91,7 +107,8 @@ const Login = () => {
                   type="text" 
                   placeholder="e.g. accountant@yug.edu" 
                   required
-                  defaultValue="accountant@yug.edu"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full border-2 border-gray-200 rounded-[3px] pl-10 pr-4 py-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#3c8dbc] text-[15px] transition-colors"
                 />
                 <User className="w-[18px] h-[18px] absolute left-3.5 top-[14px] text-gray-400 group-focus-within:text-[#3c8dbc] transition-colors" />
@@ -105,7 +122,8 @@ const Login = () => {
                   type="password" 
                   placeholder="••••••••"
                   required
-                  defaultValue="password123"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full border-2 border-gray-200 rounded-[3px] pl-10 pr-4 py-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#3c8dbc] text-[15px] transition-colors"
                 />
                 <Lock className="w-[18px] h-[18px] absolute left-3.5 top-[14px] text-gray-400 group-focus-within:text-[#3c8dbc] transition-colors" />
@@ -126,9 +144,10 @@ const Login = () => {
 
             <button 
               type="submit" 
-              className="w-full bg-[#3c8dbc] hover:bg-[#367fa9] text-white py-3.5 rounded-[3px] text-[15px] font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 mt-4"
+              disabled={loading}
+              className="w-full bg-[#3c8dbc] hover:bg-[#367fa9] text-white py-3.5 rounded-[3px] text-[15px] font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Sign In to Dashboard <LogIn className="w-[18px] h-[18px]" />
+              {loading ? 'Authenticating...' : <><span className="mr-1">Sign In to Dashboard</span> <LogIn className="w-[18px] h-[18px]" /></>}
             </button>
             <div className="mt-5 bg-blue-50 border border-blue-200 rounded-[3px] p-3 text-center">
               <p className="text-[11px] font-bold text-blue-800 mb-1 uppercase tracking-wider">Demo Credentials</p>

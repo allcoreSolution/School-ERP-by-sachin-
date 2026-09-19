@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Mail, Info, ChevronDown } from 'lucide-react';
+import { branchAdminService } from '../api/branchAdminService';
 
 const Branches = () => {
   const [activeTab, setActiveTab] = useState('All');
@@ -13,13 +14,28 @@ const Branches = () => {
     }
   };
 
-  const branchesData = [
-    { id: '#172', name: 'SUDHAKAR', email: 'cloudwaveindia@gmail.com', plan: 'Trial Plan', rows: '4,831', reg: '08 Jul, 2026', sub: '19 Sep, 2030', status: 'Active', highlight: true },
-    { id: '#122', name: 'Risma high school', email: 'ramaictsolutions@gmail.com', plan: 'Growth Plan', rows: '2,394', reg: '24 May, 2026', sub: '24 May, 2027', status: 'Active' },
-    { id: '#96', name: 'SSVP 3.0', email: 'rahulthakur01@gmail.com', plan: 'Enterprise Plan', rows: '1,812', reg: '08 May, 2026', sub: '08 May, 2027', status: 'Active' },
-    { id: '#41', name: 'Aksya School', email: 'pixllerindia@gmail.com', plan: 'Trial Plan', rows: '88', reg: '02 Apr, 2026', sub: '02 Apr, 2027', status: 'Active' },
-    { id: '#167', name: 'CLOUDWAVE INTERNATIONAL SCHOOL', email: 'pandey.sudhakar88@gmail.com', plan: 'Enterprise Plan', rows: '61', reg: '03 Jul, 2026', sub: '03 Jul, 2027', status: 'Active' },
-  ];
+  const [branchesData, setBranchesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    branchAdminService.getBranches()
+      .then(res => {
+         if (res.success && res.data) {
+           setBranchesData(res.data.map(d => ({
+             id: d._id || d.tenantId,
+             name: d.name,
+             email: d.email || 'admin@' + d.domain,
+             plan: d.plan || 'Free Plan',
+             rows: 'N/A',
+             reg: new Date(d.createdAt).toLocaleDateString(),
+             sub: 'Yearly',
+             status: d.isActive ? 'Active' : 'Inactive'
+           })));
+         }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const tabs = [
     { name: 'All', count: branchesData.length },
@@ -118,12 +134,18 @@ const Branches = () => {
             </tr>
           </thead>
           <tbody className="text-[12.5px]">
-            {filteredBranches.map((branch, i) => (
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="py-8 text-center text-gray-500 bg-gray-50 font-medium">
+                  Loading branches...
+                </td>
+              </tr>
+            ) : filteredBranches.map((branch, i) => (
               <tr 
                 key={i} 
                 className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors ${branch.highlight ? 'bg-[#fff5ee] hover:bg-[#fff0e6]' : ''}`}
               >
-                <td className="border border-gray-200 py-3 px-2.5 text-gray-600 font-semibold whitespace-nowrap">{branch.id}</td>
+                <td className="border border-gray-200 py-3 px-2.5 text-gray-600 font-semibold whitespace-nowrap">{branch.id?.slice(-6) || i}</td>
                 <td className="border border-gray-200 py-3 px-2.5 break-words">
                   <div className="font-bold text-gray-800 uppercase tracking-tight">{branch.name}</div>
                   <div className="text-gray-500 text-[11.5px] flex items-center gap-1 mt-0.5 break-words">
@@ -168,7 +190,7 @@ const Branches = () => {
                 </td>
               </tr>
             ))}
-            {filteredBranches.length === 0 && (
+            {!loading && filteredBranches.length === 0 && (
               <tr>
                 <td colSpan="8" className="py-8 text-center text-gray-500 bg-gray-50 font-medium">
                   No branches found in this view.

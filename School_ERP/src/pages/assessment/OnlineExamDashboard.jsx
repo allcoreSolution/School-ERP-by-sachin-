@@ -44,8 +44,8 @@ export default function OnlineExamDashboard() {
             </div>
             <div>
               <div className="text-sm font-semibold text-[#4a63e0] mb-0.5">Live papers</div>
-              <div className="text-3xl font-bold text-[#1e3a8a] mb-1">6</div>
-              <div className="text-xs text-[#6074b6]">1 draft</div>
+              <div className="text-3xl font-bold text-[#1e3a8a] mb-1">0</div>
+              <div className="text-xs text-[#6074b6]">0 drafts</div>
             </div>
           </div>
 
@@ -77,8 +77,8 @@ export default function OnlineExamDashboard() {
             </div>
             <div>
               <div className="text-sm font-semibold text-[#7c3aed] mb-0.5">Question bank</div>
-              <div className="text-3xl font-bold text-[#4c1d95] mb-1">40</div>
-              <div className="text-xs text-[#a78bfa]">9 types · 2 topics</div>
+              <div className="text-3xl font-bold text-[#4c1d95] mb-1">0</div>
+              <div className="text-xs text-[#a78bfa]">0 types · 0 topics</div>
             </div>
           </div>
 
@@ -102,13 +102,10 @@ export default function OnlineExamDashboard() {
                     <Edit className="w-5 h-5 text-slate-500" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800">1 paper still in draft</h4>
-                    <p className="text-sm text-slate-500">No student can see a paper until it is published</p>
+                    <h4 className="font-bold text-slate-800">All caught up</h4>
+                    <p className="text-sm text-slate-500">No papers need attention right now.</p>
                   </div>
                 </div>
-                <button className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-none text-sm font-semibold text-slate-700 transition-colors">
-                  Finish
-                </button>
               </div>
             </div>
 
@@ -172,39 +169,8 @@ export default function OnlineExamDashboard() {
               <Database className="w-5 h-5 text-indigo-600" />
               <h3 className="font-bold text-slate-800 text-[15px]">What the bank holds</h3>
             </div>
-            <div className="p-5">
-              <h4 className="text-xs text-slate-500 font-semibold mb-3">By difficulty band</h4>
-              <div className="flex h-3 rounded-none overflow-hidden mb-3">
-                <div className="bg-[#84cc16]" style={{ width: '13%' }}></div>
-                <div className="bg-[#f59e0b]" style={{ width: '5%' }}></div>
-                <div className="bg-[#ef4444]" style={{ width: '82%' }}></div>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-semibold mb-6">
-                 <div className="flex items-center gap-1"><div className="w-2 h-2 bg-[#84cc16] rounded-none"></div> <span className="text-slate-600">Easy 13%</span></div>
-                 <div className="flex items-center gap-1"><div className="w-2 h-2 bg-[#f59e0b] rounded-none"></div> <span className="text-slate-600">Hard 5%</span></div>
-                 <div className="flex items-center gap-1"><div className="w-2 h-2 bg-[#ef4444] rounded-none"></div> <span className="text-slate-600">Medium 83%</span></div>
-              </div>
-
-              <h4 className="text-xs text-slate-500 font-semibold mb-3">By question type</h4>
-              <div className="grid grid-cols-2 gap-x-2 gap-y-2 text-sm text-slate-700">
-                <div className="flex justify-between items-center pr-3"><span>Mcq Single</span> <span className="font-semibold text-slate-900">31</span></div>
-                <div className="flex justify-between items-center pr-3"><span>True False</span> <span className="font-semibold text-slate-900">2</span></div>
-                
-                <div className="flex justify-between items-center pr-3"><span>Ordering</span> <span className="font-semibold text-slate-900">1</span></div>
-                <div className="flex justify-between items-center pr-3"><span>Short Answer</span> <span className="font-semibold text-slate-900">1</span></div>
-                
-                <div className="flex justify-between items-center pr-3"><span>Comprehension</span> <span className="font-semibold text-slate-900">1</span></div>
-                <div className="flex justify-between items-center pr-3"><span>Mcq Multi</span> <span className="font-semibold text-slate-900">1</span></div>
-                
-                <div className="flex justify-between items-center pr-3"><span>Match Following</span> <span className="font-semibold text-slate-900">1</span></div>
-                <div className="flex justify-between items-center pr-3"><span>Fill Blanks</span> <span className="font-semibold text-slate-900">1</span></div>
-                
-                <div className="flex justify-between items-center pr-3"><span>Paragraph</span> <span className="font-semibold text-slate-900">1</span></div>
-              </div>
-
-              <button className="flex items-center gap-2 text-indigo-600 font-bold text-sm mt-6 hover:underline cursor-pointer">
-                <Database className="w-4 h-4" /> Import questions
-              </button>
+            <div className="p-8 text-center text-slate-500 text-sm font-medium">
+              The question bank is currently empty.
             </div>
           </div>
         </div>
@@ -233,79 +199,9 @@ export default function OnlineExamDashboard() {
                   </tr>
                 </thead>
                 <tbody className="text-slate-800 font-medium">
-                  
-                  <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
-                    <td className="py-4 px-6 border border-gray-300">
-                      <div className="text-[15px] font-semibold text-slate-800">Demo: All Question Types (Exam)</div>
-                      <div className="text-xs text-slate-400 font-normal">English</div>
-                    </td>
-                    <td className="py-4 px-6 border border-gray-300"><span className="px-2.5 py-1 rounded-none bg-[#eef2fe] border border-[#d8e2fd] text-xs font-bold text-[#4a63e0]">EXAM</span></td>
-                    <td className="py-4 px-6 text-slate-500 border border-gray-300">1 student</td>
-                    <td className="py-4 px-6 font-bold border border-gray-300">0%</td>
-                    <td className="py-4 px-6 text-red-500 font-bold border border-gray-300">0%</td>
-                    <td className="py-4 px-6 text-right border border-gray-300">
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50 mr-2">Results</button>
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50">Analytics</button>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors bg-[#fdfbf6]">
-                    <td className="py-4 px-6 border border-gray-300">
-                      <div className="text-[15px] font-semibold text-slate-800">Demo: Quick Quiz</div>
-                      <div className="text-xs text-slate-400 font-normal">English</div>
-                    </td>
-                    <td className="py-4 px-6 border border-gray-300"><span className="px-2.5 py-1 rounded-none bg-[#fff7ed] border border-[#ffedd5] text-xs font-bold text-[#ea580c]">QUIZ</span></td>
-                    <td className="py-4 px-6 text-slate-400 border border-gray-300">0 students</td>
-                    <td className="py-4 px-6 text-slate-300 border border-gray-300">—</td>
-                    <td className="py-4 px-6 text-slate-300 border border-gray-300">—</td>
-                    <td className="py-4 px-6 text-right border border-gray-300">
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 opacity-50 cursor-not-allowed mr-2">Results</button>
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 opacity-50 cursor-not-allowed">Analytics</button>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-6 border border-gray-300">
-                      <div className="text-[15px] font-semibold text-slate-800">Demo: Practice Set (Adaptive)</div>
-                      <div className="text-xs text-slate-400 font-normal">English</div>
-                    </td>
-                    <td className="py-4 px-6 border border-gray-300"><span className="px-2.5 py-1 rounded-none bg-[#f5f3ff] border border-[#ede9fe] text-xs font-bold text-[#7c3aed]">PRACTICE</span></td>
-                    <td className="py-4 px-6 text-slate-500 border border-gray-300">1 student</td>
-                    <td className="py-4 px-6 text-slate-400 italic font-normal border border-gray-300">not counted</td>
-                    <td className="py-4 px-6 text-slate-300 border border-gray-300">—</td>
-                    <td className="py-4 px-6 text-right border border-gray-300">
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50 mr-2">Results</button>
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50">Analytics</button>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-6 border border-gray-300">
-                      <div className="text-[15px] font-semibold text-slate-800">English Test 1</div>
-                      <div className="text-xs text-slate-400 font-normal">English</div>
-                    </td>
-                    <td className="py-4 px-6 border border-gray-300"><span className="px-2.5 py-1 rounded-none bg-[#eef2fe] border border-[#d8e2fd] text-xs font-bold text-[#4a63e0]">EXAM</span></td>
-                    <td className="py-4 px-6 text-slate-500 border border-gray-300">1 student</td>
-                    <td className="py-4 px-6 font-bold text-slate-800 border border-gray-300">10%</td>
-                    <td className="py-4 px-6 text-slate-800 font-bold border border-gray-300">100%</td>
-                    <td className="py-4 px-6 text-right border border-gray-300">
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50 mr-2">Results</button>
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50">Analytics</button>
-                    </td>
-                  </tr>
-                  
-                   <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-6 border border-gray-300">
-                      <div className="text-[15px] font-semibold text-slate-800">English Test 2</div>
-                      <div className="text-xs text-slate-400 font-normal">English</div>
-                    </td>
-                    <td className="py-4 px-6 border border-gray-300"><span className="px-2.5 py-1 rounded-none bg-[#eef2fe] border border-[#d8e2fd] text-xs font-bold text-[#4a63e0]">EXAM</span></td>
-                    <td className="py-4 px-6 text-slate-500 border border-gray-300">1 student</td>
-                    <td className="py-4 px-6 font-bold text-slate-800 border border-gray-300">0%</td>
-                    <td className="py-4 px-6 text-red-500 font-bold border border-gray-300">0%</td>
-                    <td className="py-4 px-6 text-right border border-gray-300">
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50 mr-2">Results</button>
-                       <button className="px-3 py-1.5 border border-slate-300 rounded-none font-semibold text-xs text-slate-600 hover:bg-slate-50">Analytics</button>
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-slate-500 text-sm">
+                      No recent papers available.
                     </td>
                   </tr>
                 </tbody>
@@ -320,7 +216,7 @@ export default function OnlineExamDashboard() {
                 <div className="w-2.5 h-2.5 bg-indigo-600 rounded-none"></div>
              </div>
              <h3 className="font-bold text-indigo-900 text-[15px]">Adaptive practice</h3>
-             <span className="text-indigo-600 text-xs ml-2">1 student practising · 14 answers · 29% correct overall</span>
+             <span className="text-indigo-600 text-xs ml-2">0 students practising · 0 answers · 0% correct overall</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -331,12 +227,12 @@ export default function OnlineExamDashboard() {
             
             <div className="bg-white rounded-none px-4 py-3 border border-[#ede9fe]">
                <div className="text-[11px] text-indigo-400 uppercase font-semibold mb-1">Students under 40%</div>
-               <div className="text-sm font-semibold text-slate-800">1</div>
+               <div className="text-sm font-semibold text-slate-800">0</div>
             </div>
             
             <div className="bg-white rounded-none px-4 py-3 border border-[#ede9fe]">
                <div className="text-[11px] text-indigo-400 uppercase font-semibold mb-1">Answers graded instantly</div>
-               <div className="text-sm font-semibold text-slate-800">14</div>
+               <div className="text-sm font-semibold text-slate-800">0</div>
             </div>
           </div>
         </div>

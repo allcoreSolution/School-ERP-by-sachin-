@@ -28,6 +28,7 @@ class _TeacherHomeworkScreenState extends State<TeacherHomeworkScreen>
     super.initState();
     _pageController = PageController(initialPage: 0);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      TeacherDataRepository.instance.fetchMetadata();
       TeacherDataRepository.instance.fetchAssignedHomework();
     });
   }
@@ -97,10 +98,18 @@ class _TeacherHomeworkScreenState extends State<TeacherHomeworkScreen>
           ElevatedButton(
             onPressed: () {
               if (_titleController.text.isNotEmpty) {
+                final repo = TeacherDataRepository.instance;
+                final defCls = repo.classes.isNotEmpty ? repo.classes.first['_id'].toString() : '65fac00d41e7d23a670dbfed';
+                final defSec = repo.sections.isNotEmpty ? repo.sections.first['_id'].toString() : '65fac00d41e7d23a670dbfef';
+                final defSub = repo.subjects.isNotEmpty ? repo.subjects.first['_id'].toString() : '65fac00d41e7d23a670dc0aa';
+
                 TeacherDataRepository.instance.assignHomework(
                   title: _titleController.text,
                   description: _descController.text.isEmpty ? 'No description' : _descController.text,
-                  submissionDate: '2025-05-12', // Set fixed future date for demo 
+                  submissionDate: '2026-05-12', // Set fixed future date 
+                  classId: defCls,
+                  sectionId: defSec,
+                  subjectId: defSub,
                 );
                 
                 _titleController.clear();

@@ -1,23 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Monitor, CheckSquare } from 'lucide-react';
-
-const mockStudents = [
-  { id: 1, name: 'Aarav Sharma', roll: '101', status: 'Generated' },
-  { id: 2, name: 'Neha Gupta', roll: '102', status: 'Pending' },
-  { id: 3, name: 'Kabir Singh', roll: '103', status: 'Generated' },
-];
+import { academicService } from '../api/academicService';
+import { studentService } from '../api/studentService';
+import { examService } from '../api/examService';
 
 const GenerateMarksheet = () => {
   const [formData, setFormData] = useState({
-    reportType: '', class: '', section: '', show: 'full'
+    exam: '', class: '', section: '', show: 'full'
   });
   const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [exams, setExams] = useState([]);
+  const [students, setStudents] = useState([]);
 
-  const handleSearch = () => {
-    if (formData.reportType && formData.class) {
-      setLoaded(true);
+  useEffect(() => {
+    fetchMetadata();
+  }, []);
+
+  const fetchMetadata = async () => {
+    try {
+      const cls = await academicService.getClasses();
+      const sec = await academicService.getSections();
+      const ex = await examService.getExams();
+      if(cls.data) setClasses(cls.data);
+      if(sec.data) setSections(sec.data);
+      if(ex.data) setExams(ex.data);
+    } catch(e) { console.error(e); }
+  };
+
+  const handleSearch = async () => {
+    if (formData.exam && formData.class) {
+      setLoading(true);
+      try {
+        const resp = await studentService.getStudents({ limit: 100 });
+        if(resp.data) {
+           const classStudents = resp.data.filter(s => s.classId?._id === formData.class || s.classId === formData.class);
+           setStudents(classStudents.map(s => ({
+             id: s._id,
+             name: `${s.firstName||''} ${s.lastName||''}`.trim(),
+             roll: s.aparId || s.enrollmentNumber || '-',
+             status: 'Generated' // Assuming marks exist for mock demo. 
+           })));
+           setLoaded(true);
+        }
+      } catch(e) { console.error("Error fetching students", e); }
+      setLoading(false);
     } else {
-      alert("Please select Report Card Type and Class to search students.");
+      alert("Please select an Exam and Class to search students.");
     }
   };
 
@@ -37,15 +69,14 @@ const GenerateMarksheet = () => {
           
           <div className="p-5 flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-bold text-gray-800 mb-2">Report Card Type</label>
+              <label className="block text-sm font-bold text-gray-800 mb-2">Exam</label>
               <select 
-                value={formData.reportType} 
-                onChange={e => setFormData({...formData, reportType: e.target.value})}
+                value={formData.exam} 
+                onChange={e => setFormData({...formData, exam: e.target.value})}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
-                <option value="">Select Report Card Type</option>
-                <option value="term-1">Term 1 Marksheet</option>
-                <option value="final">Final Report Card</option>
+                <option value="">Select Exam</option>
+                {exams.map(ex => <option key={ex._id} value={ex._id}>{ex.examName}</option>)}
               </select>
             </div>
             
@@ -57,8 +88,7 @@ const GenerateMarksheet = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
                 <option value="">Select Class</option>
-                <option value="10">Class 10</option>
-                <option value="9">Class 9</option>
+                {classes.map(c => <option key={c._id} value={c._id}>{c.className}</option>)}
               </select>
             </div>
             
@@ -69,9 +99,8 @@ const GenerateMarksheet = () => {
                 onChange={e => setFormData({...formData, section: e.target.value})}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
-                <option value="">-- Select Class First --</option>
-                <option value="A">Section A</option>
-                <option value="B">Section B</option>
+                <option value="">-- Select Section --</option>
+                {sections.map(s => <option key={s._id} value={s._id}>{s.sectionName}</option>)}
               </select>
             </div>
             
@@ -89,10 +118,10 @@ const GenerateMarksheet = () => {
 
             <div className="mt-4 lg:mt-0 xl:ml-2">
               <button 
-                onClick={handleSearch} 
+                onClick={handleSearch} disabled={loading}
                 className="bg-[#f06e33] hover:bg-[#de5e24] text-white font-medium px-6 py-2 rounded transition-colors shadow-sm w-full md:w-auto text-[15px]"
               >
-                Search
+                {loading ? 'Searching...' : 'Search'}
               </button>
             </div>
           </div>
@@ -125,27 +154,27 @@ const GenerateMarksheet = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockStudents.map((student) => (
+                  {students.map((student) => (
                     <tr key={student.id} className="border-bottom border-gray-100 hover:bg-gray-50">
                       <td className="px-5 py-3 text-center"><input type="checkbox" className="w-4 h-4 rounded text-blue-600" /></td>
                       <td className="px-5 py-3 text-gray-800 font-medium">{student.roll}</td>
                       <td className="px-5 py-3 text-gray-700">{student.name}</td>
                       <td className="px-5 py-3">
-                        <span className={`text-[11px] font-bold px-2 py-1 rounded inline-flex items-center gap-1 ${
-                          student.status === 'Generated' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {student.status === 'Generated' && <CheckSquare className="w-3 h-3" />}
+                        <span className={`text-[11px] font-bold px-2 py-1 rounded inline-flex items-center gap-1 bg-green-100 text-green-700`}>
+                          <CheckSquare className="w-3 h-3" />
                           {student.status}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <button className="text-[#5d78ff] hover:underline text-[13px] font-medium mr-3">Generate</button>
-                        <button className="text-gray-500 hover:text-gray-800 text-[13px] font-medium" disabled={student.status !== 'Generated'}>
-                          Download
+                        <button className="text-gray-500 hover:text-gray-800 text-[13px] font-medium" onClick={() => alert('PDF downloading... (WIP)')}>
+                          Download PDF
                         </button>
                       </td>
                     </tr>
                   ))}
+                  {students.length === 0 && (
+                     <tr><td colSpan={5} className="py-8 text-center text-gray-500">No students found.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>

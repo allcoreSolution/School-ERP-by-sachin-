@@ -28,19 +28,19 @@ const AcademicsWidget = () => (
     
     <div className="grid grid-cols-4 gap-2 mb-4 text-center">
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">3</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Teachers</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">21</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Classes</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">16</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Sections</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">72</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Subjects</div>
       </div>
     </div>
@@ -51,9 +51,9 @@ const AcademicsWidget = () => (
     </div>
 
     <div className="flex-1 flex flex-col justify-end mb-4">
-      <div className="text-[11px] text-slate-500 mb-1">Timetable coverage <span className="float-right font-bold text-slate-800">19%</span></div>
+      <div className="text-[11px] text-slate-500 mb-1">Timetable coverage <span className="float-right font-bold text-slate-800">0%</span></div>
       <div className="w-full bg-slate-100 h-2 rounded-none mb-2 overflow-hidden">
-        <div className="bg-[#5F52FF] h-full rounded-none" style={{ width: '19%' }}></div>
+        <div className="bg-[#5F52FF] h-full rounded-none" style={{ width: '0%' }}></div>
       </div>
       <div className="flex justify-between items-center text-[10px]">
         <span className="font-bold text-slate-700">Term 3 Nov</span>
@@ -82,22 +82,8 @@ const UpcomingEventsWidget = () => (
   <div className="bg-white p-4 rounded-none shadow-sm border border-slate-200 h-full flex flex-col">
     <WidgetHeader title="Upcoming Events" icon={CalendarHeart}  link="/communicate/events-holidays" />
     
-    <div className="flex-1 space-y-4">
-      {[
-        { name: 'Winter Sports Meet', date: 'Aug 26, 2026' },
-        { name: 'Field Trip to Science Museum', date: 'Aug 30, 2026' },
-        { name: 'Republic Day Function', date: 'Sep 04, 2026' },
-        { name: 'Health & Wellness Camp', date: 'Sep 09, 2026' },
-        { name: 'Annual Day & Prize Distribution', date: 'Sep 17, 2026' },
-      ].map((event, i) => (
-        <div key={i} className="flex gap-3 items-center">
-          <div className="w-3 h-3 rounded-none border-2 border-emerald-400 shrink-0"></div>
-          <div>
-            <div className="text-xs font-bold text-slate-800">{event.name}</div>
-            <div className="text-[10px] text-slate-400">{event.date}</div>
-          </div>
-        </div>
-      ))}
+    <div className="flex-1 space-y-4 flex items-center justify-center">
+      <div className="text-slate-400 text-xs">No upcoming events scheduled</div>
     </div>
   </div>
 );
@@ -112,11 +98,11 @@ const ExaminationsWidget = () => (
         <div className="text-[9px] font-bold text-slate-500 uppercase">Ongoing</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">1</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Upcoming</div>
       </div>
       <div>
-        <div className="text-emerald-500 font-extrabold text-sm">1</div>
+        <div className="text-emerald-500 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Results out</div>
       </div>
     </div>
@@ -127,11 +113,11 @@ const ExaminationsWidget = () => (
     </div>
 
     <div className="flex-1 flex flex-col justify-end mb-4">
-      <div className="text-[11px] text-slate-500 mb-1">Marks entry <span className="float-right font-bold text-slate-800">27%</span></div>
+      <div className="text-[11px] text-slate-500 mb-1">Marks entry <span className="float-right font-bold text-slate-800">0%</span></div>
       <div className="w-full bg-slate-100 h-2 rounded-none mb-2 overflow-hidden">
-        <div className="bg-[#5F52FF] h-full rounded-none" style={{ width: '27%' }}></div>
+        <div className="bg-[#5F52FF] h-full rounded-none" style={{ width: '0%' }}></div>
       </div>
-      <div className="text-[10px] text-slate-400">Marks entered across all exam distributions.</div>
+      <div className="text-[10px] text-slate-400">Loading exam distribution data...</div>
     </div>
   </div>
 );

@@ -7,63 +7,13 @@ import {
 } from 'lucide-react';
 
 // --- DUMMY DATA ---
-const ASSETS = [
-  { tag: 'AST-00199', name: 'Lenovo ThinkCentre Desktop', desc: 'Lenovo M70q', category: 'IT Equipment', status: 'In Use', condition: 'New', location: 'Office', bookValue: '₹36,154.24' },
-  { tag: 'AST-00213', name: 'Cricket Kit (Full)', desc: 'SG Club Kit', category: 'Sports Equipment', status: 'In Store', condition: 'Good', location: 'Sports Room', bookValue: '₹7,456.98' },
-  { tag: 'AST-00209', name: 'Digital Balance', desc: 'Citizon CY-220', category: 'Lab Apparatus', status: 'In Store', condition: 'New', location: 'Science Lab', bookValue: '₹13,102.13' },
-  { tag: 'AST-00220', name: 'Water Purifier (RO)', desc: 'Kent Grand Plus', category: 'Kitchen Equipment', status: 'In Store', condition: 'New', location: 'Canteen', bookValue: '₹13,027.59' },
-  { tag: 'AST-00228', name: 'Wireless Microphone', desc: 'Shure BLX24', category: 'AV Equipment', status: 'In Store', condition: 'New', location: 'Store Room (relocated)', bookValue: '₹13,547.27' },
-  { tag: 'AST-00198', name: 'HP ProBook Laptop', desc: 'HP ProBook 450', category: 'IT Equipment', status: 'In Store', condition: 'Good', location: 'Staff Room', bookValue: '₹38,298.30' },
-  { tag: 'AST-00212', name: 'Football Set', desc: 'Nivia Storm', category: 'Sports Equipment', status: 'In Use', condition: 'Fair', location: 'Sports Room', bookValue: '₹2,164.84' },
-];
-
-const CATEGORIES = [
-  { name: 'IT Equipment', code: 'IT', depreciation: 'Written Down Value (WDV)', life: '—', assets: 7, status: 'Active' },
-  { name: 'Furniture & Fixtures', code: 'FURN', depreciation: 'Straight Line', life: '120', assets: 5, status: 'Active' },
-  { name: 'Lab Apparatus', code: 'LAB', depreciation: 'Straight Line', life: '96', assets: 4, status: 'Active' },
-  { name: 'AV Equipment', code: 'AV', depreciation: 'Declining Balance', life: '—', assets: 4, status: 'Active' },
-  { name: 'Sports Equipment', code: 'SPORT', depreciation: 'Straight Line', life: '36', assets: 4, status: 'Active' },
-  { name: 'Vehicles', code: 'VEH', depreciation: 'Written Down Value (WDV)', life: '—', assets: 2, status: 'Active' },
-  { name: 'Kitchen Equipment', code: 'KIT', depreciation: 'Straight Line', life: '60', assets: 3, status: 'Active' },
-  { name: 'Musical Instruments', code: 'MUS', depreciation: 'Straight Line', life: '84', assets: 3, status: 'Active' },
-];
-
-const ALLOCATIONS = [
-  { asset: 'Acoustic Guitar', tag: 'AST-00222', holder: 'Accountant1', role: 'Staff', assigned: '17 Aug 2026', returnDate: '—', overdue: false, status: 'Active' },
-  { asset: 'Principal Office Chair', tag: 'AST-00207', holder: 'Sneha Desai', role: 'Staff', assigned: '09 Jun 2026', returnDate: '—', overdue: false, status: 'Active' },
-  { asset: 'Football Set', tag: 'AST-00212', holder: 'Sneha Desai', role: 'Staff', assigned: '06 May 2026', returnDate: '03 Aug 2026', overdue: true, status: 'Active' },
-  { asset: 'Lenovo ThinkCentre Desktop', tag: 'AST-00199', holder: 'Accountant1', role: 'Staff', assigned: '26 Apr 2026', returnDate: '27 Aug 2026', overdue: false, status: 'Active' },
-  { asset: 'Bunsen Burner Set', tag: 'AST-00210', holder: 'Nursery', role: 'Class / Room', assigned: '16 Apr 2026', returnDate: '28 Jul 2026', overdue: true, status: 'Active' },
-  { asset: 'Student Bench Set', tag: 'AST-00204', holder: 'Mathematics', role: 'Department', assigned: '08 Apr 2026', returnDate: '09 Jul 2026', overdue: true, status: 'Active' },
-  { asset: 'Carrom Board', tag: 'AST-00215', holder: 'Vikram Singh', role: 'Staff', assigned: '23 Mar 2026', returnDate: '24 Jul 2026', overdue: true, status: 'Active' },
-];
-
-const DEPRECIATION_RECORDS = [
-  { asset: 'Dell OptiPlex Desktop', tag: 'AST-00197', period: 'May 2026', fy: '2026-2027', method: 'Written Down Value (WDV)', opening: '₹19,628.01', dep: '₹654.27', acc: '₹33,026.26', closing: '₹18,973.74' },
-  { asset: 'HP ProBook Laptop', tag: 'AST-00198', period: 'May 2026', fy: '2026-2027', method: 'Written Down Value (WDV)', opening: '₹39,618.93', dep: '₹1,320.63', acc: '₹22,701.70', closing: '₹38,298.30' },
-  { asset: 'Lenovo ThinkCentre Desktop', tag: 'AST-00199', period: 'May 2026', fy: '2026-2027', method: 'Written Down Value (WDV)', opening: '₹37,400.94', dep: '₹1,246.70', acc: '₹10,845.76', closing: '₹36,154.24' },
-  { asset: 'Epson Projector', tag: 'AST-00200', period: 'May 2026', fy: '2026-2027', method: 'Declining Balance', opening: '₹26,816.05', dep: '₹446.93', acc: '₹11,630.88', closing: '₹26,369.12' },
-  { asset: 'BenQ Smart Board', tag: 'AST-00201', period: 'May 2026', fy: '2026-2027', method: 'Declining Balance', opening: '₹94,344.89', dep: '₹1,572.41', acc: '₹32,227.52', closing: '₹92,772.48' },
-];
-
-const MAINTENANCES = [
-  { asset: 'Epson Projector', tag: 'AST-00200', title: 'Servicing — Epson Projector', type: 'Servicing', freq: 'Quarterly', due: '01 Jun 2026', assigned: 'school admin' },
-  { asset: 'School Bus (40-seater)', tag: 'AST-00216', title: 'Servicing — School Bus (40-seater)', type: 'Servicing', freq: 'Monthly', due: '06 Jun 2026', assigned: 'school admin' },
-  { asset: 'BenQ Smart Board', tag: 'AST-00201', title: 'Inspection — BenQ Smart Board', type: 'Inspection', freq: 'Half-yearly', due: '14 Jun 2026', assigned: 'school admin' },
-  { asset: 'Compound Microscope', tag: 'AST-00208', title: 'Calibration — Compound Microscope', type: 'Calibration', freq: 'Yearly', due: '21 Jun 2026', assigned: 'school admin' },
-];
-
-const DISPOSALS = [
-  { asset: 'Wireless Microphone', tag: 'AST-00228', method: 'Written Off', date: '02 Jun 2026', realised: '—', bookValue: '₹0.00', gainLoss: '—', status: 'Pending approval', requested: 'school admin' },
-  { asset: 'CCTV Camera Set (8ch)', tag: 'AST-00227', method: 'Donated', date: '21 May 2026', realised: '—', bookValue: '₹20,576.65', gainLoss: '₹-20,576.65', status: 'Completed', requested: 'school admin' },
-  { asset: 'HP LaserJet Printer', tag: 'AST-00226', method: 'Scrapped', date: '29 May 2026', realised: '—', bookValue: '₹11,509.29', gainLoss: '₹-11,509.29', status: 'Completed', requested: 'school admin' },
-  { asset: 'Dell OptiPlex Desktop', tag: 'AST-00225', method: 'Sold', date: '01 Jun 2026', realised: '₹4,000.00', bookValue: '₹18,973.74', gainLoss: '₹-14,973.74', status: 'Completed', requested: 'school admin' },
-];
-
-const AUDITS = [
-  { title: 'Computer Lab spot-check', scope: 'Location · Computer Lab', assets: 2, status: 'Open', by: 'school admin', started: '09 Jun 2026 14:16' },
-  { title: 'Annual Stock Verification 2026', scope: 'All', assets: 29, status: 'Completed', by: 'school admin', started: '09 Jun 2026 14:16' },
-];
+const ASSETS = [];
+const CATEGORIES = [];
+const ALLOCATIONS = [];
+const DEPRECIATION_RECORDS = [];
+const MAINTENANCES = [];
+const DISPOSALS = [];
+const AUDITS = [];
 
 export default function AssetManagementDashboard() {
   const { tab } = useParams();
@@ -218,7 +168,7 @@ export default function AssetManagementDashboard() {
             <div className="bg-[#6610f2] rounded-none shadow-sm overflow-hidden flex flex-col text-white">
               <div className="p-4 flex justify-between items-start flex-grow">
                 <div>
-                  <h3 className="text-3xl font-bold">32</h3>
+                  <h3 className="text-3xl font-bold">0</h3>
                   <p className="text-sm font-medium mt-1">Total Assets</p>
                 </div>
                 <Box className="w-12 h-12 opacity-30" />
@@ -232,7 +182,7 @@ export default function AssetManagementDashboard() {
             <div className="bg-[#28a745] rounded-none shadow-sm overflow-hidden flex flex-col text-white">
               <div className="p-4 flex justify-between items-start flex-grow">
                 <div>
-                  <h3 className="text-3xl font-bold">₹3,284,100</h3>
+                  <h3 className="text-3xl font-bold">₹0</h3>
                   <p className="text-sm font-medium mt-1">Acquisition Value</p>
                 </div>
                 <IndianRupee className="w-12 h-12 opacity-30" />
@@ -243,7 +193,7 @@ export default function AssetManagementDashboard() {
             <div className="bg-[#20c997] rounded-none shadow-sm overflow-hidden flex flex-col text-white">
               <div className="p-4 flex justify-between items-start flex-grow">
                 <div>
-                  <h3 className="text-3xl font-bold">₹2,131,169</h3>
+                  <h3 className="text-3xl font-bold">₹0</h3>
                   <p className="text-sm font-medium mt-1">Current Book Value</p>
                 </div>
                 <TrendingDown className="w-12 h-12 opacity-30" />
@@ -257,13 +207,13 @@ export default function AssetManagementDashboard() {
             <div className="bg-[#ffc107] rounded-none shadow-sm overflow-hidden flex flex-col text-gray-900">
               <div className="p-4 flex justify-between items-start flex-grow">
                 <div>
-                  <h3 className="text-3xl font-bold">1</h3>
+                  <h3 className="text-3xl font-bold">0</h3>
                   <p className="text-sm font-medium mt-1">Under Maintenance</p>
                 </div>
                 <Wrench className="w-12 h-12 opacity-30" />
               </div>
               <div onClick={() => handleTabClick('Maintenance')} className="bg-black/10 py-2 px-4 text-center text-[12px] font-medium cursor-pointer hover:bg-black/20 flex items-center justify-center">
-                2 open · 6 overdue <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                0 open · 0 overdue <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </div>
             </div>
           </div>
@@ -289,23 +239,8 @@ export default function AssetManagementDashboard() {
                   </tr>
                 </thead>
                 <tbody className="text-[13px] text-gray-700">
-                  <tr className="border-b border-red-100 bg-[#ffebee]">
-                    <td className="p-3 font-medium text-gray-700">Epson Projector</td>
-                    <td className="p-3 text-gray-600">Servicing — Epson Projector</td>
-                    <td className="p-3 text-gray-600">Servicing</td>
-                    <td className="p-3 text-right"><span className="mr-2">01 Jun 2026</span><span className="bg-[#dc3545] text-white px-1.5 py-0.5 rounded-none text-[10px] font-bold">overdue</span></td>
-                  </tr>
-                  <tr className="border-b border-red-100 bg-[#ffebee]">
-                    <td className="p-3 font-medium text-gray-700">School Bus (40-seater)</td>
-                    <td className="p-3 text-gray-600">Servicing — School Bus (40-seater)</td>
-                    <td className="p-3 text-gray-600">Servicing</td>
-                    <td className="p-3 text-right"><span className="mr-2">06 Jun 2026</span><span className="bg-[#dc3545] text-white px-1.5 py-0.5 rounded-none text-[10px] font-bold">overdue</span></td>
-                  </tr>
-                  <tr className="border-b border-red-100 bg-[#ffebee]">
-                    <td className="p-3 font-medium text-gray-700">BenQ Smart Board</td>
-                    <td className="p-3 text-gray-600">Inspection — BenQ Smart Board</td>
-                    <td className="p-3 text-gray-600">Inspection</td>
-                    <td className="p-3 text-right"><span className="mr-2">14 Jun 2026</span><span className="bg-[#dc3545] text-white px-1.5 py-0.5 rounded-none text-[10px] font-bold">overdue</span></td>
+                  <tr>
+                    <td colSpan="4" className="p-4 text-center text-gray-400">No overdue maintenance tasks.</td>
                   </tr>
                 </tbody>
               </table>
@@ -330,11 +265,9 @@ export default function AssetManagementDashboard() {
                       </tr>
                     </thead>
                     <tbody className="text-[13px] text-gray-600">
-                      <tr className="border-b border-gray-100"><td className="p-3">IT Equipment</td><td className="p-3 text-right font-medium">7</td></tr>
-                      <tr className="border-b border-gray-100"><td className="p-3">Furniture & Fixtures</td><td className="p-3 text-right font-medium">5</td></tr>
-                      <tr className="border-b border-gray-100"><td className="p-3">Lab Apparatus</td><td className="p-3 text-right font-medium">4</td></tr>
-                      <tr className="border-b border-gray-100"><td className="p-3">AV Equipment</td><td className="p-3 text-right font-medium">4</td></tr>
-                      <tr className="border-b border-gray-100"><td className="p-3">Sports Equipment</td><td className="p-3 text-right font-medium">4</td></tr>
+                      <tr>
+                        <td colSpan="2" className="p-4 text-center text-gray-400 border-b border-gray-100">No categories found.</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -357,23 +290,8 @@ export default function AssetManagementDashboard() {
                       </tr>
                     </thead>
                     <tbody className="text-[13px] text-gray-600">
-                      <tr className="border-b border-gray-100 hover:bg-gray-50/30">
-                        <td className="p-3 text-pink-500 font-medium text-[12px]">AST-00199</td>
-                        <td className="p-3 text-[#fd7e14] font-medium">Lenovo ThinkCentre Desktop</td>
-                        <td className="p-3 text-gray-500">IT Equipment</td>
-                        <td className="p-3 text-center">In Use</td>
-                      </tr>
-                      <tr className="border-b border-gray-100 hover:bg-gray-50/30">
-                        <td className="p-3 text-pink-500 font-medium text-[12px]">AST-00213</td>
-                        <td className="p-3 text-[#fd7e14] font-medium">Cricket Kit (Full)</td>
-                        <td className="p-3 text-gray-500">Sports Equipment</td>
-                        <td className="p-3 text-center">In Store</td>
-                      </tr>
-                      <tr className="border-b border-gray-100 hover:bg-gray-50/30">
-                        <td className="p-3 text-pink-500 font-medium text-[12px]">AST-00209</td>
-                        <td className="p-3 text-[#fd7e14] font-medium">Digital Balance</td>
-                        <td className="p-3 text-gray-500">Lab Apparatus</td>
-                        <td className="p-3 text-center">In Store</td>
+                      <tr>
+                        <td colSpan="4" className="p-4 text-center text-gray-400 border-b border-gray-100">No recently registered assets.</td>
                       </tr>
                     </tbody>
                   </table>
@@ -399,15 +317,8 @@ export default function AssetManagementDashboard() {
                       </tr>
                     </thead>
                     <tbody className="text-[13px] text-gray-600">
-                      <tr className="border-b border-gray-100">
-                        <td className="p-3 text-[#fd7e14] font-medium">Water Purifier (RO)</td>
-                        <td className="p-3 text-pink-500 font-medium text-[12px]">AST-00220</td>
-                        <td className="p-3 text-right text-red-500 font-medium">28 Aug 2026</td>
-                      </tr>
-                      <tr className="border-b border-gray-100">
-                        <td className="p-3 text-[#fd7e14] font-medium">BenQ Smart Board</td>
-                        <td className="p-3 text-pink-500 font-medium text-[12px]">AST-00201</td>
-                        <td className="p-3 text-right text-red-500 font-medium">07 Sep 2026</td>
+                      <tr>
+                        <td colSpan="3" className="p-4 text-center text-gray-400 border-b border-gray-100">No expiring warranties.</td>
                       </tr>
                     </tbody>
                   </table>
@@ -422,26 +333,8 @@ export default function AssetManagementDashboard() {
                 </div>
                 <div className="p-4 flex-grow overflow-y-auto max-h-[250px]">
                   <ul className="space-y-4">
-                    <li className="flex justify-between items-start">
-                      <div className="flex items-start">
-                        <div className="w-2 h-2 rounded-none border border-gray-400 mt-1.5 mr-3 flex-shrink-0"></div>
-                        <p className="text-[13px] text-gray-700 font-bold">Depreciation posted <span className="font-normal text-gray-500">— Dell OptiPlex Desktop</span></p>
-                      </div>
-                      <span className="text-[11px] text-gray-400 whitespace-nowrap ml-4">2 months ago</span>
-                    </li>
-                    <li className="flex justify-between items-start">
-                      <div className="flex items-start">
-                        <div className="w-2 h-2 rounded-none border border-gray-400 mt-1.5 mr-3 flex-shrink-0"></div>
-                        <p className="text-[13px] text-gray-700 font-bold">Back from maintenance <span className="font-normal text-gray-500">— Compound Microscope</span></p>
-                      </div>
-                      <span className="text-[11px] text-gray-400 whitespace-nowrap ml-4">2 months ago</span>
-                    </li>
-                    <li className="flex justify-between items-start">
-                      <div className="flex items-start">
-                        <div className="w-2 h-2 rounded-none border border-gray-400 mt-1.5 mr-3 flex-shrink-0"></div>
-                        <p className="text-[13px] text-gray-700 font-bold">Disposed <span className="font-normal text-gray-500">— HP LaserJet Printer</span></p>
-                      </div>
-                      <span className="text-[11px] text-gray-400 whitespace-nowrap ml-4">2 months ago</span>
+                    <li className="flex justify-center items-center py-4">
+                      <span className="text-[12px] text-gray-400">No recent activity.</span>
                     </li>
                   </ul>
                 </div>
@@ -793,7 +686,7 @@ export default function AssetManagementDashboard() {
               </div>
               <div>
                 <p className="text-[12px] font-bold text-gray-500">Depreciable Assets</p>
-                <h3 className="text-lg font-bold text-gray-800">29</h3>
+                <h3 className="text-lg font-bold text-gray-800">0</h3>
               </div>
             </div>
             <div className="bg-white border border-gray-200 rounded-none p-4 flex items-center shadow-sm border-t-4 border-t-[#ffc107]">
@@ -802,7 +695,7 @@ export default function AssetManagementDashboard() {
               </div>
               <div>
                 <p className="text-[12px] font-bold text-gray-500">Accumulated Depreciation</p>
-                <h3 className="text-lg font-bold text-gray-800">₹1,152,931</h3>
+                <h3 className="text-lg font-bold text-gray-800">₹0</h3>
               </div>
             </div>
             <div className="bg-white border border-gray-200 rounded-none p-4 flex items-center shadow-sm border-t-4 border-t-[#20c997]">
@@ -811,7 +704,7 @@ export default function AssetManagementDashboard() {
               </div>
               <div>
                 <p className="text-[12px] font-bold text-gray-500">Net Book Value</p>
-                <h3 className="text-lg font-bold text-gray-800">₹2,131,169</h3>
+                <h3 className="text-lg font-bold text-gray-800">₹0</h3>
               </div>
             </div>
           </div>

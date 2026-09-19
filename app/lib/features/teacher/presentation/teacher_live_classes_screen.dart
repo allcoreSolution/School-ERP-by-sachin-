@@ -16,45 +16,10 @@ class _TeacherLiveClassesScreenState extends State<TeacherLiveClassesScreen>
   late AnimationController _pulseController;
   int _selectedFilter = 0;
 
-  final List<Map<String, dynamic>> _upcoming = [
-    {
-      'subject': 'Mathematics - Calculus',
-      'class': 'Class 10 - A',
-      'time': '10:00 AM - 10:45 AM',
-      'students': '32 Registered',
-      'status': 'Start Stream',
-      'isLiveNow': true,
-      'code': 'MATH-10A-LIVE',
-    },
-    {
-      'subject': 'Physics - Motion & Force',
-      'class': 'Class 11 - B',
-      'time': '12:00 PM - 12:45 PM',
-      'students': '28 Registered',
-      'status': 'Scheduled',
-      'isLiveNow': false,
-      'code': 'PHY-11B-LIVE',
-    },
-  ];
+  List<Map<String, dynamic>> _upcoming = [];
+  List<Map<String, dynamic>> _today = [];
 
-  final List<Map<String, dynamic>> _today = [
-    {
-      'subject': 'Chemistry - Organic Compounds',
-      'class': 'Class 12 - A',
-      'time': '08:30 AM - 09:15 AM',
-      'duration': '45 mins',
-      'views': '29 Attended',
-      'status': 'View Recording',
-    },
-    {
-      'subject': 'Algebra Basics',
-      'class': 'Class 9 - B',
-      'time': 'Yesterday',
-      'duration': '40 mins',
-      'views': '30 Attended',
-      'status': 'View Recording',
-    },
-  ];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -62,6 +27,45 @@ class _TeacherLiveClassesScreenState extends State<TeacherLiveClassesScreen>
     _pageController = PageController(initialPage: 0);
     _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 2))
       ..repeat(reverse: true);
+      
+    _loadClasses();
+  }
+
+  Future<void> _loadClasses() async {
+    final repo = TeacherDataRepository.instance;
+    await repo.fetchMetadata();
+    await repo.fetchLiveClasses();
+    
+    if (mounted) {
+      setState(() {
+         // Map repo.liveClasses to local UI format
+         _upcoming = repo.liveClasses.map((c) {
+           return {
+             'subject': c['title']?.toString() ?? 'Online Class',
+             'class': 'Academic',
+             'time': c['startTime'] != null ? DateTime.parse(c['startTime']).toLocal().toString().split('.')[0] : '-',
+             'students': '0 Registered',
+             'status': c['status']?.toString() ?? 'Scheduled',
+             'isLiveNow': c['status'] == 'Live',
+             'code': c['platform']?.toString()?.toUpperCase() ?? 'STREAM',
+             'url': c['meetingUrl']?.toString() ?? 'https://zoom.us'
+           };
+         }).toList();
+         
+         if(_upcoming.isEmpty) {
+           _upcoming = [{
+             'subject': 'No Live Classes',
+             'class': '-',
+             'time': '-',
+             'students': '-',
+             'status': 'Scheduled',
+             'isLiveNow': false,
+             'code': 'NONE'
+           }];
+         }
+         _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -93,9 +97,24 @@ class _TeacherLiveClassesScreenState extends State<TeacherLiveClassesScreen>
       child: Scaffold(
       backgroundColor: bg,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
+        onPressed: () async {
+          final repo = TeacherDataRepository.instance;
+          final exId = repo.classes.isNotEmpty ? repo.classes.first['_id'].toString() : '65fac00d41e7d23a670dbfed';
+          final secId = repo.sections.isNotEmpty ? repo.sections.first['_id'].toString() : '65fac00d41e7d23a670dbfed';
+          
+          await repo.scheduleLiveClass({
+             'title': 'New Instant Live Session',
+             'academicClass': exId,
+             'section': secId,
+             'startTime': DateTime.now().toIso8601String(),
+             'durationMinutes': 45,
+             'platform': 'Zoom',
+             'meetingUrl': 'https://zoom.us/new'
+          });
+          _loadClasses();
+
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Schedule Live Stream Dialog Opened! 🎥'),
+            content: Text('Instant Live Class scheduled dynamically! 🎥'),
             backgroundColor: AppTheme.teacherPurple,
           ));
         },

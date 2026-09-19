@@ -1,39 +1,26 @@
 import axiosInstance from './axios';
 
 export const superAdminService = {
-  // Get Dashboard Analytics
+  // Dashboard overall view
   getDashboardAnalytics: async () => {
-    const response = await axiosInstance.get(`/superadmin/dashboard-analytics`);
-    return response.data;
+    const res = await axiosInstance.get(`/super-admin/dashboard`);
+    return res.data;
   },
-
-  // Get Team Members
-  getTeamMembers: async () => {
-    const response = await axiosInstance.get(`/superadmin/team`);
-    return response.data;
+  
+  // Schools / Tenants management
+  getSchools: async () => {
+    const res = await axiosInstance.get(`/tenants`);
+    return res.data;
   },
-
-  // Add Team Member
-  addTeamMember: async (data) => {
-    const response = await axiosInstance.post(`/superadmin/team`, data);
-    return response.data;
+  
+  createSchool: async (data) => {
+    const res = await axiosInstance.post(`/tenants`, data);
+    return res.data;
   },
-
-  // Get Rate Cards
-  getRateCards: async () => {
-    const response = await axiosInstance.get(`/superadmin/comms/rate-cards`);
-    return response.data;
-  },
-
-  // Update Rate Cards
-  updateRateCards: async (data) => {
-    const response = await axiosInstance.put(`/superadmin/comms/rate-cards`, data);
-    return response.data;
-  },
-
-  // Get Website Templates
-  getWebsiteTemplates: async () => {
-    const response = await axiosInstance.get(`/superadmin/website/templates`);
-    return response.data;
+  
+  // Example for handling billing or subscriptions later
+  getPlans: async () => {
+    const res = await axiosInstance.get(`/plans`);
+    return res.data;
   }
 };

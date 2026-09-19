@@ -35,5 +35,19 @@ export const transportService = {
   deleteVehicle: async (id) => {
     const response = await axiosInstance.delete(`/transport/vehicles/${id}`);
     return response.data;
+  },
+
+  // Drivers
+  getDrivers: async () => {
+    const response = await axiosInstance.get('/transport/drivers');
+    return response.data;
+  },
+  addDriver: async (data) => {
+    const response = await axiosInstance.post('/transport/drivers', data);
+    return response.data;
+  },
+  deleteDriver: async (id) => {
+    const response = await axiosInstance.delete(`/transport/drivers/${id}`);
+    return response.data;
   }
 };

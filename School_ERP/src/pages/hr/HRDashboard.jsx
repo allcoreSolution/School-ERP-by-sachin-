@@ -7,9 +7,54 @@ import {
   Banknote, PieChart, Activity, Clock, Cake, Bell, Check, MoreVertical, ChevronDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { hrService } from '../../api/hrService';
+import { leaveService } from '../../api/leaveService';
 
 export default function HRDashboard() {
   const navigate = useNavigate();
+
+  const [stats, setStats] = React.useState({
+    totalStaff: 0,
+    departmentsCount: 0,
+    rolesCount: 0,
+    pendingLeaves: 0,
+    activeLoans: 0
+  });
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const results = await Promise.allSettled([
+          hrService.getStaff({ limit: 100 }),
+          leaveService.getLeaveApplications({ status: 'Pending' })
+        ]);
+        
+        let staffs = [];
+        if (results[0].status === 'fulfilled') {
+          staffs = results[0].value.data || [];
+        }
+        
+        let leaves = [];
+        if (results[1].status === 'fulfilled') {
+          leaves = results[1].value.data || [];
+        }
+
+        const departments = new Set(staffs.map(s => s.department).filter(Boolean));
+        const roles = new Set(staffs.map(s => s.designation || (s.role && s.role.name) || s.role).filter(Boolean));
+
+        setStats({
+          totalStaff: (results[0].status === 'fulfilled' && results[0].value.count) ? results[0].value.count : staffs.length,
+          departmentsCount: departments.size,
+          rolesCount: roles.size,
+          pendingLeaves: leaves.length,
+          activeLoans: 0
+        });
+      } catch (err) {
+        console.error("Failed to fetch HR stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const tabs = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/hr/dashboard', active: true },
@@ -61,8 +106,8 @@ export default function HRDashboard() {
             </div>
             <div>
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">TOTAL STAFF</div>
-              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">9</div>
-              <div className="text-[11px] text-slate-400">3 depts · 5 roles</div>
+              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">{stats.totalStaff}</div>
+              <div className="text-[11px] text-slate-400">{stats.departmentsCount} depts · {stats.rolesCount} roles</div>
             </div>
           </div>
           
@@ -73,8 +118,8 @@ export default function HRDashboard() {
             </div>
             <div>
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">PENDING LEAVES</div>
-              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">0</div>
-              <div className="text-[11px] text-green-500 font-medium">All cleared</div>
+              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">{stats.pendingLeaves}</div>
+              <div className="text-[11px] text-green-500 font-medium">{stats.pendingLeaves === 0 ? 'All cleared' : 'Needs action'}</div>
             </div>
           </div>
           
@@ -85,7 +130,7 @@ export default function HRDashboard() {
             </div>
             <div>
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">ON LEAVE TODAY</div>
-              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">1</div>
+              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">0</div>
               <div className="text-[11px] text-slate-400">0 present · 0 absent</div>
             </div>
           </div>
@@ -97,8 +142,8 @@ export default function HRDashboard() {
             </div>
             <div>
               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">ACTIVE LOANS</div>
-              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">2</div>
-              <div className="text-[11px] text-slate-400">₹15,833 outstanding</div>
+              <div className="text-2xl font-bold text-slate-800 leading-none mb-1">0</div>
+              <div className="text-[11px] text-slate-400">₹0 outstanding</div>
             </div>
           </div>
 
@@ -132,52 +177,8 @@ export default function HRDashboard() {
               <Clock className="w-4 h-4 text-slate-700" />
               <h2 className="text-[13px] font-bold text-slate-800">Recent Activity</h2>
             </div>
-            <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-              
-              <div className="flex justify-between items-start border-b border-slate-50 pb-3">
-                <div className="flex gap-3">
-                  <div className="mt-0.5"><div className="w-5 h-5 rounded-none bg-green-50 flex items-center justify-center"><Users className="w-3 h-3 text-green-500" /></div></div>
-                  <div>
-                    <div className="text-[13px] font-bold text-slate-700">Sajjan Bhabha</div>
-                    <div className="text-[11px] text-slate-500">New staff added · Senior Teacher</div>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-400">8 hours ago</div>
-              </div>
-
-              <div className="flex justify-between items-start border-b border-slate-50 pb-3">
-                <div className="flex gap-3">
-                  <div className="mt-0.5"><div className="w-5 h-5 rounded-none bg-green-50 flex items-center justify-center"><Users className="w-3 h-3 text-green-500" /></div></div>
-                  <div>
-                    <div className="text-[13px] font-bold text-slate-700">Sourabh Banna</div>
-                    <div className="text-[11px] text-slate-500">New staff added · Staff</div>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-400">11 hours ago</div>
-              </div>
-
-              <div className="flex justify-between items-start border-b border-slate-50 pb-3">
-                <div className="flex gap-3">
-                  <div className="mt-0.5"><div className="w-5 h-5 rounded-none bg-green-50 flex items-center justify-center"><Users className="w-3 h-3 text-green-500" /></div></div>
-                  <div>
-                    <div className="text-[13px] font-bold text-slate-700">Rajat kumar</div>
-                    <div className="text-[11px] text-slate-500">New staff added · Staff</div>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-400">2 days ago</div>
-              </div>
-              
-              <div className="flex justify-between items-start border-b border-slate-50 pb-3">
-                <div className="flex gap-3">
-                  <div className="mt-0.5"><div className="w-5 h-5 rounded-none bg-green-50 flex items-center justify-center"><CheckCircle className="w-3 h-3 text-green-500" /></div></div>
-                  <div>
-                    <div className="text-[13px] font-bold text-slate-700">Amit Sharma</div>
-                    <div className="text-[11px] text-slate-500">Leave approved · 20 Aug - 29 Aug</div>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-400">3 days ago</div>
-              </div>
-
+            <div className="flex-1 overflow-y-auto pr-2 flex items-center justify-center text-center">
+               <span className="text-[12px] text-slate-400">No recent activity.</span>
             </div>
           </div>
 
@@ -209,30 +210,8 @@ export default function HRDashboard() {
               <Cake className="w-4 h-4 text-red-500" />
               <h2 className="text-[13px] font-bold text-slate-800">Upcoming (30 days)</h2>
             </div>
-            <div className="space-y-4 mt-6">
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-none bg-red-50 flex items-center justify-center"><Cake className="w-3.5 h-3.5 text-red-500" /></div>
-                  <div>
-                    <div className="text-[13px] font-bold text-slate-700 leading-tight">Rajat kumar</div>
-                    <div className="text-[10px] text-slate-400">Birthday</div>
-                  </div>
-                </div>
-                <div className="text-[12px] text-slate-500 font-medium">28 Aug</div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-none bg-red-50 flex items-center justify-center"><Cake className="w-3.5 h-3.5 text-red-500" /></div>
-                  <div>
-                    <div className="text-[13px] font-bold text-slate-700 leading-tight">Vikram Singh</div>
-                    <div className="text-[10px] text-slate-400">Birthday</div>
-                  </div>
-                </div>
-                <div className="text-[12px] text-slate-500 font-medium">12 Sep</div>
-              </div>
-
+            <div className="space-y-4 mt-6 flex items-center justify-center text-center">
+               <span className="text-[12px] text-slate-400 py-4">No upcoming birthdays soon.</span>
             </div>
           </div>
 
@@ -248,7 +227,7 @@ export default function HRDashboard() {
                   <div className="flex items-center gap-2 text-slate-600">
                     <div className="w-2 h-2 rounded-none bg-purple-500"></div> Unpaid Payslips
                   </div>
-                  <span className="text-slate-800">11</span>
+                  <span className="text-slate-800">0</span>
                 </div>
                 <div className="flex justify-between items-center text-[12px] font-bold">
                   <div className="flex items-center gap-2 text-slate-600">
@@ -260,13 +239,13 @@ export default function HRDashboard() {
                   <div className="flex items-center gap-2 text-slate-600">
                     <div className="w-2 h-2 rounded-none bg-green-500"></div> Attendance Marked Today
                   </div>
-                  <span className="text-slate-800">1</span>
+                  <span className="text-slate-800">0</span>
                 </div>
                 <div className="flex justify-between items-center text-[12px] font-bold">
                   <div className="flex items-center gap-2 text-slate-600">
                     <div className="w-2 h-2 rounded-none bg-slate-300"></div> Departments / Roles
                   </div>
-                  <span className="text-slate-800">3 / 5</span>
+                  <span className="text-slate-800">{stats.departmentsCount} / {stats.rolesCount}</span>
                 </div>
               </div>
             </div>

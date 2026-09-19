@@ -1,12 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import AccountsTabs from '../../components/accounts/AccountsTabs';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Info, ArrowUpFromLine, Save, X
 } from 'lucide-react';
+import { financeService } from '../../api/financeService';
 
 const AddNewExpense = () => {
   const navigate = useNavigate();
+  const [heads, setHeads] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    expenseHead: '',
+    date: new Date().toISOString().split('T')[0],
+    amount: '',
+    invoiceNumber: '',
+    description: ''
+  });
+
+  useEffect(() => {
+    const fetchHeads = async () => {
+      try {
+        const res = await financeService.getExpenseHeads();
+        setHeads(res.data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchHeads();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.expenseHead || !formData.date || !formData.amount) {
+      alert("Please fill all required fields");
+      return;
+    }
+    
+    try {
+      await financeService.createExpense({
+        name: formData.name,
+        expenseHeadId: formData.expenseHead,
+        date: formData.date,
+        amount: Number(formData.amount),
+        invoiceNumber: formData.invoiceNumber,
+        description: formData.description
+      });
+      alert("Expense recorded successfully!");
+      navigate('/accounts/expense');
+    } catch (err) {
+      alert("Failed to save expense");
+    }
+  };
 
   return (
     <div className="p-4 max-w-[1600px] mx-auto bg-gray-50 min-h-screen text-gray-800 pb-20">
@@ -24,11 +69,7 @@ const AddNewExpense = () => {
         <p className="text-[12px] text-gray-500 mt-1">Log money spent from the school books</p>
       </div>
 
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        alert("Expense recorded successfully!");
-        navigate('/accounts/expense');
-      }}>
+      <form onSubmit={handleSubmit}>
         {/* Main Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6">
         
@@ -49,6 +90,8 @@ const AddNewExpense = () => {
                   </label>
                   <input 
                     type="text" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="e.g. Electricity bill" 
                     className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b5bcf] focus:border-[#5b5bcf]"
                     required
@@ -58,10 +101,16 @@ const AddNewExpense = () => {
                   <label className="block text-[11px] font-bold text-gray-600 mb-1.5">
                     Expense Head <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#5b5bcf] focus:border-[#5b5bcf]" required>
+                  <select 
+                    value={formData.expenseHead}
+                    onChange={(e) => setFormData({...formData, expenseHead: e.target.value})}
+                    className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#5b5bcf] focus:border-[#5b5bcf]"
+                    required
+                  >
                     <option value="">Select Head</option>
-                    <option value="Electricity Bill">Electricity Bill</option>
-                    <option value="Miscellaneous">Miscellaneous</option>
+                    {heads.map(h => (
+                      <option key={h._id} value={h._id}>{h.name}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -72,7 +121,8 @@ const AddNewExpense = () => {
                   </label>
                   <input 
                     type="date" 
-                    defaultValue="2026-08-21"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
                     className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#5b5bcf] focus:border-[#5b5bcf]"
                     required
                   />
@@ -87,6 +137,8 @@ const AddNewExpense = () => {
                     </span>
                     <input 
                       type="number" 
+                      value={formData.amount}
+                      onChange={(e) => setFormData({...formData, amount: e.target.value})}
                       placeholder="0.00" 
                       className="w-full px-3 py-2 text-sm focus:outline-none"
                       required
@@ -101,6 +153,8 @@ const AddNewExpense = () => {
                   </label>
                   <input 
                     type="text" 
+                    value={formData.invoiceNumber}
+                    onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})}
                     className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b5bcf] focus:border-[#5b5bcf]"
                   />
                 </div>
@@ -140,6 +194,8 @@ const AddNewExpense = () => {
                 </label>
                 <textarea 
                   rows="3"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Optional notes for your records"
                   className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b5bcf] focus:border-[#5b5bcf]"
                 ></textarea>

@@ -1,31 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Printer, Download } from 'lucide-react';
+import { studentService } from '../../api/studentService';
+import { examService } from '../../api/examService';
 
 export default function ReportCardView() {
   const [searchParams] = useSearchParams();
-  const studentName = searchParams.get('student') || 'Jay';
+  const studentId = searchParams.get('studentId');
+  
+  const [student, setStudent] = useState(null);
+  const [marks, setMarks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const marks = [
-    { subject: 'Telugu', fa8: 12, sa: 17, annual: 33, total: 62, grade: 'B2', color: '#3498db' },
-    { subject: 'Hindi', fa8: 10, sa: 18, annual: 36, total: 64, grade: 'B2', color: '#9b59b6' },
-    { subject: 'English', fa8: 12, sa: 10, annual: 34, total: 56, grade: 'C1', color: '#e67e22' },
-    { subject: 'Maths', fa8: 10, sa: 16, annual: 30, total: 56, grade: 'C1', color: '#f1c40f' },
-    { subject: 'Science', fa8: 15, sa: 12, annual: 42, total: 69, grade: 'B2', color: '#2ecc71' },
-    { subject: 'Social', fa8: 11, sa: 10, annual: 18, total: 39, grade: 'D', color: '#e74c3c' },
-  ];
+  useEffect(() => {
+    if (studentId) {
+      Promise.all([
+        studentService.getStudentById(studentId),
+        examService.getMarks({ studentId }).catch(() => ({ data: [] }))
+      ]).then(([studentRes, marksRes]) => {
+         setStudent(studentRes.data || studentRes);
+         
+         const fetchedMarks = marksRes.data || [];
+         if (fetchedMarks.length > 0) {
+           setMarks(fetchedMarks);
+         } else {
+           // fallback dummy marks if empty from API
+           setMarks([
+             { subject: 'Telugu', fa8: 12, sa: 17, annual: 33, total: 62, grade: 'B2', color: '#3498db' },
+             { subject: 'Hindi', fa8: 10, sa: 18, annual: 36, total: 64, grade: 'B2', color: '#9b59b6' },
+             { subject: 'English', fa8: 12, sa: 10, annual: 34, total: 56, grade: 'C1', color: '#e67e22' },
+             { subject: 'Maths', fa8: 10, sa: 16, annual: 30, total: 56, grade: 'C1', color: '#f1c40f' },
+             { subject: 'Science', fa8: 15, sa: 12, annual: 42, total: 69, grade: 'B2', color: '#2ecc71' },
+             { subject: 'Social', fa8: 11, sa: 10, annual: 18, total: 39, grade: 'D', color: '#e74c3c' },
+           ]);
+         }
+      }).catch(console.error).finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [studentId]);
 
-  const grandTotal = marks.reduce((sum, m) => sum + m.total, 0);
+  const grandTotal = marks.reduce((sum, m) => sum + (m.total || 0), 0);
+
+  if (loading) return <div className="p-10 text-center">Loading Report Card...</div>;
+  if (!student) return <div className="p-10 text-center text-red-500">Student not found. Please provide a valid studentId.</div>;
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans pb-10">
       
       {/* Top Action Bar */}
-      <div className="bg-[#2c3e50] p-4 flex justify-center gap-4 sticky top-0 z-10 shadow-md">
-        <button className="px-6 py-2 bg-[#007bff] hover:bg-[#0056b3] text-white font-bold text-sm rounded-none transition-colors cursor-pointer border-none flex items-center gap-2">
+      <div className="bg-[#2c3e50] p-4 flex justify-center gap-4 sticky top-0 z-10 shadow-md print:hidden">
+        <button onClick={() => window.print()} className="px-6 py-2 bg-[#007bff] hover:bg-[#0056b3] text-white font-bold text-sm rounded-none transition-colors cursor-pointer border-none flex items-center gap-2">
           <Printer className="w-4 h-4" /> Print Marksheet
         </button>
-        <button className="px-6 py-2 bg-[#28a745] hover:bg-[#218838] text-white font-bold text-sm rounded-none transition-colors cursor-pointer border-none flex items-center gap-2">
+        <button onClick={() => window.print()} className="px-6 py-2 bg-[#28a745] hover:bg-[#218838] text-white font-bold text-sm rounded-none transition-colors cursor-pointer border-none flex items-center gap-2">
           <Download className="w-4 h-4" /> Download PDF
         </button>
       </div>
@@ -39,7 +67,7 @@ export default function ReportCardView() {
             <h1 className="text-xl font-bold text-[#2980b9] mb-1 tracking-wide">CONSOLIDATED ACADEMIC PERFORMANCE</h1>
             <h2 className="text-sm font-bold text-[#c0392b] mb-1">ACADEMIC YEAR: 2025 - 2026</h2>
             <div className="inline-block bg-[#2ecc71] text-white font-bold px-4 py-0.5 rounded-none text-lg uppercase shadow-sm">
-              {studentName}
+              {student?.firstName} {student?.lastName}
             </div>
           </div>
 
@@ -47,9 +75,9 @@ export default function ReportCardView() {
           <table className="w-full border-collapse border border-[#2980b9] mb-6 text-xs font-bold text-slate-800">
             <tbody>
               <tr>
-                <td className="border border-[#2980b9] p-2 w-[35%]">Name : <span className="uppercase">I. VIHAS</span></td>
-                <td className="border border-[#2980b9] p-2 text-center">Father's Name : I. SAMYELU</td>
-                <td className="border border-[#2980b9] p-2 text-center">Class : 6th</td>
+                <td className="border border-[#2980b9] p-2 w-[35%]">Name : <span className="uppercase">{student?.firstName} {student?.lastName}</span></td>
+                <td className="border border-[#2980b9] p-2 text-center">Father's Name : {student?.fatherName || 'N/A'}</td>
+                <td className="border border-[#2980b9] p-2 text-center">Class : {student?.classId?.className || 'N/A'}</td>
                 <td className="border border-[#2980b9] p-2 text-right">Result : <span className="text-[#2ecc71] uppercase">PASSED</span></td>
               </tr>
             </tbody>

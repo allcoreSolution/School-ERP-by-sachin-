@@ -1,16 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Gauge, BookOpen, ArrowDown, ArrowUp, FileSearch, Network, Tag, Building2,
   Plus, List, Grid, Copy, FileSpreadsheet, File, Printer, Columns, Search, Edit, Trash2
 } from 'lucide-react';
-
-const incomeData = [
-  { id: 1, name: 'Challan Collection: VCH/YIS/2026/00002', head: 'Challan Collection', date: '03 Sep, 2026', amount: 20000 },
-  { id: 2, name: 'Challan Collection: VCH/YIS/2026/00004', head: null, date: '19 May, 2026', amount: 567 },
-  { id: 3, name: 'Wallet Top-up: Yug Verma (YISADM-001)', head: null, date: '19 May, 2026', amount: 50000 },
-  { id: 4, name: 'School Donation', head: 'Donation', date: '26 Feb, 2026', amount: 500000 },
-];
+import { accountantService } from '../api/accountantService';
 
 const ToolbarButton = ({ label, icon: Icon }) => (
   <button className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 text-[13px] bg-white hover:bg-gray-50 transition-colors">
@@ -20,6 +14,27 @@ const ToolbarButton = ({ label, icon: Icon }) => (
 );
 
 const Income = () => {
+  const [incomeData, setIncomeData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    accountantService.getIncomes()
+      .then(res => {
+         if (res.success && res.data) {
+           setIncomeData(res.data.map(d => ({
+             id: d._id,
+             name: `Collection: ${d.feeType?.feeType || 'Voucher'}`,
+             head: 'Fee Collection',
+             date: new Date(d.date || new Date()).toLocaleDateString(),
+             amount: d.amountPaid || d.amount || 0
+           })));
+         }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#ecf0f5] text-[#333] p-4 sm:p-6 font-sans">
       
@@ -52,7 +67,7 @@ const Income = () => {
       </div>
 
       <div className="flex flex-col md:flex-row justify-end items-end md:items-center mb-6 gap-2 w-full">
-        <button className="flex items-center gap-2 px-4 py-1.5 rounded-[3px] border border-[#5a52d7] bg-[#5a52d7] text-white font-semibold text-[13px] hover:bg-[#4a42c0] shadow-sm">
+        <button onClick={() => navigate('/accounts/add-income')} className="flex items-center gap-2 px-4 py-1.5 rounded-[3px] border border-[#5a52d7] bg-[#5a52d7] text-white font-semibold text-[13px] hover:bg-[#4a42c0] shadow-sm">
           <Plus className="w-4 h-4" />
           Add New Income
         </button>
@@ -117,7 +132,11 @@ const Income = () => {
               </tr>
             </thead>
             <tbody className="text-[13px] text-[#333]">
-              {incomeData.map((income, i) => (
+              {loading ? (
+                <tr><td colSpan={6} className="py-10 text-center text-gray-500">Loading income data...</td></tr>
+              ) : incomeData.length === 0 ? (
+                <tr><td colSpan={6} className="py-10 text-center text-gray-500">No recent income data found.</td></tr>
+              ) : incomeData.map((income, i) => (
                 <tr key={income.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-5 text-center text-gray-500">{i + 1}</td>
                   <td className="py-4 px-5 border-l border-gray-100 font-medium text-gray-700">{income.name}</td>

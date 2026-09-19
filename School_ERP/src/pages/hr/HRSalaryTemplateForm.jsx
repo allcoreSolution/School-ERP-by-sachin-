@@ -3,6 +3,7 @@ import {
   Edit2, Scale, Plus, Trash2, Save, X
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { hrService } from '../../api/hrService';
 
 export default function HRSalaryTemplateForm({ isEdit = false }) {
   const navigate = useNavigate();
@@ -26,15 +27,47 @@ export default function HRSalaryTemplateForm({ isEdit = false }) {
   
   const [tdsEnabled, setTdsEnabled] = useState(false);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   // Pre-populate if editing
   useEffect(() => {
-    if (isEdit) {
-      setTemplateName('Senior Teacher');
-      setBasicSalary('45000.00');
-      setAllowances([{ id: 1, name: 'HRA', amount: '5000' }]);
-      setDeductions([{ id: 1, name: 'Welfare Refund', amount: '100' }]);
+    if (isEdit && id) {
+      // In a real app we would call getSalaryTemplateById(id). 
+      // Using generic mock for now if it's edit mode
+      hrService.getSalaryTemplates().then(res => {
+         const tmpl = (res.data || []).find(t => String(t._id) === String(id));
+         if(tmpl) {
+            setTemplateName(tmpl.templateName || tmpl.name || '');
+            setBasicSalary(tmpl.basicSalary || tmpl.basic || '');
+            setAllowances(tmpl.allowances || []);
+            setDeductions(tmpl.deductions || []);
+            setPfRate(tmpl.pfRate || '12.00');
+            setEsiRate(tmpl.esiRate || '0.75');
+         }
+      }).catch(err => console.error(err));
     }
-  }, [isEdit]);
+  }, [isEdit, id]);
+
+  const handleSave = async () => {
+    if(!templateName) return alert("Template name is required.");
+    setIsSaving(true);
+    try {
+      await hrService.saveSalaryTemplate({
+         templateName,
+         basicSalary,
+         allowances,
+         deductions,
+         pfRate,
+         esiRate
+      });
+      alert(`Salary Template ${isEdit ? 'updated' : 'saved'} successfully!`);
+      navigate('/hr/salary-templates');
+    } catch (err) {
+      alert("Error saving: " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleAddAllowance = () => {
     setAllowances([...allowances, { id: Date.now(), name: '', amount: '' }]);
@@ -331,10 +364,10 @@ export default function HRSalaryTemplateForm({ isEdit = false }) {
           
           <div className="bg-white border border-slate-200 rounded-none shadow-sm p-5 space-y-3">
             <button 
-              onClick={() => navigate('/hr/salary-templates')}
-              className="w-full py-3 bg-[#5F52FF] hover:bg-[#4f42e6] text-white rounded-none font-bold text-[14px] flex items-center justify-center gap-2 transition-colors shadow-sm"
+              onClick={handleSave} disabled={isSaving}
+              className="w-full py-3 bg-[#5F52FF] hover:bg-[#4f42e6] disabled:bg-gray-400 text-white rounded-none font-bold text-[14px] flex items-center justify-center gap-2 transition-colors shadow-sm"
             >
-              <Save className="w-4 h-4" /> {isEdit ? 'Update Salary Template' : 'Save Salary Template'}
+              <Save className="w-4 h-4" /> {isSaving ? 'Saving...' : (isEdit ? 'Update Salary Template' : 'Save Salary Template')}
             </button>
             <button 
               onClick={() => navigate('/hr/salary-templates')}

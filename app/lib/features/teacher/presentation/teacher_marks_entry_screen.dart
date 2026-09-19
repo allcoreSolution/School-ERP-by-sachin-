@@ -16,13 +16,31 @@ class _TeacherMarksEntryScreenState extends State<TeacherMarksEntryScreen> {
   bool _isDirty = false;
   bool _isSaved = false;
 
-  final List<Map<String, dynamic>> _students = [
-    {'name': 'Aarav Sharma',  'roll': '01', 'maxMarks': 50, 'scored': 47, 'grade': 'A+'},
-    {'name': 'Vivaan Patel',  'roll': '02', 'maxMarks': 50, 'scored': 44, 'grade': 'A'},
-    {'name': 'Riya Singh',    'roll': '03', 'maxMarks': 50, 'scored': 38, 'grade': 'B+'},
-    {'name': 'Aditya Verma',  'roll': '04', 'maxMarks': 50, 'scored': 46, 'grade': 'A+'},
-    {'name': 'Ananya Gupta',  'roll': '05', 'maxMarks': 50, 'scored': 42, 'grade': 'A'},
-  ];
+  List<Map<String, dynamic>> _students = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await TeacherDataRepository.instance.fetchMetadata();
+    final st = await TeacherDataRepository.instance.fetchClassStudents();
+    if(mounted) {
+      setState(() {
+         // Create local mutable copies with scoring state
+         _students = st.map((s) => {
+           'id': s['id'],
+           'name': s['name'],
+           'roll': s['roll'],
+           'maxMarks': 100,
+           'scored': 0,
+           'grade': 'F',
+         }).toList();
+      });
+    }
+  }
 
   Color _gradeColor(String grade) {
     switch (grade) {
@@ -45,22 +63,38 @@ class _TeacherMarksEntryScreenState extends State<TeacherMarksEntryScreen> {
     });
   }
 
-  void _saveMarks() {
-    setState(() {
-      _isDirty = false;
-      _isSaved = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(children: [
-        const Icon(Icons.check_circle_rounded, color: Colors.white),
-        const SizedBox(width: 10),
-        Expanded(child: Text('Exam Marks saved for $_selectedClass ($_selectedExam)! 📝',
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white))),
-      ]),
-      backgroundColor: const Color(0xFF059669),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+  void _saveMarks() async {
+    final repo = TeacherDataRepository.instance;
+    final exId = repo.exams.isNotEmpty ? repo.exams.first['_id'].toString() : '65fac00d41e7d23a670dbfed';
+    final subId = repo.subjects.isNotEmpty ? repo.subjects.first['_id'].toString() : '65fac00d41e7d23a670dc0aa';
+
+    final payload = _students.map((s) => {
+      'exam': exId,
+      'student': s['id'],
+      'subject': subId,
+      'marksObtained': s['scored'],
+      'maxMarks': s['maxMarks'],
+      'remarks': 'Auto saved via APP'
+    }).toList();
+
+    final suc = await repo.saveExamMarks(payload);
+    if(suc && mounted) {
+      setState(() {
+        _isDirty = false;
+        _isSaved = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(children: [
+          const Icon(Icons.check_circle_rounded, color: Colors.white),
+          const SizedBox(width: 10),
+          Expanded(child: Text('Exam Marks uploaded directly to Backend! 📝',
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white))),
+        ]),
+        backgroundColor: const Color(0xFF059669),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
   }
 
   @override
@@ -69,8 +103,8 @@ class _TeacherMarksEntryScreenState extends State<TeacherMarksEntryScreen> {
     final bg = isDark ? const Color(0xFF0A0F1E) : const Color(0xFFF8FAFC);
 
     // Summary stats
-    final avg = (_students.map((s) => s['scored'] as int).reduce((a, b) => a + b) / _students.length).toStringAsFixed(1);
-    final highest = _students.map((s) => s['scored'] as int).reduce((a, b) => a > b ? a : b);
+    final avg = _students.isEmpty ? "0.0" : (_students.map((s) => s['scored'] as int).reduce((a, b) => a + b) / _students.length).toStringAsFixed(1);
+    final highest = _students.isEmpty ? 0 : _students.map((s) => s['scored'] as int).reduce((a, b) => a > b ? a : b);
 
     return PopScope(
       canPop: false,

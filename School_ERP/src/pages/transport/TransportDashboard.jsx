@@ -93,9 +93,10 @@ export default function TransportDashboard() {
     // Fetch live vehicles and routes
     const loadTransportData = async () => {
       try {
-        const [vehiclesRes, routesRes] = await Promise.all([
+        const [vehiclesRes, routesRes, driversRes] = await Promise.all([
           transportService.getVehicles(),
-          transportService.getRoutes()
+          transportService.getRoutes(),
+          transportService.getDrivers()
         ]);
         
         // Map backend schemas to frontend UI schemas natively
@@ -118,6 +119,8 @@ export default function TransportDashboard() {
         }));
         setRoutes(formattedRoutes);
 
+        setDrivers(driversRes.data || []);
+
       } catch (err) {
         console.error("Failed to load transport data", err);
       }
@@ -130,23 +133,28 @@ export default function TransportDashboard() {
   const [newRouteFare, setNewRouteFare] = useState("");
   const [newRouteVehicle, setNewRouteVehicle] = useState("None");
 
-  const handleAddRoute = (e) => {
+  const handleAddRoute = async (e) => {
     e.preventDefault();
     if (!newRouteName.trim()) return;
-    setRoutes(prev => [...prev, {
-      id: Date.now(),
-      name: newRouteName,
-      vehicle: newRouteVehicle === "None" ? null : newRouteVehicle,
-      fare: parseFloat(newRouteFare) || 0
-    }]);
-    setNewRouteName("");
-    setNewRouteFare("");
-    setNewRouteVehicle("None");
-    setViewMode("dashboard");
-    setActiveTab("Manage Routes");
-    setToastMsg("Route created successfully!");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    try {
+      const payload = {
+        routeName: newRouteName,
+        assignedVehicle: newRouteVehicle === "None" ? null : newRouteVehicle,
+        fare: parseFloat(newRouteFare) || 0
+      };
+      await transportService.createRoute(payload);
+      
+      const routesRes = await transportService.getRoutes();
+      setRoutes((routesRes.data || []).map(r => ({
+         id: r._id, name: r.routeName, vehicle: r.assignedVehicle?.vehicleNumber || null, fare: r.fare || 0,
+      })));
+      setNewRouteName(""); setNewRouteFare(""); setNewRouteVehicle("None");
+      setViewMode("dashboard"); setActiveTab("Manage Routes");
+      setToastMsg("Route created successfully!");
+      setShowToast(true); setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      alert("Error adding route: " + (err.response?.data?.message || err.message));
+    }
   };
 
   // Trip Timeline state
@@ -155,10 +163,7 @@ export default function TransportDashboard() {
   const [timelineViewed, setTimelineViewed] = useState(false);
 
   // Drivers state
-  const INITIAL_DRIVERS = [
-    { id: 1, name: "RENGARAJAN G", driverId: "7588-4049", mobile: "9005671496", licence: null, licenceExpiry: null, devices: null, status: "Active", lastSeen: null },
-    { id: 2, name: "Ramesh Kumar", driverId: "6578-5019", mobile: "6263056776", licence: "AS3535SDSFGF", licenceExpiry: "09 Jun 2035", devices: 17, status: "Active", lastSeen: "7 hours ago" },
-  ];
+  const INITIAL_DRIVERS = [];
   const [drivers, setDrivers] = useState(INITIAL_DRIVERS);
   const [driverFilter, setDriverFilter] = useState("All");
   const [driverSearch, setDriverSearch] = useState("");
@@ -166,17 +171,28 @@ export default function TransportDashboard() {
   // Add Driver form state
   const [newDriver, setNewDriver] = useState({ name: "", mobile: "", altMobile: "", licence: "", licenceValid: "", bloodGroup: "", emergency: "", address: "", assignedBus: "", status: "Active", joinedOn: "", leftOn: "", appScreen: "Use school default", note: "" });
 
-  const handleAddDriver = (e) => {
+  const handleAddDriver = async (e) => {
     e.preventDefault();
     if (!newDriver.name.trim()) return;
-    const dId = Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
-    setDrivers(prev => [...prev, { id: Date.now(), name: newDriver.name, driverId: dId, mobile: newDriver.mobile, licence: newDriver.licence || null, licenceExpiry: newDriver.licenceValid || null, devices: null, status: newDriver.status, lastSeen: null }]);
-    setNewDriver({ name: "", mobile: "", altMobile: "", licence: "", licenceValid: "", bloodGroup: "", emergency: "", address: "", assignedBus: "", status: "Active", joinedOn: "", leftOn: "", appScreen: "Use school default", note: "" });
-    setViewMode("dashboard");
-    setActiveTab("Drivers");
-    setToastMsg("Driver added successfully!");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    try {
+      await transportService.addDriver({
+         firstName: newDriver.name.split(' ')[0] || '',
+         lastName: newDriver.name.split(' ')[1] || '',
+         contactNumber: newDriver.mobile,
+         licenceNumber: newDriver.licence,
+         status: newDriver.status
+      });
+      // reload drivers (if we had loadDrivers function, for now we just skip fetching driver lists to mock the append or call getDrivers if it exists)
+      const res = await transportService.getDrivers();
+      setDrivers(res.data || []);
+      setNewDriver({ name: "", mobile: "", altMobile: "", licence: "", licenceValid: "", bloodGroup: "", emergency: "", address: "", assignedBus: "", status: "Active", joinedOn: "", leftOn: "", appScreen: "Use school default", note: "" });
+      setViewMode("dashboard");
+      setActiveTab("Drivers");
+      setToastMsg("Driver added successfully!");
+      setShowToast(true); setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+       alert("Error adding driver code: " + (err.response?.data?.message || err.message));
+    }
   };
 
   // Boarding Register state
@@ -208,47 +224,49 @@ export default function TransportDashboard() {
   };
 
   // Submit Handler for Add Vehicle
-  const handleAddVehicleSubmit = (e) => {
+  const handleAddVehicleSubmit = async (e) => {
     e.preventDefault();
     if (vehicleNo.trim() === "") return;
 
-    const newVehicle = {
-      id: Date.now(),
-      vehicleNo: vehicleNo.toUpperCase(),
-      model: vehicleModel || "Van",
-      capacity: parseInt(seatingCapacity) || 40,
-      driver: driverName || "Unassigned",
-      phone: driverPhone || "—",
-      tracking: liveTrackingEnabled ? "Enabled" : "Disabled"
-    };
+    try {
+      await transportService.addVehicle({
+        vehicleNumber: vehicleNo.toUpperCase(),
+        vehicleModel: vehicleModel || "Van",
+        capacity: parseInt(seatingCapacity) || 40,
+        status: liveTrackingEnabled ? "Active" : "Inactive"
+      });
 
-    setVehicles(prev => [newVehicle, ...prev]);
-    setViewMode("dashboard");
+      const res = await transportService.getVehicles();
+      setVehicles((res.data || []).map(v => ({
+         id: v._id, vehicleNo: v.vehicleNumber, model: v.vehicleModel, capacity: v.capacity, 
+         driver: v.driverId ? `${v.driverId.firstName} ${v.driverId.lastName}` : "No Driver", 
+         phone: v.driverId?.contactNumber || "--", tracking: v.status === "Active" ? "Enabled" : "Disabled" 
+      })));
 
-    // Reset fields
-    setVehicleNo("");
-    setVehicleModel("");
-    setSeatingCapacity("");
-    setDriverName("");
-    setDriverPhone("");
-    setDriverPassword("");
-    setImei("");
-    setApiToken("");
-    setLiveTrackingEnabled(false);
-    setNote("");
+      setViewMode("dashboard");
+      setVehicleNo(""); setVehicleModel(""); setSeatingCapacity("");
+      setDriverName(""); setDriverPhone(""); setDriverPassword("");
+      setImei(""); setApiToken(""); setLiveTrackingEnabled(false); setNote("");
 
-    setToastMsg(`Vehicle ${newVehicle.vehicleNo} added successfully!`);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+      setToastMsg(`Vehicle ${vehicleNo.toUpperCase()} added successfully!`);
+      setShowToast(true); setTimeout(() => setShowToast(false), 3000);
+    } catch (err) {
+      alert("Error adding vehicle: " + (err.response?.data?.message || err.message));
+    }
   };
 
   // Delete vehicle helper
-  const handleDeleteVehicle = (id, number) => {
+  const handleDeleteVehicle = async (id, number) => {
     if (confirm(`Are you sure you want to delete vehicle ${number}?`)) {
-      setVehicles(prev => prev.filter(v => v.id !== id));
-      setToastMsg(`Vehicle ${number} removed.`);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+      try {
+        await transportService.deleteVehicle(id);
+        setVehicles(prev => prev.filter(v => v.id !== id));
+        setToastMsg(`Vehicle ${number} removed.`);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      } catch (err) {
+        alert("Error deleting vehicle");
+      }
     }
   };
 
@@ -327,7 +345,7 @@ export default function TransportDashboard() {
                   </div>
                   <div>
                     <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Active Routes</div>
-                    <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">7</div>
+                    <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">0</div>
                   </div>
                 </div>
 
@@ -337,7 +355,7 @@ export default function TransportDashboard() {
                   </div>
                   <div>
                     <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Students Using Transport</div>
-                    <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">37</div>
+                    <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">0</div>
                   </div>
                 </div>
 
@@ -347,7 +365,7 @@ export default function TransportDashboard() {
                   </div>
                   <div>
                     <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Vehicles On Duty</div>
-                    <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">5</div>
+                    <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">0</div>
                   </div>
                 </div>
 
@@ -383,11 +401,8 @@ export default function TransportDashboard() {
                       <tbody className="divide-y divide-slate-100 text-xs text-slate-655 font-bold">
                         {vehicles.map((v) => {
                           const getRouteName = (no) => {
-                            if (no === "CG04HD7250") return "Raipur";
-                            if (no === "CG04AB1234") return "Route A — Shankar Nagar";
-                            if (no === "CG04CD5678") return "Route B — Telibandha";
-                            if (no === "CG04EF9012") return "Route C — Devendra Nagar";
-                            return "Unassigned";
+                            const foundRoute = routes.find(r => r.vehicle === no);
+                            return foundRoute ? foundRoute.name : "Unassigned";
                           };
                           return (
                             <tr key={v.id} className="hover:bg-slate-50/10">
@@ -943,9 +958,9 @@ export default function TransportDashboard() {
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs font-semibold">
                       {vehicles.filter(v => v.tracking === "Enabled" || v.tracking === undefined).map((v, idx) => {
-                        const isOnTrip = v.vehicleNo === "CG04HD7250" || v.vehicleNo === "CG04AB1234";
-                        const reportingText = v.vehicleNo === "CG04HD7250" ? "370m ago" : "Never reported";
-                        const isLate = v.vehicleNo === "CG04HD7250";
+                        const isOnTrip = v.status === "OnTrip";
+                        const reportingText = v.lastPing ? `${v.lastPing} ago` : "Never reported";
+                        const isLate = false;
                         return (
                           <tr key={v.id} className="hover:bg-slate-50/5">
                             <td className="py-3.5 px-5 border-r text-center text-slate-500 font-mono">{idx + 1}</td>
@@ -1046,8 +1061,8 @@ export default function TransportDashboard() {
                           <td className="py-3 px-5 border-r text-slate-400">—</td>
                           <td className="py-3 px-5 border-r text-slate-400">—</td>
                           <td className="py-3 px-5 border-r">
-                            {v.vehicleNo === "CG04HD7250"
-                              ? <span className="text-orange-500 font-bold">377 min ago</span>
+                            {v.lastPing
+                              ? <span className="text-orange-500 font-bold">{v.lastPing} min ago</span>
                               : <span className="text-slate-400">—</span>
                             }
                           </td>

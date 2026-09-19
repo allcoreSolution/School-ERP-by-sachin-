@@ -3,22 +3,22 @@ import { TrendingUp, Sparkles, Send, Calendar, IndianRupee, Users } from 'lucide
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const data = [
-  { name: 'Aug 09', income: 20000 },
-  { name: 'Aug 10', income: 25000 },
-  { name: 'Aug 11', income: 28000 },
-  { name: 'Aug 12', income: 35000 },
-  { name: 'Aug 13', income: 130000 },
-  { name: 'Aug 14', income: 30000 },
-  { name: 'Aug 15', income: 35000 },
-  { name: 'Aug 16', income: 90000 },
-  { name: 'Aug 17', income: 10000 },
-  { name: 'Aug 18', income: 12000 },
-  { name: 'Aug 19', income: 15000 },
-  { name: 'Aug 20', income: 110000 },
-  { name: 'Aug 21', income: 185000 },
-  { name: 'Aug 22', income: 80000 },
-  { name: 'Aug 23', income: 170000 },
-  { name: 'Aug 24', income: 20000 },
+  { name: 'Aug 09', income: 0 },
+  { name: 'Aug 10', income: 0 },
+  { name: 'Aug 11', income: 0 },
+  { name: 'Aug 12', income: 0 },
+  { name: 'Aug 13', income: 0 },
+  { name: 'Aug 14', income: 0 },
+  { name: 'Aug 15', income: 0 },
+  { name: 'Aug 16', income: 0 },
+  { name: 'Aug 17', income: 0 },
+  { name: 'Aug 18', income: 0 },
+  { name: 'Aug 19', income: 0 },
+  { name: 'Aug 20', income: 0 },
+  { name: 'Aug 21', income: 0 },
+  { name: 'Aug 22', income: 0 },
+  { name: 'Aug 23', income: 0 },
+  { name: 'Aug 24', income: 0 },
 ];
 
 const FinancialTrendWidget = () => (

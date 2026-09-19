@@ -36,7 +36,7 @@ const StudentList = () => {
         siblings: 0,
         fatherName: s.fatherName || 'Not Set',
         fatherPhone: s.fatherPhone || '-',
-        assigned: '₹ 50,000.00',
+        assigned: '₹ 0.00',
         due: '₹ 0.00'
       }));
       setStudents(mappedData);
@@ -70,9 +70,9 @@ const StudentList = () => {
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">Student List</h1>
           <div className="flex gap-4 mt-1 text-sm font-medium">
-            <span className="text-[#5F52FF]">217 Session Total</span>
-            <span className="text-gray-500">280 All Time</span>
-            <span className="text-amber-600 flex items-center gap-1"><Users className="w-3 h-3"/> 63 Unassigned</span>
+            <span className="text-[#5F52FF]">{students.length} Session Total</span>
+            <span className="text-gray-500">{students.length} All Time</span>
+            <span className="text-amber-600 flex items-center gap-1"><Users className="w-3 h-3"/> 0 Unassigned</span>
           </div>
         </div>
 

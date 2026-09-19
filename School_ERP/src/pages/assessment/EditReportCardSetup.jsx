@@ -4,10 +4,7 @@ import { Plus, Trash2 } from 'lucide-react';
 
 export default function EditReportCardSetup() {
   const navigate = useNavigate();
-  const [exams, setExams] = useState([
-    { id: 1, name: 'Term 1 (2025-26)', weightage: '50' },
-    { id: 2, name: 'Term 2 (2025-26)', weightage: '50' }
-  ]);
+  const [exams, setExams] = useState([]);
   const [selectedExam, setSelectedExam] = useState('');
 
   const handleAddExam = () => {

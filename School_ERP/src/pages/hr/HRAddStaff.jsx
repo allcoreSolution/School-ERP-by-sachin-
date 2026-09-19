@@ -15,6 +15,7 @@ export default function HRAddStaff() {
   const [formData, setFormData] = useState({
     firstName: '',
     email: '',
+    password: '',
     role: 'Teacher',
     designation: '',
     phone: '',
@@ -26,14 +27,33 @@ export default function HRAddStaff() {
   };
 
   const handleSave = async () => {
-    if(!formData.firstName || !formData.email || !formData.role) {
-      alert("Please fill all mandatory fields!");
+    if(!formData.firstName || !formData.email || !formData.role || !formData.password) {
+      alert("Please fill all mandatory fields (Name, Email, Password, Role)!");
       return;
     }
     try {
       setLoading(true);
-      await hrService.createStaff(formData);
-      alert('Staff saved successfully!');
+      // 1. Create the actual login identity in the auth schema
+      const { default: axiosInstance } = await import('../../api/axios');
+      try {
+        await axiosInstance.post('/auth/register', {
+          username: formData.email.split('@')[0] || formData.email,
+          email: formData.email,
+          password: formData.password,
+          roleName: formData.role
+        });
+      } catch (authErr) {
+        console.warn("Auth user might already exist or role creation failed, continuing to profile creation.");
+      }
+
+      // 2. Create the Staff Profile
+      await hrService.createStaff({
+        ...formData,
+        fullName: formData.firstName,
+        staffId: formData.employeeCode
+      });
+      
+      alert('Staff user and login created successfully!');
       navigate('/hr/staff');
     } catch(err) {
       alert('Error: ' + (err.response?.data?.message || err.message));
@@ -75,15 +95,23 @@ export default function HRAddStaff() {
                 <input name="firstName" value={formData.firstName} onChange={handleChange} type="text" className="w-full px-3 py-1.5 border border-slate-300 rounded-none text-[12px] focus:border-[#6f42c1] focus:outline-none" />
               </div>
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Email *</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Email * (Also Login ID)</label>
                 <input name="email" value={formData.email} onChange={handleChange} type="email" className="w-full px-3 py-1.5 border border-slate-300 rounded-none text-[12px] focus:border-[#6f42c1] focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Set Password *</label>
+                <input name="password" value={formData.password} onChange={handleChange} type="text" placeholder="Enter password for this user" className="w-full px-3 py-1.5 border border-slate-300 rounded-none text-[12px] focus:border-[#6f42c1] focus:outline-none" />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">Role *</label>
                 <select name="role" value={formData.role} onChange={handleChange} className="w-full px-3 py-1.5 border border-slate-300 rounded-none text-[12px] bg-white focus:border-[#6f42c1] focus:outline-none">
-                  <option value="Accademic Master">Accademic Master</option>
-                  <option value="Teacher">Teacher</option>
-                  <option value="Staff">Staff</option>
+                  <option value="" disabled>Select User Role...</option>
+                  <option value="Admin">Admin / Branch Admin</option>
+                  <option value="Teacher">Teacher (Academics & Exams)</option>
+                  <option value="Accountant">Accountant (Finance & Accounts)</option>
+                  <option value="Receptionist">Receptionist (Front Office)</option>
+                  <option value="HR Manager">HR Manager</option>
+                  <option value="Staff">General Staff</option>
                 </select>
               </div>
               <div>

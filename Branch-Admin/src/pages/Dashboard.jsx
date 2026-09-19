@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Globe, Users, Handshake, User, BookOpen, Contact, CreditCard, ChevronRight, 
   Key, Scale, Settings, BarChart2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { branchAdminService } from '../api/branchAdminService';
 
 const StatCard = ({ title, value, icon, gradient }) => (
   <div className={`p-5 rounded-[3px] shadow-[0_4px_15px_rgba(0,0,0,0.08)] flex items-center transition-transform hover:-translate-y-1 duration-300 relative overflow-hidden text-white ${gradient}`}>
@@ -70,7 +71,22 @@ const ToolkitCard = ({ title, desc, icon, color, bg, link }) => (
   </Link>
 );
 
-const Dashboard = () => (
+const Dashboard = () => {
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    branchAdminService.getBranches()
+      .then(res => {
+         if (res.success && res.data) {
+           setBranches(res.data);
+         }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
   <div className="px-4 sm:px-6 lg:px-8 pb-8 pt-3 max-w-[1600px] mx-auto">
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
       <div>
@@ -78,11 +94,11 @@ const Dashboard = () => (
           <Globe className="w-3.5 h-3.5" /> Head Office • Branch Network
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 flex items-center gap-2 tracking-tight">
-          Good Morning, Branch 👋
+          Good Morning, Branch Manager 👋
         </h1>
         <p className="text-gray-500 text-[13px] sm:text-sm font-medium flex items-center gap-1.5">
           <Users className="w-4 h-4 text-[#00a65a]" /> 
-          You manage 5 branches — {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          You manage {branches.length} branches — {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
       <Link to="/branches" className="bg-[#1b8c56] hover:bg-[#157145] text-white px-5 py-2.5 rounded-[3px] text-[14.5px] font-bold shadow-sm flex items-center gap-2 transition-colors whitespace-nowrap self-start md:self-auto inline-flex">
@@ -92,19 +108,27 @@ const Dashboard = () => (
 
     {/* Top Stats */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-      <StatCard title="Branches" value="5" icon={<User className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#3c8dbc] to-[#25688f]" />
-      <StatCard title="Total Students" value="962" icon={<BookOpen className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#00a65a] to-[#008045]" />
-      <StatCard title="Total Staff" value="33" icon={<Contact className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#9b59b6] to-[#7f3e9a]" />
+      <StatCard title="Branches" value={branches.length.toString()} icon={<User className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#3c8dbc] to-[#25688f]" />
+      <StatCard title="Total Students" value="--" icon={<BookOpen className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#00a65a] to-[#008045]" />
+      <StatCard title="Total Staff" value="--" icon={<Contact className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#9b59b6] to-[#7f3e9a]" />
       <StatCard title="Collected This Month" value="See per branch" icon={<CreditCard className="w-6 h-6"/>} gradient="bg-gradient-to-br from-[#f39c12] to-[#d68910]" />
     </div>
 
     {/* Branch Grid */}
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-      <BranchCard name="Aksya School" active={true} renews="02 Apr 2027" stats={{ students: 0, staff: 0, notMarked: '-', collected: '₹0' }} />
-      <BranchCard name="CLOUDWAVE INTERNATIONAL SCHOOL" active={true} renews="03 Jul 2027" stats={{ students: 0, staff: 0, notMarked: '-', collected: '₹0' }} />
-      <BranchCard name="Risma high school" active={true} renews="24 May 2027" stats={{ students: 34, staff: 31, notMarked: '-', collected: 'KSh0' }} />
-      <BranchCard name="SSVP 3.0" active={true} renews="08 May 2027" stats={{ students: 482, staff: 0, notMarked: '-', collected: '₹0' }} />
-      <BranchCard name="SUDHAKAR" active={true} renews="19 Sep 2030" stats={{ students: 446, staff: 2, notMarked: '-', collected: '₹5,000' }} />
+      {loading ? (
+        <div className="text-gray-500 font-bold p-8">Loading branches...</div>
+      ) : branches.length === 0 ? (
+        <div className="text-gray-500 p-8">No branches found.</div>
+      ) : branches.map(b => (
+        <BranchCard 
+          key={b.id || b._id} 
+          name={b.name || 'Unnamed Branch'} 
+          active={true} 
+          renews="Yearly" 
+          stats={{ students: 0, staff: 0, notMarked: '-', collected: '₹0' }} 
+        />
+      ))}
     </div>
 
     {/* Comparison & Sign-ins Row */}
@@ -130,34 +154,15 @@ const Dashboard = () => (
               </tr>
             </thead>
             <tbody className="text-[13.5px] font-semibold text-gray-700">
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="border border-gray-200 py-3.5 pr-4">SSVP 3.0</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">482</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">0</td>
-                <td className="border border-gray-200 py-3.5 text-center text-gray-400 pr-4">—</td>
-                <td className="border border-gray-200 py-3.5 text-right">₹0</td>
-              </tr>
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="border border-gray-200 py-3.5 pr-4">SUDHAKAR</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">446</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">2</td>
-                <td className="border border-gray-200 py-3.5 text-center text-gray-400 pr-4">—</td>
-                <td className="border border-gray-200 py-3.5 text-right font-bold text-[#00a65a]">₹5,000</td>
-              </tr>
-              <tr className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="border border-gray-200 py-3.5 pr-4">Risma high school</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">34</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">31</td>
-                <td className="border border-gray-200 py-3.5 text-center text-gray-400 pr-4">—</td>
-                <td className="border border-gray-200 py-3.5 text-right">KSh0</td>
-              </tr>
-              <tr className="hover:bg-gray-50/50">
-                <td className="border border-gray-200 py-3.5 pr-4">Aksya School</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">0</td>
-                <td className="border border-gray-200 py-3.5 text-right pr-4">0</td>
-                <td className="border border-gray-200 py-3.5 text-center text-gray-400 pr-4">—</td>
-                <td className="border border-gray-200 py-3.5 text-right">₹0</td>
-              </tr>
+              {branches.map(b => (
+                <tr key={b.id || b._id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <td className="border border-gray-200 py-3.5 pr-4">{b.name || 'Unnamed Branch'}</td>
+                  <td className="border border-gray-200 py-3.5 text-right pr-4">--</td>
+                  <td className="border border-gray-200 py-3.5 text-right pr-4">--</td>
+                  <td className="border border-gray-200 py-3.5 text-center text-gray-400 pr-4">—</td>
+                  <td className="border border-gray-200 py-3.5 text-right">₹0</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -226,7 +231,8 @@ const Dashboard = () => (
         <ToolkitCard title="Subscriptions" desc="Plan, renewal dates and invoice history per branch." icon={<CreditCard className="w-6 h-6" />} color="#f97316" bg="bg-orange-50" link="/payments" />
       </div>
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default Dashboard;

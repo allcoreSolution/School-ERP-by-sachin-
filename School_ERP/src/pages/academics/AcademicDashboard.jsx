@@ -6,10 +6,10 @@ import {
   Users, Clock, Calendar, Briefcase, FileText, Settings, ShieldCheck, 
   Plus, Edit2, Eye, LayoutGrid, Monitor, Video, AlertTriangle, ArrowRight
 } from 'lucide-react';
+import { academicService } from '../../api/academicService';
 
 const AcademicDashboard = () => {
   const navigate = useNavigate();
-
   const subNav = [
     { name: 'Dashboard', icon: LayoutDashboard, active: true },
     { name: 'Guide', icon: Book },
@@ -27,14 +27,41 @@ const AcademicDashboard = () => {
     { name: 'Promote', icon: ArrowRight },
   ];
 
-  const classes = [
-    { name: 'Nursery', sections: 'A, B', teacher: 'Amit Sharma', count: 22 },
-    { name: 'KG', sections: 'A', teacher: 'Amit Sharma', count: 0 },
-    { name: 'Class I', sections: 'A', teacher: 'Amit Sharma', count: 41 },
-    { name: 'Class II', sections: 'A', teacher: null, count: 1 },
-    { name: 'Class III', sections: 'A', teacher: null, count: 20 },
-    { name: 'Class IV', sections: 'A', teacher: null, count: 19 },
-  ];
+  const [classes, setClasses] = React.useState([]);
+  const [subjectsCount, setSubjectsCount] = React.useState(0);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [classesRes, subjectsRes] = await Promise.all([
+          academicService.getClasses(),
+          academicService.getSubjects()
+        ]);
+        
+        if (classesRes.data) {
+          // Map backend class data structure to table view format
+          const mappedClasses = classesRes.data.map(cls => ({
+            name: cls.className,
+            sections: cls.sections ? cls.sections.length : 0,
+            teacher: cls.classTeacher ? (cls.classTeacher.firstName + ' ' + (cls.classTeacher.lastName || '')) : null,
+            count: 0 // Ideally this is computed from students, kept generic
+          }));
+          setClasses(mappedClasses);
+        }
+        
+        if (subjectsRes.data) {
+          setSubjectsCount(subjectsRes.data.length);
+        }
+      } catch (error) {
+        console.error("Failed to load academic data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 overflow-y-auto">
@@ -72,7 +99,7 @@ const AcademicDashboard = () => {
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">TOTAL CLASSES</div>
-              <div className="text-2xl font-black text-[#1a1a2e]">21</div>
+              <div className="text-2xl font-black text-[#1a1a2e]">{classes.length}</div>
             </div>
           </div>
           <div className="bg-white border border-gray-200 rounded-none p-5 flex items-center gap-4 shadow-sm">
@@ -81,7 +108,7 @@ const AcademicDashboard = () => {
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">ACTIVE SUBJECTS</div>
-              <div className="text-2xl font-black text-[#1a1a2e]">72</div>
+              <div className="text-2xl font-black text-[#1a1a2e]">{subjectsCount}</div>
               <div className="text-[11px] font-semibold text-gray-400 mt-1">Across all sessions</div>
             </div>
           </div>
@@ -91,8 +118,8 @@ const AcademicDashboard = () => {
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">TIMETABLE COMPLETION</div>
-              <div className="text-2xl font-black text-[#1a1a2e]">13%</div>
-              <div className="text-[11px] font-semibold text-green-500 mt-1">14 sections pending</div>
+              <div className="text-2xl font-black text-[#1a1a2e]">0%</div>
+              <div className="text-[11px] font-semibold text-green-500 mt-1">0 sections pending</div>
             </div>
           </div>
           <div className="bg-white border-l-4 border-l-amber-500 border-y border-r border-gray-200 rounded-r-lg p-5 flex items-center gap-4 shadow-sm">
@@ -101,7 +128,7 @@ const AcademicDashboard = () => {
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">STUDENTS TO PROMOTE</div>
-              <div className="text-2xl font-black text-[#1a1a2e]">218</div>
+              <div className="text-2xl font-black text-[#1a1a2e]">0</div>
               <div className="text-[11px] font-semibold text-amber-500 mt-1">Session ending soon</div>
             </div>
           </div>
@@ -135,7 +162,11 @@ const AcademicDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="text-[13px]">
-                    {classes.map((cls, i) => (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="5" className="px-5 py-8 text-center font-medium text-gray-500">Loading academic data...</td>
+                      </tr>
+                    ) : classes.map((cls, i) => (
                       <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="px-5 py-3 font-bold text-gray-800">{cls.name}</td>
                         <td className="px-5 py-3 text-gray-500">{cls.sections}</td>
@@ -153,16 +184,16 @@ const AcademicDashboard = () => {
                         </td>
                         <td className="px-5 py-3 text-center font-bold text-gray-700">{cls.count}</td>
                         <td className="px-5 py-3 text-center text-gray-400">
-                          <button className="hover:text-[#5F52FF] mx-1"><Edit2 className="w-4 h-4" /></button>
-                          <button className="hover:text-[#5F52FF] mx-1"><Eye className="w-4 h-4" /></button>
+                          <button className="hover:text-[#5F52FF] mx-1 cursor-pointer"><Edit2 className="w-4 h-4" /></button>
+                          <button className="hover:text-[#5F52FF] mx-1 cursor-pointer"><Eye className="w-4 h-4" /></button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div className="p-3 text-[11px] font-semibold text-gray-400 border-t border-gray-100 bg-gray-50">
-                Showing all 21 classes
+              <div className="p-3 text-[11px] font-semibold text-gray-400 border-t border-gray-100 bg-gray-50 flex items-center justify-center">
+                {classes.length === 0 && !loading ? "No classes available" : `Showing all ${classes.length} classes`}
               </div>
             </div>
 
@@ -183,19 +214,8 @@ const AcademicDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="text-[13px]">
-                    <tr className="border-b border-gray-100">
-                      <td className="px-4 py-3 flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-none bg-[#5F52FF] text-white flex items-center justify-center text-[10px] font-bold">AM</div>
-                        <span className="font-semibold text-gray-700">Amit Sharma</span>
-                      </td>
-                      <td className="px-4 py-3 text-center font-bold text-green-500">10</td>
-                    </tr>
                     <tr>
-                      <td className="px-4 py-3 flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-none bg-[#9b59b6] text-white flex items-center justify-center text-[10px] font-bold">TE</div>
-                        <span className="font-semibold text-gray-700">teacher2</span>
-                      </td>
-                      <td className="px-4 py-3 text-center font-bold text-green-500">4</td>
+                      <td colSpan="2" className="px-4 py-8 text-center text-gray-400 italic font-medium">No workload data available</td>
                     </tr>
                   </tbody>
                 </table>
@@ -210,18 +230,8 @@ const AcademicDashboard = () => {
                   <Edit2 className="w-3.5 h-3.5 text-gray-400" />
                 </div>
                 <div className="p-4">
-                  <div className="bg-orange-50 border border-orange-200 text-orange-800 text-[12px] font-semibold px-3 py-2 rounded-none flex items-center gap-2 mb-4">
-                    <AlertTriangle className="w-4 h-4" /> 14 section(s) are missing a timetable.
-                  </div>
-                  <div className="space-y-3 text-[13px]">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">- Nursery - B</span>
-                      <button className="text-[10px] font-bold border border-gray-300 rounded-none px-2 py-0.5 hover:bg-gray-50 text-gray-500">Setup</button>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">- KG - A</span>
-                      <button className="text-[10px] font-bold border border-gray-300 rounded-none px-2 py-0.5 hover:bg-gray-50 text-gray-500">Setup</button>
-                    </div>
+                  <div className="bg-green-50 border border-green-200 text-green-800 text-[12px] font-semibold px-3 py-2 rounded-none flex items-center gap-2 mb-4">
+                    <ShieldCheck className="w-4 h-4" /> All timetables are currently up to date.
                   </div>
                 </div>
               </div>
@@ -240,36 +250,8 @@ const AcademicDashboard = () => {
                 </h2>
                 <button className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-none uppercase">View Full</button>
               </div>
-              <div className="p-4 space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-12 text-[11px] font-bold text-gray-500 pt-1 text-right">10:00</div>
-                  <div className="flex-1 bg-white border-l-2 border-[#5F52FF] p-3 rounded-none shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                      <div className="font-bold text-[13px] text-[#1a1a2e]">Mathematics</div>
-                      <div className="text-[11px] text-[#5F52FF] font-medium mt-0.5">Amit Sharma</div>
-                    </div>
-                    <div className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-none font-bold">Nursery A</div>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-12 text-[11px] font-bold text-gray-500 pt-1 text-right">11:00</div>
-                  <div className="flex-1 bg-white border-l-2 border-[#5F52FF] p-3 rounded-none shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                      <div className="font-bold text-[13px] text-[#1a1a2e]">Mathematics</div>
-                      <div className="text-[11px] text-[#5F52FF] font-medium mt-0.5">Amit Sharma</div>
-                    </div>
-                    <div className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-none font-bold">Nursery A</div>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-12 text-[11px] font-bold text-gray-500 pt-1 text-right">13:00</div>
-                  <div className="flex-1 bg-white border-l-2 border-[#5F52FF] p-3 rounded-none shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                      <div className="font-bold text-[13px] text-[#1a1a2e]">Mathematics</div>
-                    </div>
-                    <div className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-none font-bold">Nursery A</div>
-                  </div>
-                </div>
+              <div className="p-8 text-center text-gray-400 text-sm font-medium border-t border-gray-100">
+                No classes scheduled for today.
               </div>
             </div>
 

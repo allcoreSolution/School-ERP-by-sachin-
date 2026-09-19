@@ -20,23 +20,10 @@ import {
 import { hostelService } from "../../api/hostelService";
 
 // Mock Room Status List matching Screenshot
-const INITIAL_ROOMS_STATUS = [
-  { id: 1, hostel: "ABC Hostel", roomNo: "1", type: "AC", capacity: "5/50", capacityNum: 50, occupiedNum: 5, status: "Partially Available" },
-  { id: 2, hostel: "ABC Hostel", roomNo: "2", type: "AC", capacity: "1/50", capacityNum: 50, occupiedNum: 1, status: "Partially Available" },
-  { id: 3, hostel: "ganesh", roomNo: "103", type: "Non-AC", capacity: "0/5", capacityNum: 5, occupiedNum: 0, status: "Vacant" },
-  { id: 4, hostel: "ganesh", roomNo: "1", type: "Non-AC", capacity: "0/1", capacityNum: 1, occupiedNum: 0, status: "Vacant" },
-  { id: 5, hostel: "ganesh", roomNo: "2", type: "Non-AC", capacity: "0/3", capacityNum: 3, occupiedNum: 0, status: "Vacant" },
-  { id: 6, hostel: "ABC Hostel", roomNo: "123", type: "Non-AC", capacity: "0/5", capacityNum: 5, occupiedNum: 0, status: "Vacant" },
-  { id: 7, hostel: "ABC Hostel", roomNo: "12", type: "Non-AC", capacity: "0/2", capacityNum: 2, occupiedNum: 0, status: "Vacant" }
-];
+const INITIAL_ROOMS_STATUS = [];
 
 // Mock Recent Allocations list matching Screenshot
-const RECENT_ALLOCATIONS_DATA = [
-  { id: 1, name: "Krish Yadav", details: "1 • AC", date: "Allocated 1 week ago" },
-  { id: 2, name: "Dev Rajput", details: "1 • AC", date: "Allocated 2 weeks ago" },
-  { id: 3, name: "Rohan Reddy", details: "1 • AC", date: "Allocated 2 weeks ago" },
-  { id: 4, name: "Kiara Soni", details: "2 • AC", date: "Allocated 3 weeks ago" }
-];
+const RECENT_ALLOCATIONS_DATA = [];
 
 export default function HostelDashboard() {
   const location = useLocation();
@@ -106,30 +93,19 @@ export default function HostelDashboard() {
   const [showAddRoomModal, setShowAddRoomModal] = useState(false);
 
   // Student Allocations State (Screenshot 1)
-  const [allocations, setAllocations] = useState({
-    room1: ["Kabir Singh", "Kiara Soni", "Dev Rajput", "Rohan Reddy", "Krish Yadav"],
-    room2: ["Yug Nair"],
-    room3: []
-  });
+  const [allocations, setAllocations] = useState({});
   const [showAllocateModal, setShowAllocateModal] = useState(null); // "room1", "room2", "room3"
   const [allocateStudentName, setAllocateStudentName] = useState("");
 
   // Room Types State (Screenshot 2 & 3)
-  const [roomTypes, setRoomTypes] = useState([
-    { id: 1, name: "AC", fare: 5000, desc: "—" },
-    { id: 2, name: "ganesh", fare: 20000, desc: "asdfghjnmbcb vb" },
-    { id: 3, name: "Non AC", fare: 2000, desc: "—" }
-  ]);
+  const [roomTypes, setRoomTypes] = useState([]);
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
   const [typeName, setTypeName] = useState("");
   const [typeFare, setTypeFare] = useState("");
   const [typeDesc, setTypeDesc] = useState("");
 
   // Hostels State (Screenshot 4 & 5)
-  const [hostels, setHostels] = useState([
-    { id: 1, name: "ABC Hostel", type: "Combined", roomsCount: 3, address: "TEST address" },
-    { id: 2, name: "ganesh", type: "Boys", roomsCount: 0, address: "789 Pine Rd" }
-  ]);
+  const [hostels, setHostels] = useState([]);
   const [hostelViewMode, setHostelViewMode] = useState("list"); // "list" or "add"
   const [newHostelName, setNewHostelName] = useState("");
   const [newHostelType, setNewHostelType] = useState("For Boys");
@@ -666,26 +642,8 @@ export default function HostelDashboard() {
                 
                 <div className="space-y-4 text-xs font-semibold">
                   
-                  {/* Progress 1 */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center text-slate-650">
-                      <span>ABC Hostel</span>
-                      <span className="font-bold text-slate-850">5%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-none overflow-hidden">
-                      <div className="bg-orange-500 h-full rounded-none" style={{ width: "5%" }} />
-                    </div>
-                  </div>
-
-                  {/* Progress 2 */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center text-slate-650">
-                      <span>ganesh</span>
-                      <span className="font-bold text-slate-850">0%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-none overflow-hidden">
-                      <div className="bg-orange-500 h-full rounded-none" style={{ width: "0%" }} />
-                    </div>
+                  <div className="flex justify-center items-center py-6 text-slate-400 text-[11px] font-semibold">
+                    No occupancy data available.
                   </div>
 
                   <button 
@@ -703,17 +661,9 @@ export default function HostelDashboard() {
                 <h3 className="font-bold text-slate-850 text-sm">Recent Allocations</h3>
                 
                 <div className="space-y-3">
-                  {RECENT_ALLOCATIONS_DATA.map((alloc) => (
-                    <div key={alloc.id} className="flex items-center gap-3 border-b pb-2.5 last:border-0 last:pb-0">
-                      <div className="w-8 h-8 rounded-none bg-slate-100 flex items-center justify-center text-slate-450 shadow-3xs flex-shrink-0 text-xs">
-                        👤
-                      </div>
-                      <div className="text-xs font-semibold flex-grow">
-                        <h4 className="font-extrabold text-slate-800 leading-tight">{alloc.name}</h4>
-                        <p className="text-[10px] text-slate-400 mt-0.5">{alloc.details} • {alloc.date}</p>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="flex justify-center items-center py-6 text-slate-400 text-[11px] font-semibold">
+                    No recent allocations.
+                  </div>
                 </div>
               </div>
 

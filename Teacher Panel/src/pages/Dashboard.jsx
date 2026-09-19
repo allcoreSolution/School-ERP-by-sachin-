@@ -89,6 +89,8 @@ const ecosystemModules = [
 
 import { useTheme } from '../context/ThemeContext';
 import ClassicTeacherLayout from './layouts/ClassicTeacherLayout';
+import { studentService } from '../api/studentService';
+import { attendanceService } from '../api/attendanceService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -97,6 +99,49 @@ const Dashboard = () => {
   const [hubSearch, setHubSearch] = useState('');
   const [hubTab, setHubTab] = useState('All');
   const [modalSearch, setModalSearch] = useState('');
+
+  // Dynamic user parsing
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = storedUser.username || 'Teacher';
+
+  // API State
+  const [stats, setStats] = useState({
+    students: 0,
+    attendance: '0%',
+    classes: 0,
+    exams: 0,
+    notices: 0
+  });
+
+  const fetchDashboardStats = async () => {
+    try {
+      const settled = await Promise.allSettled([
+        studentService.getStudents({ limit: 1 }), // Just to get total count
+        attendanceService.getAttendanceSummary()
+      ]);
+      
+      let studCount = 0;
+      let attPercentage = '0%';
+
+      if (settled[0].status === 'fulfilled' && settled[0].value?.count) {
+        studCount = settled[0].value.count;
+      }
+      if (settled[1].status === 'fulfilled' && settled[1].value?.data) {
+        // Evaluate rough attendance if available
+        attPercentage = settled[1].value.data.percentage || '0%';
+      }
+
+      setStats({
+        students: studCount,
+        attendance: attPercentage,
+        classes: 5, // Future academic integration
+        exams: 2,   // Future exam integration
+        notices: 1
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleModuleClick = (route) => {
     setIsModalOpen(false);
@@ -113,11 +158,12 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
+    fetchDashboardStats();
     if (!sessionStorage.getItem('welcomeShown')) {
       Swal.fire({
-        title: 'Welcome back, Amit!',
-        text: 'You have new notifications regarding online exams.',
-        icon: 'info',
+        title: `Welcome back, ${userName}!`,
+        text: 'Access to the core teacher dashboard granted.',
+        icon: 'success',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -144,8 +190,8 @@ const Dashboard = () => {
         
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Good Afternoon, Amit 👋</h1>
-          <p className="text-sm text-gray-500 mt-1">Here's what's happening at YUG-SCHOOL today — Wednesday, 26 August 2026</p>
+          <h1 className="text-2xl font-bold text-gray-900">Good Afternoon, {userName} 👋</h1>
+          <p className="text-sm text-gray-500 mt-1">Here's what's happening at YUG-SCHOOL today — {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
         
         {/* Dynamic Layout Engine based on Layout Configuration */}
@@ -200,17 +246,17 @@ const Dashboard = () => {
         )}
 
         {/* Top Stats */}
-        <div className={`grid gap-4 ${
+        <div className={`grid gap-4 flex-wrap ${
           currentLayout === 'layout-compact' ? 'grid-cols-2 lg:grid-cols-5 gap-8' : 
           currentLayout === 'layout-analytics' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 mt-4' : 
           currentLayout === 'layout-focus' ? 'grid-cols-1 lg:grid-cols-2 gap-6' :
           'grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4'
         }`}>
-          <StatCard title="Total Students" value="0" icon={Users} color="bg-blue-500" />
-          <StatCard title="Fees Collected" value="₹0" icon={DollarSign} color="bg-emerald-500" percent="↑1133%" />
-          <StatCard title="Attendance Today" value="0%" icon={CheckCircle} color="bg-indigo-500" />
-          <StatCard title="Active Staff" value="0" icon={Briefcase} color="bg-purple-500" />
-          <StatCard title="Pending Fees" value="₹0" icon={AlertCircle} color="bg-rose-500" />
+          <StatCard title="My Students" value={stats.students} icon={Users} color="bg-blue-500" />
+          <StatCard title="My Classes" value={stats.classes} icon={BookOpen} color="bg-emerald-500" />
+          <StatCard title="Attendance Today" value={stats.attendance} icon={CheckCircle} color="bg-indigo-500" />
+          <StatCard title="Pending Exams" value={stats.exams} icon={AlertCircle} color="bg-rose-500" />
+          <StatCard title="Notices" value={stats.notices} icon={Bell} color="bg-amber-500" />
         </div>
 
         {/* Middle Section: Hub & Live Activity for other themes */}

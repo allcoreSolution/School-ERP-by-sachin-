@@ -300,10 +300,10 @@ const FinanceDashboard = () => {
            </h3>
            <div className="flex justify-between items-center mb-2">
              <p className="text-xs text-gray-600 font-medium">school admin</p>
-             <p className="text-xs font-bold text-green-600">₹129,000.00</p>
+             <p className="text-xs font-bold text-green-600">₹0.00</p>
            </div>
            <div className="flex items-center gap-1 text-[10px] text-gray-500 bg-gray-50 p-2 rounded-none border border-gray-100">
-             <FileText className="w-3 h-3" /> 2 Receipts Processed
+             <FileText className="w-3 h-3" /> 0 Receipts Processed
            </div>
         </div>
 
@@ -315,15 +315,15 @@ const FinanceDashboard = () => {
            <div className="space-y-3">
              <div className="flex justify-between items-center text-xs">
                <span className="flex items-center gap-2 text-gray-600"><div className="w-4 h-4 bg-orange-100 text-orange-500 rounded-none flex items-center justify-center text-[10px] font-bold">G</div> Fee Groups</span>
-               <span className="font-bold text-gray-800">18</span>
+               <span className="font-bold text-gray-800">0</span>
              </div>
              <div className="flex justify-between items-center text-xs">
                <span className="flex items-center gap-2 text-gray-600"><div className="w-4 h-4 bg-blue-100 text-blue-500 rounded-none flex items-center justify-center text-[10px] font-bold">T</div> Fee Types</span>
-               <span className="font-bold text-gray-800">50</span>
+               <span className="font-bold text-gray-800">0</span>
              </div>
              <div className="flex justify-between items-center text-xs">
                <span className="flex items-center gap-2 text-gray-600"><div className="w-4 h-4 bg-green-100 text-green-500 rounded-none flex items-center justify-center text-[10px] font-bold">%</div> Discounts</span>
-               <span className="font-bold text-gray-800">2</span>
+               <span className="font-bold text-gray-800">0</span>
              </div>
              <div className="flex justify-between items-center text-xs mt-4 pt-3 border-t border-gray-100">
                <span className="flex items-center gap-2 text-orange-500 font-medium"><div className="w-2 h-2 bg-orange-500 rounded-none"></div> Pending Online</span>

@@ -28,15 +28,15 @@ const HumanResourceWidget = () => (
     
     <div className="grid grid-cols-4 gap-2 mb-4 text-center">
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">3</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Teaching</div>
       </div>
       <div>
-        <div className="text-slate-800 font-extrabold text-sm">6</div>
+        <div className="text-slate-800 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">Non-Teach</div>
       </div>
       <div>
-        <div className="text-emerald-500 font-extrabold text-sm">1</div>
+        <div className="text-emerald-500 font-extrabold text-sm">0</div>
         <div className="text-[9px] font-bold text-slate-500 uppercase">New Join</div>
       </div>
       <div>
@@ -55,12 +55,12 @@ const HumanResourceWidget = () => (
       <div className="w-full bg-slate-100 h-2 rounded-none mb-1 overflow-hidden"></div>
       <div className="text-[9px] font-bold text-slate-400 mb-4 flex gap-3">
         <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-none bg-emerald-500"></div> 0 present</span>
-        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-none bg-slate-300"></div> 0 absent (marked 0)</span>
+        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-none bg-slate-300"></div> 0 absent</span>
       </div>
 
       <div className="bg-amber-50 text-amber-700 text-[10px] font-bold px-3 py-2 rounded-none flex items-center gap-1.5 border border-amber-100">
         <div className="w-3 h-3 bg-amber-500 text-white rounded-none flex items-center justify-center text-[8px]">!</div>
-        11 unpaid payslip(s) - 1 leave(s) pending approval
+        0 unpaid payslip(s) - 0 leave(s) pending approval
       </div>
     </div>
   </div>
@@ -70,27 +70,8 @@ const BirthdaysWidget = () => (
   <div className="bg-white p-4 rounded-none shadow-sm border border-slate-200 h-full flex flex-col">
     <WidgetHeader title="Birthdays" icon={Cake}  link="/engagement/birthday-manager" />
     
-    <div className="flex-1 space-y-4">
-      {[
-        { name: 'Ali Dubey', class: 'Class XII A', adm: 'YISADM-277', initial: 'A' },
-        { name: 'Rahul Dubey', class: 'Class II A', adm: 'YISADM-037', initial: 'R' },
-        { name: 'Shlok Dubey', class: 'Class V A', adm: 'YISADM-137', initial: 'S' },
-        { name: 'Dev Dubey', class: 'Class VIII A', adm: 'YISADM-197', initial: 'D' },
-        { name: 'Darsh Dubey', class: 'Class X A', adm: 'YISADM-237', initial: 'D' },
-      ].map((student, i) => (
-        <div key={i} className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-none bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-sm">
-              {student.initial}
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-800">{student.name}</div>
-              <div className="text-[10px] text-slate-500">Class: {student.class} <span className="ml-2">Adm: {student.adm}</span></div>
-            </div>
-          </div>
-          <div className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded">25 Aug</div>
-        </div>
-      ))}
+    <div className="flex-1 space-y-4 flex items-center justify-center">
+      <div className="text-slate-400 text-xs">No birthdays today</div>
     </div>
   </div>
 );
@@ -99,37 +80,8 @@ const OfficialNoticesWidget = () => (
   <div className="bg-white p-4 rounded-none shadow-sm border border-slate-200 h-full flex flex-col">
     <WidgetHeader title="Official Notices" icon={Megaphone}  link="/communicate/notice-board" />
     
-    <div className="flex-1 space-y-4 overflow-hidden">
-      <div className="border-b border-slate-100 pb-3">
-        <div className="flex justify-between items-start mb-1">
-          <div className="text-xs font-bold text-slate-800">Demo: Library week — bring back borrowed books</div>
-          <div className="text-[10px] text-slate-400">Aug 03</div>
-        </div>
-        <div className="text-[10px] text-slate-500 truncate">It is Library Week. Please return any borrowed books by the end of this week to avoid a late fee.</div>
-      </div>
-      
-      <div className="border-b border-slate-100 pb-3">
-        <div className="flex justify-between items-start mb-1">
-          <div className="text-xs font-bold text-slate-800">NEWS ALERT</div>
-          <div className="text-[10px] text-slate-400">Jun 13</div>
-        </div>
-        <div className="text-[10px] text-slate-500 truncate">Dear Parents, Greetings! We are pleased to inform you that the school is launching a new AI mobile application designed...</div>
-      </div>
-      
-      <div className="border-b border-slate-100 pb-3">
-        <div className="flex justify-between items-start mb-1">
-          <div className="text-xs font-bold text-slate-800">Fees Reminder</div>
-          <div className="text-[10px] text-slate-400">Feb 26</div>
-        </div>
-        <div className="text-[10px] text-slate-500 truncate">Dear parents, Please clear the outstanding dues for the school fee...</div>
-      </div>
-      
-      <div className="pb-3">
-        <div className="flex justify-between items-start mb-1">
-          <div className="text-xs font-bold text-slate-800">Parent-Teacher Meeting</div>
-          <div className="text-[10px] text-slate-400">Feb 26</div>
-        </div>
-      </div>
+    <div className="flex-1 space-y-4 overflow-hidden flex items-center justify-center">
+      <div className="text-slate-400 text-xs">No active notices</div>
     </div>
   </div>
 );
@@ -151,21 +103,21 @@ const TodaysSnapshotWidget = () => (
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <Users className="w-4 h-4 text-slate-400" /> Active On Campus
         </div>
-        <div className="text-[#5F52FF] font-extrabold text-sm">16</div>
+        <div className="text-[#5F52FF] font-extrabold text-sm">0</div>
       </div>
       
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <FileBadge className="w-4 h-4 text-slate-400" /> Attendance Rate
         </div>
-        <div className="text-emerald-500 font-extrabold text-sm">5.8%</div>
+        <div className="text-emerald-500 font-extrabold text-sm">0.0%</div>
       </div>
       
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <IndianRupee className="w-4 h-4 text-slate-400" /> Fees Collected Today
         </div>
-        <div className="text-red-500 font-extrabold text-sm">₹5,600</div>
+        <div className="text-red-500 font-extrabold text-sm">₹0</div>
       </div>
     </div>
   </div>

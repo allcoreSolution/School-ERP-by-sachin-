@@ -75,3 +75,37 @@ exports.deleteAttendance = async (req, res, next) => {
         res.status(200).json({ success: true, message: 'Record deleted successfully' });
     } catch (error) { next(error); }
 };
+
+exports.getQRScanLogs = async (req, res, next) => {
+    try {
+        const QRScanLog = require('../models/QRScanLog');
+        const logs = await QRScanLog.find({}).sort({ time: -1 }).limit(100);
+        res.status(200).json({ success: true, count: logs.length, data: logs });
+    } catch (error) { next(error); }
+};
+
+exports.getQRAttendanceReport = async (req, res, next) => {
+    try {
+        const records = await Attendance.find({})
+            .populate('student', 'firstName lastName aparId')
+            .populate('academicClass', 'className')
+            .sort({ date: -1 })
+            .limit(100);
+            
+        // Map to expected frontend format
+        const formatted = records.map(r => ({
+            id: r._id,
+            date: r.date ? r.date.toISOString().split('T')[0] : '',
+            name: r.student ? `${r.student.firstName || ''} ${r.student.lastName || ''}`.trim() : 'Unknown',
+            type: 'Student', // hardcoded as Student for now as per Attendance schema
+            classDesig: r.academicClass ? r.academicClass.className : 'N/A',
+            admStaffId: r.student ? r.student.aparId || 'N/A' : 'N/A',
+            in: '08:00 AM', // Mocked time as Attendance schema doesn't store exact IN/OUT yet
+            out: '02:00 PM',
+            duration: '6h 0m',
+            status: r.status
+        }));
+        
+        res.status(200).json({ success: true, count: formatted.length, data: formatted });
+    } catch (error) { next(error); }
+};

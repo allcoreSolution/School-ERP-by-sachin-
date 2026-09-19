@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Settings, HelpCircle, Upload, GraduationCap, User, Users, HeartPulse, FileText, Calendar, ShieldCheck, PlusCircle, EyeOff } from 'lucide-react';
 import { studentService } from '../../api/studentService';
+import { academicService } from '../../api/academicService';
 import Swal from 'sweetalert2';
 
 const StudentAdmission = () => {
@@ -44,14 +45,19 @@ const StudentAdmission = () => {
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
   
-  // Dummy fetch for classes for now - assuming API doesn't exist yet
-  // In a real scenario, we'd fetch this from academicService
   useEffect(() => {
-    setClasses([
-      { _id: 'c1', className: 'Class 1' },
-      { _id: 'c2', className: 'Class 2' },
-      { _id: 'c3', className: 'Class 3' }
-    ]);
+    const loadAcademics = async () => {
+      try {
+        const classRes = await academicService.getClasses();
+        if(classRes?.data) setClasses(classRes.data);
+        
+        const sectionRes = await academicService.getSections();
+        if(sectionRes?.data) setSections(sectionRes.data);
+      } catch (e) {
+        console.error('Failed to load classes', e);
+      }
+    };
+    loadAcademics();
   }, []);
 
   const handleInputChange = (e) => {
@@ -73,7 +79,12 @@ const StudentAdmission = () => {
       // Simulate multipart form data by wrapping in FormData
       const fd = new FormData();
       Object.keys(formData).forEach(key => {
+        // Skip empty string for ObjectIDs to avoid CastError in backend
         if (formData[key] !== '' && formData[key] !== null) {
+          if ((key === 'classId' || key === 'sectionId') && formData[key].length < 24) {
+            // Ignore dummy or malformed IDs
+            return;
+          }
           fd.append(key, formData[key]);
         }
       });
@@ -180,8 +191,7 @@ const StudentAdmission = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Section <span className="text-red-500">*</span></label>
                     <select name="sectionId" value={formData.sectionId} onChange={handleInputChange} className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#5F52FF]">
                       <option value="">Select Section</option>
-                      <option value="A">Section A</option>
-                      <option value="B">Section B</option>
+                      {sections.map(s => <option key={s._id} value={s._id}>{s.sectionName}</option>)}
                     </select>
                   </div>
                   <div>

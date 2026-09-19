@@ -5,21 +5,32 @@ import {
   NavigationOff, UserX, Filter, Trash2
 } from 'lucide-react';
 
-const mockData = [
-  { id: 1, time: '23 Aug, 05:55', outcome: 'Accepted', resultReason: 'marked out', operator: 'school admin', targetName: 'Zara Sheikh', targetType: 'Student', mode: 'Gate', location: '—', device: '223.182.114.231' },
-  { id: 2, time: '23 Aug, 05:45', outcome: 'Accepted', resultReason: 'marked out', operator: 'school admin', targetName: 'Shivam Sharma', targetType: 'Student', mode: 'Gate', location: '—', device: '223.182.114.231' },
-  { id: 3, time: '23 Aug, 05:35', outcome: 'Accepted', resultReason: 'marked in', operator: 'school admin', targetName: 'Shivam Sharma', targetType: 'Student', mode: 'Gate', location: '—', device: '223.182.114.231' },
-  { id: 4, time: '23 Aug, 05:32', outcome: 'Accepted', resultReason: 'marked in', operator: 'school admin', targetName: 'M', targetType: 'Student', mode: 'Gate', location: '—', device: '223.182.114.231' },
-  { id: 5, time: '23 Aug, 05:32', outcome: 'Accepted', resultReason: 'marked in', operator: 'school admin', targetName: 'Zara Sheikh', targetType: 'Student', mode: 'Gate', location: '—', device: '223.182.114.231' },
-  { id: 6, time: '23 Aug, 05:24', outcome: 'Accepted', resultReason: 'marked in', operator: 'school admin', targetName: 'Darsh Jain', targetType: 'Student', mode: 'Gate', location: '—', device: '223.182.114.231' },
-  { id: 7, time: '23 Aug, 05:24', outcome: 'Accepted', resultReason: 'marked in', operator: 'Amit Sharma', targetName: 'Krish Yadav', targetType: 'Student', mode: 'Classroom', location: '—', device: '01635b96 5...' },
-];
+import { attendanceService } from '../../api/attendanceService';
 
 export default function QRScanAuditLog() {
   const [fromDate, setFromDate] = useState('2026-08-16');
   const [toDate, setToDate] = useState('2026-08-23');
   const [quickRange, setQuickRange] = useState('Last 7 days');
   const [isLive, setIsLive] = useState(false);
+  const [logData, setLogData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        const res = await attendanceService.getQRScanLogs({ fromDate, toDate });
+        if (res.success && res.data) {
+          setLogData(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching QR logs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, [fromDate, toDate]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
@@ -65,7 +76,7 @@ export default function QRScanAuditLog() {
               <LayoutList className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-lg font-black text-slate-800 leading-tight">16</div>
+              <div className="text-lg font-black text-slate-800 leading-tight">0</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total Scans</div>
             </div>
           </div>
@@ -75,7 +86,7 @@ export default function QRScanAuditLog() {
               <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-lg font-black text-slate-800 leading-tight">16</div>
+              <div className="text-lg font-black text-slate-800 leading-tight">0</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Accepted</div>
             </div>
           </div>
@@ -206,7 +217,7 @@ export default function QRScanAuditLog() {
             <div className="flex items-center gap-2 text-indigo-900 font-bold text-sm">
               <LayoutList className="w-4 h-4 text-indigo-600" /> Scan Decisions
             </div>
-            <div className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-none">16 records</div>
+            <div className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-none">{logData.length} records</div>
           </div>
           
           <div className="overflow-x-auto">
@@ -224,35 +235,45 @@ export default function QRScanAuditLog() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                {mockData.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/50">
-                    <td className="py-3.5 px-4 border-r border-slate-100 text-slate-600 font-medium">{row.time}</td>
-                    <td className="py-3.5 px-4 border-r border-slate-100">
-                      {row.outcome === 'Accepted' ? (
-                        <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px]">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> {row.outcome}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-red-600 font-bold text-[11px]">
-                          <Ban className="w-3.5 h-3.5" /> {row.outcome}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 border-r border-slate-100 text-slate-600">{row.resultReason}</td>
-                    <td className="py-3.5 px-4 border-r border-slate-100 text-slate-600">{row.operator}</td>
-                    <td className="py-3.5 px-4 border-r border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-700">{row.targetName}</span>
-                        <span className="px-1.5 py-0.5 rounded-none bg-purple-50 text-purple-600 text-[9px] font-bold">
-                          {row.targetType}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 border-r border-slate-100 text-blue-500 font-bold text-[11px]">{row.mode}</td>
-                    <td className="py-3.5 px-4 border-r border-slate-100 text-slate-400 font-bold">{row.location}</td>
-                    <td className="py-3.5 px-4 text-slate-400 text-[10px] font-mono tracking-wide">{row.device}</td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="8" className="py-8 text-center text-slate-500 font-medium">Loading records...</td>
                   </tr>
-                ))}
+                ) : logData.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="py-8 text-center text-slate-500 font-medium">No scan records available</td>
+                  </tr>
+                ) : (
+                  logData.map((row) => (
+                    <tr key={row.id} className="hover:bg-slate-50/50">
+                      <td className="py-3.5 px-4 border-r border-slate-100 text-slate-600 font-medium">{row.time}</td>
+                      <td className="py-3.5 px-4 border-r border-slate-100">
+                        {row.outcome === 'Accepted' ? (
+                          <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px]">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {row.outcome}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-red-600 font-bold text-[11px]">
+                            <Ban className="w-3.5 h-3.5" /> {row.outcome}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 border-r border-slate-100 text-slate-600">{row.resultReason}</td>
+                      <td className="py-3.5 px-4 border-r border-slate-100 text-slate-600">{row.operator}</td>
+                      <td className="py-3.5 px-4 border-r border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-700">{row.targetName}</span>
+                          <span className="px-1.5 py-0.5 rounded-none bg-purple-50 text-purple-600 text-[9px] font-bold">
+                            {row.targetType}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 border-r border-slate-100 text-blue-500 font-bold text-[11px]">{row.mode}</td>
+                      <td className="py-3.5 px-4 border-r border-slate-100 text-slate-400 font-bold">{row.location}</td>
+                      <td className="py-3.5 px-4 text-slate-400 text-[10px] font-mono tracking-wide">{row.device}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

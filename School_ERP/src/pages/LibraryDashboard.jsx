@@ -8,13 +8,7 @@ import {
 } from 'lucide-react';
 import { libraryService } from '../api/libraryService';
 
-const CATALOG_DATA = [
-  { id: 1, initial: 'P', color: 'bg-blue-500', title: 'PC HARDWARE', isbn: 'N/A', author: 'Unknown', publisher: '—', category: 'GENERAL', status: 'Available', qty: 1 },
-  { id: 2, cover: true, title: 'The Very Hungry Caterpillar', isbn: '9780241003008', author: 'Eric Carle', publisher: 'Penguin Books', category: 'TEST', status: 'Available', qty: 9 },
-  { id: 3, cover: true, title: 'Panchatantra Tales', isbn: '9788170110076', author: 'Vishnu Sharma', publisher: 'Childrens Book Trust', category: 'TEST', status: 'Available', qty: 15 },
-  { id: 4, initial: 'M', color: 'bg-blue-500', title: 'Mathematics for Class VI', isbn: '9789383182441', author: 'R.D. Sharma', publisher: 'Dhanpat Rai & Co.', category: 'TEST', status: 'Available', qty: 29 },
-  { id: 5, initial: 'S', color: 'bg-blue-500', title: 'Science for Tenth Class', isbn: '9789352530281', author: 'Lakhmir Singh', publisher: 'S. Chand', category: 'GENERAL', status: 'Available', qty: 24 },
-];
+const CATALOG_DATA = [];
 
 export default function LibraryDashboard({ initialTab = 'Overview' }) {
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -343,59 +337,8 @@ export default function LibraryDashboard({ initialTab = 'Overview' }) {
                   </tr>
                 </thead>
                 <tbody className="text-[12px]">
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 text-gray-800">PC HARDWARE</td>
-                    <td className="p-3 text-gray-800">Kabir Singh</td>
-                    <td className="p-3 text-gray-600">22 Aug, 2026</td>
-                    <td className="p-3 text-gray-600">05 Sep, 2026</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-[#fff3cd] text-[#856404]">Issued</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 text-gray-800">Panchatantra Tales</td>
-                    <td className="p-3 text-gray-800">Anika Kumar</td>
-                    <td className="p-3 text-gray-600">20 Aug, 2026</td>
-                    <td className="p-3 text-gray-600">03 Sep, 2026</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-[#d4edda] text-[#155724]">Returned</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 text-gray-800">Mathematics for Class VI</td>
-                    <td className="p-3 text-gray-800">Navya Iyer</td>
-                    <td className="p-3 text-gray-600">17 Aug, 2026</td>
-                    <td className="p-3 text-gray-600">31 Aug, 2026</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-[#fff3cd] text-[#856404]">Issued</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 text-gray-800">Malgudi Days</td>
-                    <td className="p-3 text-red-400 bg-red-50 italic">Unknown / deleted member</td>
-                    <td className="p-3 text-gray-600">13 May, 2026</td>
-                    <td className="p-3 text-gray-600">27 May, 2026</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-[#d4edda] text-[#155724]">Returned</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 text-gray-800">Malgudi Days</td>
-                    <td className="p-3 text-gray-800">Amit Sharma</td>
-                    <td className="p-3 text-gray-600">13 May, 2026</td>
-                    <td className="p-3 text-gray-600">27 May, 2026</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-[#d4edda] text-[#155724]">Returned</span>
-                    </td>
-                  </tr>
                   <tr>
-                    <td className="p-3 text-gray-800">The Very Hungry Caterpillar</td>
-                    <td className="p-3 text-red-400 bg-red-50 italic">Unknown / deleted member</td>
-                    <td className="p-3 text-gray-600">26 Feb, 2026</td>
-                    <td className="p-3 text-gray-600">12 Mar, 2026</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-[#fff3cd] text-[#856404]">Issued</span>
-                    </td>
+                    <td colSpan="5" className="p-4 text-center text-gray-400">No recent issues found.</td>
                   </tr>
                 </tbody>
               </table>
@@ -457,42 +400,14 @@ export default function LibraryDashboard({ initialTab = 'Overview' }) {
                   </tr>
                 </thead>
                 <tbody className="text-[13px]">
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-3 text-center text-gray-500 border-r border-gray-100">1</td>
-                    <td className="p-3 text-gray-800 border-r border-gray-100">ganesh</td>
-                    <td className="p-3 border-r border-gray-100">
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-none text-[10px] font-bold">0 books</span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <div className="flex justify-center space-x-3 text-gray-400">
-                        <button className="hover:text-[#5542f6]"><Edit2 className="w-4 h-4" /></button>
-                        <button className="hover:text-red-500"><X className="w-4 h-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-3 text-center text-gray-500 border-r border-gray-100">2</td>
-                    <td className="p-3 text-gray-800 border-r border-gray-100">TEST</td>
-                    <td className="p-3 border-r border-gray-100">
-                      <span className="px-2 py-0.5 bg-[#f3f0ff] text-[#5542f6] rounded-none text-[10px] font-bold">3 books</span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <div className="flex justify-center space-x-3 text-gray-400">
-                        <button className="hover:text-[#5542f6]"><Edit2 className="w-4 h-4" /></button>
-                        <button className="hover:text-red-500"><X className="w-4 h-4" /></button>
-                      </div>
-                    </td>
+                  <tr>
+                    <td colSpan="4" className="p-4 text-center text-gray-400">No categories found.</td>
                   </tr>
                 </tbody>
               </table>
 
               <div className="flex justify-between items-center mt-4 text-[12px] text-gray-500">
-                <div>Showing 1-2 of 2</div>
-                <div className="flex space-x-1">
-                  <button className="px-2 py-1 border border-gray-300 rounded-none text-gray-400 bg-gray-50 flex items-center justify-center">{"<"}</button>
-                  <button className="px-2.5 py-1 border border-[#5542f6] bg-[#5542f6] text-white rounded">1</button>
-                  <button className="px-2 py-1 border border-gray-300 rounded-none text-gray-400 bg-gray-50 flex items-center justify-center">{">"}</button>
-                </div>
+                <div>Showing 0 of 0</div>
               </div>
             </div>
           </div>
@@ -1010,7 +925,11 @@ export default function LibraryDashboard({ initialTab = 'Overview' }) {
                       </tr>
                     </thead>
                     <tbody className="text-[13px]">
-                      {CATALOG_DATA.map((book) => (
+                      {loading ? (
+                        <tr><td colSpan="5" className="p-4 text-center font-bold text-gray-400">Loading catalog...</td></tr>
+                      ) : books.length === 0 ? (
+                        <tr><td colSpan="5" className="p-4 text-center text-gray-400">No books found in catalog.</td></tr>
+                      ) : books.map((book) => (
                         <tr key={book.id} className="border-b border-gray-100 hover:bg-gray-50/50">
                           <td className="p-3">
                             <div className="flex items-center">

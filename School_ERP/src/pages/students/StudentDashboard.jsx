@@ -90,8 +90,8 @@ const StudentDashboard = () => {
           </div>
           <div>
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Students (This Session)</p>
-            <p className="text-2xl font-bold text-gray-800">234</p>
-            <p className="text-[11px] text-gray-500">12 classes active</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+            <p className="text-[11px] text-gray-500">{stats.classes} classes active</p>
           </div>
         </div>
         
@@ -101,7 +101,7 @@ const StudentDashboard = () => {
           </div>
           <div>
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">New Admissions</p>
-            <p className="text-2xl font-bold text-gray-800">5</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.newAdmissions}</p>
             <p className="text-[11px] text-gray-500">This month</p>
           </div>
         </div>
@@ -112,8 +112,8 @@ const StudentDashboard = () => {
           </div>
           <div>
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Present Today</p>
-            <p className="text-2xl font-bold text-gray-800">75</p>
-            <p className="text-[11px] text-gray-500">2 absent - 78 marked</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.present}</p>
+            <p className="text-[11px] text-gray-500">0 absent - 0 marked</p>
           </div>
         </div>
 
@@ -123,8 +123,8 @@ const StudentDashboard = () => {
           </div>
           <div>
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Behavior Records</p>
-            <p className="text-2xl font-bold text-gray-800">2</p>
-            <p className="text-[11px] text-gray-500">2 positive - 0 negative</p>
+            <p className="text-2xl font-bold text-gray-800">0</p>
+            <p className="text-[11px] text-gray-500">0 positive - 0 negative</p>
           </div>
         </div>
       </div>
@@ -277,7 +277,7 @@ const StudentDashboard = () => {
                     <Tags className="w-4 h-4 text-purple-600 fill-purple-600" />
                     <span className="text-[13px] text-gray-700">Student Categories</span>
                   </div>
-                  <span className="text-[13px] font-bold text-gray-800">4</span>
+                  <span className="text-[13px] font-bold text-gray-800">0</span>
                 </div>
                 
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center">
@@ -285,7 +285,7 @@ const StudentDashboard = () => {
                     <Home className="w-4 h-4 text-orange-400 fill-orange-400" />
                     <span className="text-[13px] text-gray-700">Student Houses</span>
                   </div>
-                  <span className="text-[13px] font-bold text-gray-800">4</span>
+                  <span className="text-[13px] font-bold text-gray-800">0</span>
                 </div>
                 
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center">
@@ -293,7 +293,7 @@ const StudentDashboard = () => {
                     <CheckSquare className="w-4 h-4 text-green-500 fill-green-500" />
                     <span className="text-[13px] text-gray-700">Attendance Marked Today</span>
                   </div>
-                  <span className="text-[13px] font-bold text-gray-800">78</span>
+                  <span className="text-[13px] font-bold text-gray-800">0</span>
                 </div>
                 
                 <div className="p-4 flex justify-between items-center">

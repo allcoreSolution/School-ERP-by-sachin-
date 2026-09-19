@@ -74,7 +74,8 @@ const MultiSelect = ({ options, selected, onChange, placeholder }) => {
 const AssignTeacher = () => {
   const navigate = useNavigate();
 
-  
+  const data = [];
+  const teachers = [];
 
   // Initialize state: { classId: { subjectId: { sectionName: [teacherIds] } } }
   const [assignments, setAssignments] = useState(() => {

@@ -1,31 +1,38 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn, ArrowRight, ShieldCheck, Zap, Globe2, Building2 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { authService } from '../api/authService';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('admin@branch.com');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
     setLoading(true);
-    // Mock API call
-    setTimeout(() => {
+    try {
+      const res = await authService.login({ username: email, email, password });
+      if (res.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Access Granted',
+          text: 'Welcome back to the Branch Admin Portal.',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+        onLogin();
+      } else {
+        Swal.fire('Error', res.message || 'Login failed', 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || 'Invalid credentials', 'error');
+    } finally {
       setLoading(false);
-      Swal.fire({
-        icon: 'success',
-        title: 'Access Granted',
-        text: 'Welcome back to the Branch Admin Portal.',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
-      onLogin();
-    }, 1500);
+    }
   };
 
   return (

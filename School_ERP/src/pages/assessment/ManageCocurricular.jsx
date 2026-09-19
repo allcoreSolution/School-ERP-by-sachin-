@@ -4,13 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export default function ManageCocurricular() {
   const navigate = useNavigate();
   
-  const [areas, setAreas] = useState([
-    { id: 1, name: 'Activity', classes: ['Nursery', 'KG', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V', 'Class VI', 'Class IX', 'Class XII'] },
-    { id: 2, name: 'General Knowledge', classes: ['Nursery', 'KG', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V', 'Class VI', 'Class VII', 'Class VIII', 'Class IX', 'Class X', 'Class XI', 'Class XII'] },
-    { id: 3, name: 'Value Education', classes: ['Nursery', 'KG', 'Class I', 'Class II', 'Class III', 'Class V', 'Class VI', 'Class VII', 'Class VIII', 'Class IX', 'Class X', 'Class XI', 'Class XII'] },
-    { id: 4, name: 'Activity', classes: ['Class 11 science'] },
-    { id: 5, name: 'English', classes: ['Class I', 'Class II', 'Class III', 'Class IV', 'Class V', 'Class VI', 'Class VII', 'Class VIII', 'Class IX', 'Class X', 'Class XI', 'Class XII'] },
-  ]);
+  const [areas, setAreas] = useState([]);
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this cocurricular area?')) {

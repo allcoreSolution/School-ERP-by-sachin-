@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HRTabs from '../../components/hr/HRTabs';
 import { 
   LayoutDashboard, HelpCircle, Users, CalendarCheck, CheckCircle, List, Send, 
@@ -7,6 +7,9 @@ import {
   Calendar, User, Clock, Search, Edit, X, Check, ArrowRightToLine, ArrowLeftFromLine
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { hrService } from '../../api/hrService';
+import { attendanceService } from '../../api/attendanceService';
+import Swal from 'sweetalert2';
 
 export default function HRAttendance() {
   const navigate = useNavigate();
@@ -36,17 +39,57 @@ export default function HRAttendance() {
   const [showMarkModal, setShowMarkModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
 
-  const staffList = [
-    { id: 1, name: 'Amit Sharma', role: 'Senior Teacher', dept: 'Mathematics', initial: 'A', color: 'bg-teal-500' },
-    { id: 2, name: 'Rajesh Kumar', role: 'Staff', dept: 'Finance', initial: 'R', color: 'bg-blue-500' },
-    { id: 3, name: 'Vikram Singh', role: 'Staff', dept: 'Academic', initial: 'V', color: 'bg-teal-500' },
-    { id: 4, name: 'Sneha Desai', role: 'Staff', dept: 'Academic', initial: 'S', color: 'bg-teal-500' },
-    { id: 5, name: 'Accountant1', role: 'Staff', dept: 'Finance', initial: 'A', color: 'bg-blue-500' },
-    { id: 6, name: 'teacher2', role: 'Senior Teacher', dept: 'Academic', initial: 't', color: 'bg-teal-500' },
-    { id: 7, name: 'Rajat kumar', role: 'Staff', dept: 'Academic', initial: 'R', color: 'bg-blue-500' },
-    { id: 8, name: 'Sourabh Banna', role: 'Staff', dept: 'Academic', initial: 'S', color: 'bg-teal-500' },
-    { id: 9, name: 'Sajjan Bhabha', role: 'Senior Teacher', dept: 'Academic', initial: 'S', color: 'bg-teal-500' },
-  ];
+  const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [attendanceMarks, setAttendanceMarks] = useState({});
+
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  const fetchStaff = async () => {
+    try {
+      setLoading(true);
+      const res = await hrService.getStaff();
+      if(res.data) {
+         setStaffList(res.data.map((s, i) => ({
+           id: s._id,
+           name: `${s.firstName||''} ${s.lastName||''}`.trim(),
+           role: s.designation || 'Staff',
+           dept: s.department || 'General',
+           initial: s.firstName?.charAt(0) || 'U',
+           color: ['bg-teal-500', 'bg-blue-500', 'bg-orange-500', 'bg-green-500'][i%4],
+         })));
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Error', 'Failed to load staff list', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkChange = (staffId, status) => {
+     setAttendanceMarks(prev => ({...prev, [staffId]: status}));
+  };
+
+  const handleSaveAll = async () => {
+    const payload = Object.entries(attendanceMarks).map(([staffId, status]) => ({
+       staff: staffId,
+       status: status,
+       date: date
+    }));
+    
+    if(payload.length === 0) return Swal.fire('Notice', 'No attendance marked yet', 'info');
+    
+    try {
+       await attendanceService.markStaffAttendance({ attendanceData: payload });
+       Swal.fire({title: 'Saved', text: 'Attendance saved successfully', icon: 'success', timer: 2000, showConfirmButton: false});
+    } catch(err) {
+       Swal.fire('Error', err.response?.data?.message || err.message, 'error');
+    }
+  };
 
   const openMarkModal = (staff = null) => {
     setSelectedStaff(staff);
@@ -56,8 +99,8 @@ export default function HRAttendance() {
   const renderDailyView = () => (
     <div className="bg-white border border-slate-200 rounded-none shadow-sm">
       <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-        <h3 className="text-[13px] font-bold text-slate-700">Marking: 24 Aug, 2026</h3>
-        <button className="px-4 py-1.5 bg-[#6f42c1] text-white text-[12px] font-bold rounded-none flex items-center gap-2 hover:bg-[#59339e] transition-colors cursor-pointer">
+        <h3 className="text-[13px] font-bold text-slate-700">Marking: {new Date(date).toLocaleDateString()}</h3>
+        <button onClick={handleSaveAll} className="px-4 py-1.5 bg-[#6f42c1] text-white text-[12px] font-bold rounded-none flex items-center gap-2 hover:bg-[#59339e] transition-colors cursor-pointer border-none shadow-sm">
           <Check className="w-3.5 h-3.5" /> Save All
         </button>
       </div>
@@ -73,9 +116,9 @@ export default function HRAttendance() {
             </tr>
           </thead>
           <tbody className="text-[12px] text-slate-700">
-            {staffList.map(staff => (
+            {loading ? <tr><td colSpan="5" className="p-5 text-center text-slate-500 text-[13px] font-bold">Loading staff directory...</td></tr> : staffList.map(staff => (
               <tr key={staff.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-3"><input type="checkbox" defaultChecked className="rounded border-slate-300 accent-[#6f42c1]" /></td>
+                <td className="px-4 py-3"><input type="checkbox" className="rounded border-slate-300 accent-[#6f42c1]" /></td>
                 <td className="px-4 py-3 flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-none text-white flex items-center justify-center font-bold ${staff.color}`}>{staff.initial}</div>
                   <span className="font-bold">{staff.name}</span>
@@ -86,10 +129,10 @@ export default function HRAttendance() {
                 </td>
                 <td className="px-4 py-3 text-center">
                   <div className="flex items-center justify-center border border-slate-200 rounded-none overflow-hidden w-fit mx-auto">
-                    <button className="px-4 py-1.5 text-[11px] font-bold bg-white text-slate-600 border-r border-slate-200 hover:bg-slate-50 cursor-pointer">P</button>
-                    <button className="px-4 py-1.5 text-[11px] font-bold bg-white text-slate-600 border-r border-slate-200 hover:bg-slate-50 cursor-pointer">A</button>
-                    <button className="px-4 py-1.5 text-[11px] font-bold bg-white text-slate-600 border-r border-slate-200 hover:bg-slate-50 cursor-pointer">L</button>
-                    <button className="px-4 py-1.5 text-[11px] font-bold bg-white text-slate-600 hover:bg-slate-50 cursor-pointer">HD</button>
+                    <button onClick={()=>handleMarkChange(staff.id, 'Present')} className={`px-4 py-1.5 text-[11px] font-bold border-r border-slate-200 cursor-pointer transition-colors ${attendanceMarks[staff.id]==='Present'?'bg-green-100 text-green-700':'bg-white text-slate-600 hover:bg-slate-50'}`}>P</button>
+                    <button onClick={()=>handleMarkChange(staff.id, 'Absent')} className={`px-4 py-1.5 text-[11px] font-bold border-r border-slate-200 cursor-pointer transition-colors ${attendanceMarks[staff.id]==='Absent'?'bg-red-100 text-red-700':'bg-white text-slate-600 hover:bg-slate-50'}`}>A</button>
+                    <button onClick={()=>handleMarkChange(staff.id, 'Late')} className={`px-4 py-1.5 text-[11px] font-bold border-r border-slate-200 cursor-pointer transition-colors ${attendanceMarks[staff.id]==='Late'?'bg-yellow-100 text-yellow-700':'bg-white text-slate-600 hover:bg-slate-50'}`}>L</button>
+                    <button onClick={()=>handleMarkChange(staff.id, 'Half Day')} className={`px-4 py-1.5 text-[11px] font-bold cursor-pointer transition-colors ${attendanceMarks[staff.id]==='Half Day'?'bg-blue-100 text-blue-700':'bg-white text-slate-600 hover:bg-slate-50'}`}>HD</button>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -341,7 +384,8 @@ export default function HRAttendance() {
                   <div className="relative">
                     <input 
                       type={activeTab === 'Daily' ? 'date' : 'month'} 
-                      defaultValue={activeTab === 'Daily' ? "2026-08-24" : "2026-08"}
+                      value={activeTab === 'Daily' ? date : date.slice(0, 7)}
+                      onChange={(e) => setDate(e.target.value)}
                       className="w-full pl-3 pr-8 py-2 border border-slate-300 rounded-none text-[12px] bg-white focus:outline-none focus:border-[#5F52FF]" 
                     />
                     <Calendar className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />

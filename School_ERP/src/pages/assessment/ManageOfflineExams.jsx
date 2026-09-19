@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, Printer, BarChart2, Plus, List, Grid, Copy, Download, FileSpreadsheet, File, Search, ChevronDown, Calendar, CreditCard, Settings, Edit, Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const initialMockExams = [
-  { id: 1, name: 'Annual Examination', session: '2026-2027', appliesTo: '13 classes', start: '12 Jul, 2026', end: '12 Jul, 2026' },
-  { id: 2, name: 'Half-Yearly Examination 2026-2027', session: '2026-2027', appliesTo: 'All classes', start: '01 Apr, 2026', end: '01 Apr, 2026' },
-  { id: 3, name: 'Half-Yearly Examination 2026-2027', session: '2026-2027', appliesTo: 'All classes', start: '01 Apr, 2026', end: '01 Apr, 2026' },
-  { id: 4, name: 'Half-Yearly Examination 2026-2027', session: '2026-2027', appliesTo: 'All classes', start: '01 Apr, 2026', end: '01 Apr, 2026' },
-  { id: 5, name: 'New Exam Test', session: '2026-2027', appliesTo: '1 class', start: '01 Aug, 2026', end: '14 Aug, 2026' },
-  { id: 6, name: 'Term 1', session: '2026-2027', appliesTo: 'All classes', start: '01 Feb, 2026', end: '26 Feb, 2026' },
-  { id: 7, name: 'Term 2', session: '2026-2027', appliesTo: 'All classes', start: '01 Feb, 2026', end: '26 Feb, 2026' },
-  { id: 8, name: 'Term 3', session: '2026-2027', appliesTo: 'All classes', start: '01 Feb, 2026', end: '26 Feb, 2026' },
-  { id: 9, name: 'Term 3 Nov', session: '2026-2027', appliesTo: 'All classes', start: '13 Nov, 2026', end: '27 Nov, 2026' },
-  { id: 10, name: 'Term 4', session: '2026-2027', appliesTo: 'All classes', start: '01 Feb, 2026', end: '26 Feb, 2026' },
-];
-
 export default function ManageOfflineExams() {
   const navigate = useNavigate();
-  const [exams, setExams] = useState(initialMockExams);
+  const [exams, setExams] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
+
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        setLoading(true);
+        // TODO: Replace with actual API call e.g. assessmentService.getExams()
+        // const res = await assessmentService.getExams();
+        // setExams(res.data || []);
+      } catch (err) {
+        console.error('Failed to load exams:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExams();
+  }, []);
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this exam?')) {
@@ -130,7 +134,11 @@ export default function ManageOfflineExams() {
                 </tr>
               </thead>
               <tbody className="text-xs text-slate-700">
-                {exams.map((exam, idx) => (
+                {loading ? (
+                  <tr><td colSpan="6" className="py-6 text-center text-slate-400 font-semibold">Loading exams...</td></tr>
+                ) : exams.length === 0 ? (
+                  <tr><td colSpan="6" className="py-6 text-center text-slate-400">No exams found for this session.</td></tr>
+                ) : exams.map((exam, idx) => (
                   <tr key={exam.id} className={`border-b border-slate-100 hover:bg-slate-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
                     <td className="py-3 px-4 text-slate-700">{exam.name}</td>
                     <td className="py-3 px-4">{exam.session}</td>
@@ -199,7 +207,7 @@ export default function ManageOfflineExams() {
         )}
 
         <div className="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-          <div>Showing 1–{exams.length} of {exams.length}</div>
+          <div>Showing {exams.length === 0 ? 0 : 1}–{exams.length} of {exams.length}</div>
           <div className="flex gap-1">
             <button className="w-6 h-6 rounded-none border border-slate-200 flex items-center justify-center text-slate-400 bg-white cursor-pointer">&lt;</button>
             <button className="w-6 h-6 rounded-none bg-[#6f42c1] text-white flex items-center justify-center font-bold border-none shadow-sm cursor-pointer">1</button>

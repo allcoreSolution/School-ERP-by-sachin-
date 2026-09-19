@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/theme_provider.dart';
+import '../../../core/services/auth_service.dart';
 
 class StaffDashboardScreen extends StatefulWidget {
   const StaffDashboardScreen({super.key});
@@ -12,7 +16,51 @@ class StaffDashboardScreen extends StatefulWidget {
 }
 
 class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
-  final bool _isPresent = true;
+  bool _isPresent = true;
+  bool _isLoading = true;
+  String _leaveBalance = '10.0';
+  List<dynamic> _notices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLiveDashboardData();
+  }
+
+  Future<void> _fetchLiveDashboardData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sp_staff_token') ?? '';
+      final header = {'Authorization': 'Bearer $token'};
+
+      // 1. Fetch Notices
+      try {
+        final noticeRes = await http.get(Uri.parse('${AuthService.baseUrl}api/notices?audience=Staff'), headers: header).timeout(const Duration(seconds: 15));
+        if (noticeRes.statusCode == 200) {
+          final data = jsonDecode(noticeRes.body);
+          if (data['data'] != null) _notices = data['data'];
+        }
+      } catch (e) {}
+
+      // 2. Fetch Leaves
+      try {
+        final leaveRes = await http.get(Uri.parse('${AuthService.baseUrl}api/leaves'), headers: header).timeout(const Duration(seconds: 15));
+        if (leaveRes.statusCode == 200) {
+           final data = jsonDecode(leaveRes.body);
+           final allLeaves = data['data'] as List? ?? [];
+           final myLeaves = allLeaves.where((l) => l['staffId'] == AuthService.instance.staffEmpId).toList();
+           _leaveBalance = '${14 - myLeaves.length}';
+        }
+      } catch (e) {}
+
+    } catch (e) {
+      debugPrint('Staff data fetch failed: $e');
+    }
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +170,9 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Ms. Sunita Agarwal',
+                          AuthService.instance.staffName.isNotEmpty 
+                              ? AuthService.instance.staffName 
+                              : 'Staff Member',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.outfit(
@@ -135,7 +185,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                           ),
                         ),
                         Text(
-                          'Chief Accounts & Admin Officer',
+                          'Administration',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.inter(
@@ -335,7 +385,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    '14 Days',
+                                    '$_leaveBalance Days',
                                     style: GoogleFonts.inter(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -354,7 +404,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                               ),
                             ),
                             Text(
-                              '6 Casual • 8 Sick',
+                              '$_leaveBalance Total Leaves',
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -586,19 +636,22 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
 
               const SizedBox(height: 10),
 
-              _buildNoticeCard(
-                '📢 Holiday Notice: Buddha Purnima',
-                'School will remain closed on May 23, 2025.',
-                '20 May 2025',
-                isDark,
-              ),
-              const SizedBox(height: 8),
-              _buildNoticeCard(
-                '📢 HR Announcement: Salary Credit Date',
-                'May 2025 monthly salary credited on May 31.',
-                '18 May 2025',
-                isDark,
-              ),
+              _isLoading 
+                 ? const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Color(0xFF059669))))
+                 : (_notices.isEmpty ? Center(child: Text("No new notices", style: GoogleFonts.inter(color: Colors.grey))) 
+                   : Column(
+                      children: _notices.take(3).map((notice) {
+                        return Padding(
+                           padding: const EdgeInsets.only(bottom: 8.0),
+                           child: _buildNoticeCard(
+                               notice['title']?.toString() ?? 'Notice',
+                               notice['content']?.toString() ?? '',
+                               notice['date']?.toString().substring(0, 10) ?? '',
+                               isDark,
+                           ),
+                        );
+                      }).toList(),
+                   )),
             ],
           ),
         ),

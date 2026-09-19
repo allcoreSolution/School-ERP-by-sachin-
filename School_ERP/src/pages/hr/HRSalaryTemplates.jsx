@@ -6,6 +6,7 @@ import {
   CheckCircle2, XCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { hrService } from '../../api/hrService';
 
 export default function HRSalaryTemplates() {
   const navigate = useNavigate();
@@ -31,60 +32,14 @@ export default function HRSalaryTemplates() {
     { name: 'Settings', icon: Settings, path: '/hr/settings' },
   ];
 
-  const templates = [
-    {
-      id: 1,
-      name: 'Senior Teacher',
-      basic: '45,000.00',
-      allowances: [{ name: 'HRA', amount: '5000' }],
-      deductions: [{ name: 'Welfare Refund', amount: '100' }],
-      statutory: [
-        { name: 'PF (12.00%)', active: true },
-        { name: 'ESI (0.75%)', active: true },
-        { name: 'PT (Maharashtra)', active: true },
-        { name: 'TDS (₹0.00)', active: false }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Senior Faculty (Grade 1)',
-      basic: '35,000.00',
-      allowances: [{ name: 'DA', amount: '4200' }, { name: 'TA', amount: '2000' }, { name: 'HRA', amount: '7000' }],
-      deductions: [{ name: 'Welfare Fund', amount: '150' }],
-      statutory: [
-        { name: 'PF (12.00%)', active: true },
-        { name: 'ESI (0.75%)', active: true },
-        { name: 'PT (Maharashtra)', active: true },
-        { name: 'TDS (₹0.00)', active: false }
-      ]
-    },
-    {
-      id: 3,
-      name: 'Administrative Officer',
-      basic: '25,000.00',
-      allowances: [{ name: 'DA', amount: '3000' }, { name: 'HRA', amount: '5000' }, { name: 'Conveyance', amount: '1500' }],
-      deductions: [{ name: 'Staff Association', amount: '100' }],
-      statutory: [
-        { name: 'PF (12.00%)', active: true },
-        { name: 'ESI (0.75%)', active: true },
-        { name: 'PT (Karnataka)', active: true },
-        { name: 'TDS (₹0.00)', active: false }
-      ]
-    },
-    {
-      id: 4,
-      name: 'Junior Assistant / Lab Staff',
-      basic: '18,000.00',
-      allowances: [{ name: 'DA', amount: '2160' }, { name: 'HRA', amount: '3600' }],
-      deductions: [{ name: 'Welfare Fund', amount: '100' }],
-      statutory: [
-        { name: 'PF (12.00%)', active: true },
-        { name: 'ESI (0.75%)', active: true },
-        { name: 'PT (Telangana)', active: true },
-        { name: 'TDS (₹0.00)', active: false }
-      ]
-    }
-  ];
+  const [templates, setTemplates] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    hrService.getSalaryTemplates().then(res => {
+      setTemplates(res.data || []);
+    }).catch(err => console.error(err)).finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans pb-10 relative">
@@ -174,15 +129,19 @@ export default function HRSalaryTemplates() {
                 </tr>
               </thead>
               <tbody className="text-[12px]">
-                {templates.map((template) => (
-                  <tr key={template.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-center text-slate-500 font-medium">{template.id}</td>
-                    <td className="p-4 font-bold text-slate-700">{template.name}</td>
-                    <td className="p-4 font-bold text-slate-800">₹{template.basic}</td>
+                {loading ? (
+                   <tr><td colSpan="7" className="p-4 text-center">Loading templates...</td></tr>
+                ) : templates.length === 0 ? (
+                   <tr><td colSpan="7" className="p-4 text-center">No template found.</td></tr>
+                ) : templates.map((template, idx) => (
+                  <tr key={template._id || idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                    <td className="p-4 text-center text-slate-500 font-medium">{idx + 1}</td>
+                    <td className="p-4 font-bold text-slate-700">{template.templateName || template.name}</td>
+                    <td className="p-4 font-bold text-slate-800">₹{template.basicSalary || template.basic}</td>
                     <td className="p-4">
                       <div className="flex flex-wrap gap-2">
-                        {template.allowances.map((allowance, idx) => (
-                          <span key={idx} className="bg-[#ecfdf5] text-[#059669] px-2 py-0.5 rounded-none text-[11px] font-bold">
+                        {(template.allowances || []).map((allowance, aidx) => (
+                          <span key={aidx} className="bg-[#ecfdf5] text-[#059669] px-2 py-0.5 rounded-none text-[11px] font-bold">
                             {allowance.name}: ₹{allowance.amount}
                           </span>
                         ))}
@@ -190,8 +149,8 @@ export default function HRSalaryTemplates() {
                     </td>
                     <td className="p-4">
                       <div className="flex flex-wrap gap-2">
-                        {template.deductions.map((deduction, idx) => (
-                          <span key={idx} className="text-[#d97706] font-bold text-[11px]">
+                        {(template.deductions || []).map((deduction, didx) => (
+                          <span key={didx} className="text-[#d97706] font-bold text-[11px]">
                             {deduction.name}: ₹{deduction.amount}
                           </span>
                         ))}
@@ -199,29 +158,20 @@ export default function HRSalaryTemplates() {
                     </td>
                     <td className="p-4">
                       <div className="space-y-1">
-                        {template.statutory.map((stat, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5">
-                            {stat.active ? (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                            ) : (
-                              <XCircle className="w-3.5 h-3.5 text-red-500" />
-                            )}
-                            <span className="text-slate-600 font-medium">{stat.name}</span>
+                          <div className="flex items-center gap-1.5">
+                            {template.pfRate ? ( <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> ) : ( <XCircle className="w-3.5 h-3.5 text-red-500" /> )}
+                            <span className="text-slate-600 font-medium">PF ({template.pfRate || 0}%)</span>
                           </div>
-                        ))}
+                          <div className="flex items-center gap-1.5">
+                            {template.esiRate ? ( <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> ) : ( <XCircle className="w-3.5 h-3.5 text-red-500" /> )}
+                            <span className="text-slate-600 font-medium">ESI ({template.esiRate || 0}%)</span>
+                          </div>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center items-center gap-3">
-                        <button 
-                          onClick={() => navigate(`/hr/salary-templates/edit/${template.id}`)}
-                          className="text-slate-400 hover:text-[#5F52FF] transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button className="text-slate-400 hover:text-red-500 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <button onClick={() => navigate(`/hr/salary-templates/edit/${template._id}`)} className="text-slate-400 hover:text-[#5F52FF] transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>

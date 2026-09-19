@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../api/authService';
 import { Lock, User, ArrowRight, ShieldCheck, GraduationCap, LayoutDashboard, MonitorPlay, Activity } from 'lucide-react';
 
 export default function Login() {
@@ -9,16 +10,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate secure login process
-    setTimeout(() => {
+
+    try {
+      const res = await authService.login({ userId, password });
+      if (res.success) {
+         navigate('/dashboard');
+      } else {
+         alert(res.message || 'Login failed');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Invalid credentials or API offline');
+    } finally {
       setLoading(false);
-      localStorage.setItem('parent_token', 'mock_secure_token');
-      navigate('/dashboard');
-    }, 1200);
+    }
   };
 
   return (

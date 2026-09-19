@@ -26,10 +26,7 @@ const AcademicSessions = () => {
     { name: 'More Menu', icon: Clock, path: '#' },
   ];
 
-  const [sessions, setSessions] = useState([
-    { id: 1, name: '2026-2027', code: '26-27', start: '01 Apr 2026', end: '31 Mar 2027', students: 282, status: 'Current' },
-    { id: 2, name: '2027-2028', code: '27-28', start: '01 Apr 2027', end: '31 Mar 2028', students: 102, status: 'Active' }
-  ]);
+  const [sessions, setSessions] = useState([]);
 
   const filteredSessions = sessions.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase())

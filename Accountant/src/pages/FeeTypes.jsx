@@ -1,21 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Gauge, BookOpen, HandCoins, FileSearch, ArrowLeftRight, Globe, FileText, 
   MoreHorizontal, Search, PenTool, HelpCircle, UserPlus, FastForward,
   Plus, Tag, List, Grid, Copy, FileSpreadsheet, File, Printer, Columns,
-  Edit, Trash2, Upload, Download
+  Edit, Trash2, Upload, Download, XCircle
 } from 'lucide-react';
-
-const typesData = [
-  { id: 1, name: '1st Installment Fees', code: null, description: '--' },
-  { id: 2, name: '2nd Installment Fees', code: null, description: '--' },
-  { id: 3, name: '3rd Installment Fees', code: null, description: '--' },
-  { id: 4, name: '4th Installment Fees', code: null, description: '--' },
-  { id: 5, name: 'Admission fee', code: null, description: '--' },
-  { id: 6, name: 'Admission Fee', code: 'AF', description: '--' },
-  { id: 7, name: 'Annual Charges', code: 'AC', description: '--' },
-];
+import { accountantService } from '../api/accountantService';
+import Swal from 'sweetalert2';
 
 const ToolbarButton = ({ label, icon: Icon }) => (
   <button className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 text-[13px] bg-white hover:bg-gray-50 transition-colors">
@@ -25,6 +17,56 @@ const ToolbarButton = ({ label, icon: Icon }) => (
 );
 
 const FeeTypes = () => {
+  const [typesData, setTypesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ name: '', code: '', description: '' });
+
+  const fetchTypes = async () => {
+    try {
+      setLoading(true);
+      const res = await accountantService.getFeeTypes();
+      if(res.success) setTypesData(res.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTypes();
+  }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if(!form.name) return Swal.fire('Error', 'Name is required.', 'error');
+    try {
+      const res = await accountantService.addFeeType({ feeType: form.name, feeCode: form.code, description: form.description });
+      if(res.success) {
+        Swal.fire('Success', 'Fee Type added', 'success');
+        fetchTypes();
+        setShowModal(false);
+        setForm({name: '', code: '', description: ''});
+      }
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || err.message, 'error');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({ title: 'Are you sure?', icon: 'warning', showCancelButton: true });
+    if(confirm.isConfirmed) {
+      try {
+        await accountantService.deleteFeeType(id);
+        Swal.fire('Deleted', 'Fee type has been deleted', 'success');
+        fetchTypes();
+      } catch (err) {
+        Swal.fire('Error', 'Cannot delete this fee type', 'error');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#ecf0f5] text-[#333] p-4 sm:p-6 font-sans">
       
@@ -76,7 +118,7 @@ const FeeTypes = () => {
             <Download className="w-4 h-4 text-gray-500" />
             Export Template
           </button>
-          <button className="flex items-center gap-2 px-4 py-1.5 rounded-[3px] border border-[#5a52d7] bg-[#5a52d7] text-white font-semibold text-[13px] hover:bg-[#4a42c0] shadow-sm">
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-1.5 rounded-[3px] border border-[#5a52d7] bg-[#5a52d7] text-white font-semibold text-[13px] hover:bg-[#4a42c0] shadow-sm">
             <Plus className="w-4 h-4" />
             Add New Fee Type
           </button>
@@ -141,31 +183,66 @@ const FeeTypes = () => {
               </tr>
             </thead>
             <tbody className="text-[13px] text-[#333]">
-              {typesData.map((type, i) => (
-                <tr key={type.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              {loading ? (
+                <tr><td colSpan={5} className="py-6 text-center text-gray-500">Loading fee types from server...</td></tr>
+              ) : typesData.map((type, i) => (
+                <tr key={type._id || type.id || i} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-5 text-center text-gray-500">{i + 1}</td>
-                  <td className="py-4 px-5 border-l border-gray-100 font-medium text-gray-700">{type.name}</td>
+                  <td className="py-4 px-5 border-l border-gray-100 font-medium text-gray-700">{type.feeType || type.name}</td>
                   <td className="py-4 px-5 border-l border-gray-100 text-gray-500">
-                    {type.code ? (
-                      <span className="bg-[#eff2ff] text-[#5a52d7] font-bold px-2 py-0.5 rounded-[3px] text-[11px] uppercase tracking-wider">{type.code}</span>
+                    {type.feeCode || type.code ? (
+                      <span className="bg-[#eff2ff] text-[#5a52d7] font-bold px-2 py-0.5 rounded-[3px] text-[11px] uppercase tracking-wider">{type.feeCode || type.code}</span>
                     ) : (
                       'N/A'
                     )}
                   </td>
-                  <td className="py-4 px-5 border-l border-gray-100 text-gray-400 font-medium">{type.description}</td>
+                  <td className="py-4 px-5 border-l border-gray-100 text-gray-400 font-medium">{type.description || '--'}</td>
                   <td className="py-4 px-5 border-l border-gray-100">
                     <div className="flex items-center justify-center gap-2 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                       <button className="text-gray-500 hover:text-[#3c8dbc] p-1"><Edit className="w-3.5 h-3.5" /></button>
-                      <button className="text-gray-500 hover:text-[#d9534f] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => handleDelete(type._id)} className="text-gray-500 hover:text-[#d9534f] p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </td>
                 </tr>
               ))}
+              {typesData.length === 0 && !loading && (
+                <tr><td colSpan={5} className="py-6 text-center text-gray-400">No fee types configured yet.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
-        
       </div>
+      
+      {/* Modal logic */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[3px] shadow-lg w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-[#fefefe]">
+               <h3 className="font-bold text-[#333]">Add Fee Type</h3>
+               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><XCircle className="w-5 h-5"/></button>
+            </div>
+            <form onSubmit={handleCreate} className="p-5 flex flex-col gap-4">
+               <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1">Fee Type Name *</label>
+                  <input required type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full border border-gray-300 rounded-[3px] px-3 py-2 text-[13px] focus:outline-none focus:border-[#5a52d7]" placeholder="e.g. Tuition Fee" />
+               </div>
+               <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1">Fee Code</label>
+                  <input type="text" value={form.code} onChange={e => setForm({...form, code: e.target.value})} className="w-full border border-gray-300 rounded-[3px] px-3 py-2 text-[13px] focus:outline-none focus:border-[#5a52d7]" placeholder="e.g. TF" />
+               </div>
+               <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1">Description</label>
+                  <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full border border-gray-300 rounded-[3px] px-3 py-2 text-[13px] focus:outline-none focus:border-[#5a52d7]" rows={2} />
+               </div>
+               <div className="flex gap-2 mt-2">
+                 <button type="submit" className="px-4 py-2 bg-[#5a52d7] text-white text-[13px] font-semibold rounded-[3px] hover:bg-[#4a42c0] flex-1">Save Fee Type</button>
+                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-300 text-gray-600 text-[13px] font-semibold rounded-[3px] hover:bg-gray-50">Cancel</button>
+               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

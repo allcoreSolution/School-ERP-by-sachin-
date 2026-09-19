@@ -3,13 +3,13 @@ import { BarChart as BarChartIcon, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const attendanceData = [
-  { name: 'Aug 18', attendance: 6 },
-  { name: 'Aug 19', attendance: 4 },
-  { name: 'Aug 20', attendance: 17 },
-  { name: 'Aug 21', attendance: 27 },
-  { name: 'Aug 22', attendance: 8 },
-  { name: 'Aug 23', attendance: 9 },
-  { name: 'Aug 24', attendance: 6 },
+  { name: 'Aug 18', attendance: 0 },
+  { name: 'Aug 19', attendance: 0 },
+  { name: 'Aug 20', attendance: 0 },
+  { name: 'Aug 21', attendance: 0 },
+  { name: 'Aug 22', attendance: 0 },
+  { name: 'Aug 23', attendance: 0 },
+  { name: 'Aug 24', attendance: 0 },
 ];
 
 const AttendanceOverTimeWidget = () => (
@@ -60,39 +60,8 @@ const LiveProtocolStreamWidget = () => (
       </div>
     </div>
 
-    <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar" style={{ maxHeight: '240px' }}>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">23:51:41</div>
-        <div className="border-l-2 border-emerald-400 pl-3 text-slate-600">Fee Collected: Rajesh <strong>₹20000.00</strong></div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">15:07:37</div>
-        <div className="border-l-2 border-emerald-400 pl-3 text-slate-600">Fee Collected: Krish <strong>₹30599.00</strong></div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">15:00:04</div>
-        <div className="border-l-2 border-emerald-400 pl-3 text-slate-600">Fee Collected: Kabir <strong>₹300.00</strong></div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">13:06:57</div>
-        <div className="border-l-2 border-emerald-400 pl-3 text-slate-600">Fee Collected: Gauri <strong>₹2000.00</strong></div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">11:58:29</div>
-        <div className="border-l-2 border-blue-400 pl-3 text-slate-600">Attendance Marked: Arun is Present</div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">11:58:29</div>
-        <div className="border-l-2 border-blue-400 pl-3 text-slate-600">Attendance Marked: M is Present</div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">11:58:29</div>
-        <div className="border-l-2 border-blue-400 pl-3 text-slate-600">Attendance Marked: Kabir is Present</div>
-      </div>
-      <div className="flex gap-3 text-xs">
-        <div className="text-slate-400 font-mono w-14 shrink-0">11:58:29</div>
-        <div className="border-l-2 border-blue-400 pl-3 text-slate-600">Attendance Marked: Ishaan is Present</div>
-      </div>
+    <div className="flex-1 flex flex-col justify-center items-center text-slate-400 text-xs">
+      No recent activity to show.
     </div>
   </div>
 );

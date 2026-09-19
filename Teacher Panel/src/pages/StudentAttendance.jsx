@@ -1,43 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CheckCircle, XCircle, Clock, Users, Calendar,
   Save, ChevronLeft, ChevronRight, Download,
   BarChart2, Filter, Search, Eye, X, AlertTriangle
 } from 'lucide-react';
-
-// ── Student list ──────────────────────────────────────────────────────────────
-const students = [
-  { id: 1,  name: 'Ananya Desai',  roll: 'STU-001', photo: 'https://i.pravatar.cc/80?img=1'  },
-  { id: 2,  name: 'Kabir Sharma',  roll: 'STU-002', photo: 'https://i.pravatar.cc/80?img=2'  },
-  { id: 3,  name: 'Priya Nair',    roll: 'STU-003', photo: 'https://i.pravatar.cc/80?img=5'  },
-  { id: 4,  name: 'Rohit Gupta',   roll: 'STU-004', photo: 'https://i.pravatar.cc/80?img=7'  },
-  { id: 5,  name: 'Sanya Mehta',   roll: 'STU-005', photo: 'https://i.pravatar.cc/80?img=9'  },
-  { id: 6,  name: 'Arjun Singh',   roll: 'STU-006', photo: 'https://i.pravatar.cc/80?img=11' },
-  { id: 7,  name: 'Kavya Iyer',    roll: 'STU-007', photo: 'https://i.pravatar.cc/80?img=20' },
-  { id: 8,  name: 'Ishaan Patel',  roll: 'STU-008', photo: 'https://i.pravatar.cc/80?img=13' },
-  { id: 9,  name: 'Aisha Khan',    roll: 'STU-009', photo: 'https://i.pravatar.cc/80?img=25' },
-  { id: 10, name: 'Dev Malhotra',  roll: 'STU-010', photo: 'https://i.pravatar.cc/80?img=15' },
-  { id: 11, name: 'Meera Joshi',   roll: 'STU-011', photo: 'https://i.pravatar.cc/80?img=30' },
-  { id: 12, name: 'Rajan Das',     roll: 'STU-012', photo: 'https://i.pravatar.cc/80?img=17' },
-];
+import { studentService } from '../api/studentService';
+import { attendanceService } from '../api/attendanceService';
 
 const classes   = ['X – A', 'X – B', 'IX – A', 'IX – B', 'VIII – A', 'VIII – B', 'XI – C'];
-const subjects  = ['Mathematics', 'Algebra', 'Geometry', 'Statistics'];
+const subjects  = ['Mathematics', 'Science', 'English', 'History'];
 
-// Past attendance data for summary (true=P, false=A, 'L'=Late)
+// Past days columns
 const pastDays = ['01','02','03','04','05','08','09','10','11'];
-const buildHistory = () => {
-  const hist = {};
-  students.forEach(s => {
-    hist[s.id] = {};
-    pastDays.forEach(d => {
-      const r = Math.random();
-      hist[s.id][d] = r > 0.15 ? 'P' : r > 0.05 ? 'L' : 'A';
-    });
-  });
-  return hist;
-};
-const attendanceHistory = buildHistory();
 
 const todayStr = new Date().toISOString().slice(8, 10);
 
@@ -59,12 +33,52 @@ const StudentAttendance = () => {
   const [saved,           setSaved]   = useState(false);
   const [viewSummary,     setViewSummary] = useState(null);
 
-  // attendance state: { [studentId]: 'P'|'A'|'L' }
-  const [attendance, setAttendance] = useState(() => {
-    const init = {};
-    students.forEach(s => { init[s.id] = 'P'; });
-    return init;
-  });
+  const [students, setStudents] = useState([]);
+  const [attendanceHistory, setAttendanceHistory] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [attendance, setAttendance] = useState({});
+
+  useEffect(() => {
+    fetchStudents();
+  }, [selectedClass]);
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await studentService.getStudents({ limit: 100 });
+      if (response?.data) {
+        // Map backend students to frontend format
+        let mapped = response.data.map(item => ({
+             id: item._id,
+             name: `${item.firstName || ''} ${item.lastName || ''}`.trim(),
+             roll: item.aparId || '-',
+             photo: item.studentPhoto ? `http://192.168.1.12:5050/${item.studentPhoto}` : `https://ui-avatars.com/api/?name=${item.firstName}&background=A7F3D0`,
+             classId: item.classId?._id || '',
+             className: item.classId?.className || '',
+             sectionId: item.sectionId?._id || ''
+        }));
+        
+        setStudents(mapped);
+        
+        let initAtt = {};
+        let initHist = {};
+        mapped.forEach(s => { 
+           initAtt[s.id] = 'P'; 
+           initHist[s.id] = {};
+           pastDays.forEach(d => {
+             const r = Math.random();
+             initHist[s.id][d] = r > 0.15 ? 'P' : r > 0.05 ? 'L' : 'A';
+           });
+        });
+        setAttendance(initAtt);
+        setAttendanceHistory(initHist);
+      }
+    } catch (e) {
+      console.error('Failed to load students', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggle = (id) => setAttendance(prev => ({ ...prev, [id]: statusCycle[prev[id]] }));
   const markAll = (status) => {
@@ -80,9 +94,22 @@ const StudentAttendance = () => {
     return { p, a, l, total: students.length };
   }, [attendance]);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      const payload = students.map(s => ({
+         student: s.id,
+         date: date,
+         status: attendance[s.id] === 'P' ? 'Present' : attendance[s.id] === 'A' ? 'Absent' : 'Late',
+         academicClass: s.classId || '65fac00d41e7d23a670dbfed',
+         section: s.sectionId || '65fac00d41e7d23a670dbfef',
+         remarks: ''
+      }));
+      await attendanceService.markStudentAttendance(payload);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      console.error("Save error", e);
+    }
   };
 
   const filteredStudents = students.filter(s =>

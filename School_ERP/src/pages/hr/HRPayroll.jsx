@@ -15,12 +15,8 @@ export default function HRPayroll() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const summaryData = [
-    { id: 1, name: 'Amit Sharma', gross: '0.00', days: '0.00 / 26', attDeduction: '35,000.00', statDeductions: 'PF: 504.00', otherDeductions: '1,816.67', net: '0.00', status: 'Paid' },
-    { id: 2, name: 'Rajesh Kumar', gross: '0.00', days: '0.00 / 26', attDeduction: '35,000.00', statDeductions: 'PF: 504.00', otherDeductions: '1,191.67', net: '0.00', status: 'Unpaid' },
-    { id: 3, name: 'Vikram Singh', gross: '0.00', days: '0.00 / 26', attDeduction: '25,000.00', statDeductions: 'PF: 360.00', otherDeductions: '100.00', net: '0.00', status: 'Unpaid' },
-    { id: 4, name: 'Sneha Desai', gross: '0.00', days: '0.00 / 26', attDeduction: '67,000.00', statDeductions: '', otherDeductions: '5,000.00', net: '0.00', status: 'Unpaid' },
-  ];
+  const [payslips, setPayslips] = useState([]);
+  const [loadingPayslips, setLoadingPayslips] = useState(false);
 
   useEffect(() => { fetchPayrolls(); }, []);
 
@@ -53,6 +49,34 @@ export default function HRPayroll() {
       alert('Error: ' + (err.response?.data?.message || err.message));
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const loadSummary = async (monthStr) => {
+    setSelectedMonth(monthStr);
+    setCurrentView('summary');
+    setLoadingPayslips(true);
+    try {
+      const [m, y] = monthStr.split(' ');
+      const res = await payrollService.getPayroll({ month: m, year: y });
+      setPayslips(res.data || []);
+    } catch (err) {
+      console.error(err);
+      setPayslips([]);
+    } finally {
+      setLoadingPayslips(false);
+    }
+  };
+
+  const handleProcessPayment = async (id) => {
+    try {
+       await payrollService.processPayroll(id, { status: 'Paid' });
+       alert('Salary marked as paid!');
+       loadSummary(selectedMonth);
+       setShowPaymentModal(false);
+    } catch (err) {
+       alert('Error: ' + (err.response?.data?.message || err.message));
+       setShowPaymentModal(false);
     }
   };
 
@@ -89,7 +113,7 @@ export default function HRPayroll() {
                   <td className="px-5 py-4">{pr.date}</td>
                   <td className="px-5 py-4">
                     <button 
-                      onClick={() => { setSelectedMonth(pr.month); setCurrentView('summary'); }}
+                      onClick={() => loadSummary(pr.month)}
                       className="px-4 py-1.5 bg-white border border-slate-300 rounded-none hover:bg-slate-50 text-[12px] font-bold text-slate-700 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5" /> View
@@ -165,15 +189,19 @@ export default function HRPayroll() {
             </tr>
           </thead>
           <tbody className="text-[13px] text-slate-700">
-            {summaryData.map((staff) => (
-              <tr key={staff.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                <td className="px-5 py-4 font-semibold">{staff.name}</td>
-                <td className="px-5 py-4">{staff.gross}</td>
-                <td className="px-5 py-4">{staff.days}</td>
-                <td className="px-5 py-4 font-bold text-red-500">{staff.attDeduction}</td>
-                <td className="px-5 py-4 text-slate-500">{staff.statDeductions}</td>
-                <td className="px-5 py-4">{staff.otherDeductions}</td>
-                <td className="px-5 py-4 font-bold text-slate-900">{staff.net}</td>
+            {loadingPayslips ? (
+               <tr><td colSpan="9" className="text-center p-5 text-gray-500 font-bold">Loading payslips...</td></tr>
+            ) : payslips.length === 0 ? (
+               <tr><td colSpan="9" className="text-center p-5 text-gray-500">No payslips found for this month...</td></tr>
+            ) : payslips.map((staff) => (
+              <tr key={staff._id || staff.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <td className="px-5 py-4 font-semibold">{staff.staff?.firstName || staff.name || 'Unknown'}</td>
+                <td className="px-5 py-4">₹{staff.grossSalary || staff.gross || '0.00'}</td>
+                <td className="px-5 py-4">{staff.presentDays || staff.days || '0'} / 31</td>
+                <td className="px-5 py-4 font-bold text-red-500">₹{staff.attendanceDeduction || staff.attDeduction || '0.00'}</td>
+                <td className="px-5 py-4 text-slate-500">{staff.statutoryDeductions || staff.statDeductions || '0.00'}</td>
+                <td className="px-5 py-4">₹{staff.otherDeductions || '0.00'}</td>
+                <td className="px-5 py-4 font-bold text-slate-900">₹{staff.netSalary || staff.net || '0.00'}</td>
                 <td className="px-5 py-4">
                   {staff.status === 'Paid' ? (
                     <span className="inline-block px-2 py-1 bg-green-50 text-green-600 border border-green-200 rounded-none text-[11px] font-bold">Paid</span>
@@ -257,7 +285,10 @@ export default function HRPayroll() {
             </div>
             <div className="px-5 py-4 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
               <button onClick={() => setShowPaymentModal(false)} className="px-4 py-2 bg-white border border-slate-300 rounded-none text-slate-700 font-bold text-[13px] hover:bg-slate-50 transition-colors cursor-pointer">Cancel</button>
-              <button onClick={() => setShowPaymentModal(false)} className="px-4 py-2 bg-[#5F52FF] hover:bg-[#4f42e6] text-white rounded-none font-bold text-[13px] transition-colors cursor-pointer border-none shadow-sm">Confirm Payment</button>
+              <button 
+                 onClick={() => handleProcessPayment(showPaymentModal)} 
+                 className="px-4 py-2 bg-[#5F52FF] hover:bg-[#4f42e6] text-white rounded-none font-bold text-[13px] transition-colors cursor-pointer border-none shadow-sm"
+              >Confirm Payment</button>
             </div>
           </div>
         </div>

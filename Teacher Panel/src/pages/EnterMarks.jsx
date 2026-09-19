@@ -1,28 +1,81 @@
-import React, { useState } from 'react';
-
-const mockStudents = [
-  { id: 1, name: 'Aarav Sharma', roll: '101', marks: '' },
-  { id: 2, name: 'Neha Gupta', roll: '102', marks: '' },
-  { id: 3, name: 'Kabir Singh', roll: '103', marks: '' },
-];
+import React, { useState, useEffect } from 'react';
+import { studentService } from '../api/studentService';
+import { examService } from '../api/examService';
+import { academicService } from '../api/academicService';
 
 const EnterMarks = () => {
   const [formData, setFormData] = useState({
     exam: '', class: '', section: '', subject: '', show: 'full'
   });
   const [loaded, setLoaded] = useState(false);
-  const [students, setStudents] = useState(mockStudents);
+  const [students, setStudents] = useState([]);
+  const [exams, setExams] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [subjects, setSubjects] = useState([]);
 
-  const handleLoad = () => {
-    if (formData.exam && formData.class) {
-      setLoaded(true);
+  useEffect(() => {
+    fetchMetadata();
+  }, []);
+
+  const fetchMetadata = async () => {
+    try {
+      const cls = await academicService.getClasses();
+      const sec = await academicService.getSections();
+      const sub = await academicService.getSubjects();
+      const ex = await examService.getExams();
+      if(cls.data) setClasses(cls.data);
+      if(sec.data) setSections(sec.data);
+      if(sub.data) setSubjects(sub.data);
+      if(ex.data) setExams(ex.data);
+    } catch(e) { console.error(e); }
+  };
+
+  const handleLoad = async () => {
+    if (formData.exam && formData.class && formData.subject) {
+      try {
+        const resp = await studentService.getStudents({ limit: 100 });
+        if(resp.data) {
+           const classStudents = resp.data.filter(s => s.classId?._id === formData.class || s.classId === formData.class);
+           setStudents(classStudents.map(s => ({
+             id: s._id,
+             name: `${s.firstName||''} ${s.lastName||''}`.trim(),
+             roll: s.aparId || '-',
+             marks: ''
+           })));
+           setLoaded(true);
+        }
+      } catch(e) { console.error("Error loading students"); }
     } else {
-      alert("Please select at least Exam and Class to load students.");
+      alert("Please select at least Exam, Class, and Subject.");
     }
   };
 
   const handleMarkChange = (id, val) => {
     setStudents(students.map(s => s.id === id ? { ...s, marks: val } : s));
+  };
+
+  const handleSaveMarks = async () => {
+     try {
+       const payload = students.filter(s => s.marks !== '').map(s => ({
+         exam: formData.exam,
+         student: s.id,
+         subject: formData.subject,
+         marksObtained: Number(s.marks),
+         maxMarks: 100,
+         remarks: ''
+       }));
+       if(payload.length === 0) return alert("No marks entered.");
+       
+       const res = await examService.addResult(payload);
+       if(res.success) {
+         alert("Marks saved successfully!");
+         setLoaded(false);
+       }
+     } catch (e) {
+       console.error(e);
+       alert("Error saving marks");
+     }
   };
 
   return (
@@ -48,8 +101,7 @@ const EnterMarks = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
                 <option value="">Select Exam</option>
-                <option value="half-yearly">Half Yearly Examination</option>
-                <option value="annual">Annual Examination</option>
+                {exams.map(e => <option key={e._id} value={e._id}>{e.examName}</option>)}
               </select>
             </div>
             
@@ -61,8 +113,7 @@ const EnterMarks = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
                 <option value="">Select Class</option>
-                <option value="10">Class 10</option>
-                <option value="9">Class 9</option>
+                {classes.map(c => <option key={c._id} value={c._id}>{c.className}</option>)}
               </select>
             </div>
             
@@ -74,8 +125,7 @@ const EnterMarks = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
                 <option value="">-- Select Section --</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
+                {sections.map(s => <option key={s._id} value={s._id}>{s.sectionName}</option>)}
               </select>
             </div>
             
@@ -87,8 +137,7 @@ const EnterMarks = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
               >
                 <option value="">-- Select Subject --</option>
-                <option value="Maths">Mathematics</option>
-                <option value="Science">Science</option>
+                {subjects.map(sub => <option key={sub._id} value={sub._id}>{sub.subjectName}</option>)}
               </select>
             </div>
 
@@ -119,7 +168,7 @@ const EnterMarks = () => {
         {loaded && (
           <div className="bg-white rounded border border-gray-200 shadow-sm mt-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-[#f8f9fe]">
-              <h2 className="font-semibold text-[#5d78ff] text-sm uppercase tracking-wide">Enter Marks — {formData.subject || 'Subject'}</h2>
+              <h2 className="font-semibold text-[#5d78ff] text-sm uppercase tracking-wide">Enter Marks</h2>
             </div>
             
             <div className="overflow-x-auto p-0">
@@ -159,7 +208,7 @@ const EnterMarks = () => {
             {students.length > 0 && (
               <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
                 <button 
-                  onClick={() => alert('Marks saved successfully!')}
+                  onClick={handleSaveMarks}
                   className="bg-[#5d78ff] hover:bg-[#4b65e6] text-white font-medium px-6 py-2 rounded transition-colors shadow-sm"
                 >
                   Save Marks

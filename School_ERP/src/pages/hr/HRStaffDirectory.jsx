@@ -46,9 +46,9 @@ export default function HRStaffDirectory() {
       if(res.data) {
         const mapped = res.data.map(s => ({
           id: s._id,
-          name: `${s.firstName} ${s.lastName || ''}`.trim(),
+          name: (s.fullName || `${s.firstName || ''} ${s.lastName || ''}`).trim() || 'Unknown',
           email: s.email || 'N/A',
-          role: s.role || 'Staff',
+          role: s.role?.name || (typeof s.role === 'string' ? s.role : 'Staff'),
           designation: s.designation || 'Staff',
           phone: s.phone || '-'
         }));

@@ -22,11 +22,11 @@ const register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'User already exists with this email or username' });
     }
 
-    // Find the role
+    // Find the role or auto-create it if it doesn't exist
     const selectedRoleName = roleName || 'Teacher'; // Default role
-    const role = await Role.findOne({ name: selectedRoleName });
+    let role = await Role.findOne({ name: selectedRoleName });
     if (!role) {
-      return res.status(400).json({ success: false, message: `Specified role '${selectedRoleName}' does not exist` });
+      role = await Role.create({ name: selectedRoleName, permissions: [], description: `Auto-generated ${selectedRoleName} role` });
     }
 
     // Create user

@@ -5,13 +5,7 @@ import { Wand2, Plus, Pencil, ArrowUpFromLine, Trash2, EyeOff, CheckCircle2, Fil
 export default function ReportCardSetups() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [setups, setSetups] = useState([
-    { id: 1, name: 'Multi Term Exam', template: 'CBSE Term-Wise Report Card', exams: ['% Term 1 (100%)', '% Term 2 (100%)', '% Term 3 (100%)', '% Term 4 (100%)'], published: false },
-    { id: 2, name: 'Single Chart Graphical', template: 'Marksheet Template KG1998', exams: ['% Term 1 (100%)'], published: false },
-    { id: 3, name: 'Single Term Exam', template: 'Pro | CBSE Term-Wise Professional Marksheet (Portrait)', exams: ['% Term 1 (100%)'], published: false },
-    { id: 4, name: 'Abc', template: 'CBSE Term-Wise Report Card', exams: ['% Term 4 (100%)', '% Term 1 (100%)'], published: false },
-    { id: 5, name: 'New Test Result', template: 'CBSE Term-Wise Report Card', exams: ['% New Exam Test (100%)'], published: false },
-  ]);
+  const [setups, setSetups] = useState([]);
 
   const togglePublish = (id) => {
     setSetups(setups.map(s => {

@@ -1,15 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Filter, X, Zap, DollarSign, List, Grid, Copy, FileSpreadsheet, 
   File, Printer, Columns, Search, HandCoins
 } from 'lucide-react';
-
-const studentsData = [
-  { id: 1, adm: 'YISADM202620260014', name: 'nn tt', class: 'Class VII (A)', due: 32800.00 },
-  { id: 2, adm: 'YISADM-054', name: 'Chhavi Desai', class: 'Class I (A)', due: 32000.00 },
-  { id: 3, adm: 'YISADM-018', name: 'Daksh Tiwari', class: 'Nursery (A)', due: 30800.00 },
-  { id: 4, adm: 'YISADM-019', name: 'Pihu Nair', class: 'Nursery (A)', due: 30800.00 },
-];
+import { accountantService } from '../api/accountantService';
 
 const ActionButton = ({ icon: Icon, label, primary = false, onClick }) => (
   <button 
@@ -32,6 +26,27 @@ const ToolbarButton = ({ label, icon: Icon }) => (
 );
 
 const CollectFees = () => {
+  const [studentsData, setStudentsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    accountantService.getDueFees()
+      .then(res => {
+         if (res.success && res.data) {
+           // map the backend due list gracefully to the frontend table format
+           setStudentsData(res.data.map(d => ({
+             id: d._id || d.student?._id,
+             adm: d.student?.admissionNo || 'NA',
+             name: `${d.student?.firstName || ''} ${d.student?.lastName || ''}`,
+             class: d.student?.class || 'N/A',
+             due: (d.amount || 0) - (d.amountPaid || 0)
+           })));
+         }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#ecf0f5] text-[#333] p-4 sm:p-6 font-sans">
       
@@ -139,8 +154,16 @@ const CollectFees = () => {
               </tr>
             </thead>
             <tbody className="text-[13px] text-[#333]">
-              {studentsData.map((student) => (
-                <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              {loading ? (
+                <tr>
+                   <td colSpan={5} className="py-10 text-center text-gray-500">Loading due lists...</td>
+                </tr>
+              ) : studentsData.length === 0 ? (
+                <tr>
+                   <td colSpan={5} className="py-10 text-center text-gray-500">No students with due fees found.</td>
+                </tr>
+              ) : studentsData.map((student, idx) => (
+                <tr key={student.id || idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-5 text-gray-600">{student.adm}</td>
                   <td className="py-4 px-5 border-l border-gray-100 text-gray-700">{student.name}</td>
                   <td className="py-4 px-5 border-l border-gray-100 text-gray-600">{student.class}</td>

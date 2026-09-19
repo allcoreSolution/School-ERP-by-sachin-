@@ -6,6 +6,7 @@ import {
   Calendar, FileText, Tags, Wallet, FileText as FileTextIcon, 
   Printer, Columns, ChevronDown, List, Grid, Plus, Edit, Trash2, X
 } from 'lucide-react';
+import { financeService } from '../../api/financeService';
 
 const Expense = () => {
   const navigate = useNavigate();
@@ -14,13 +15,31 @@ const Expense = () => {
   const [viewMode, setViewMode] = useState('list');
   const [editingRecord, setEditingRecord] = useState(null);
   
-  const initialData = [
-    { id: 1, name: 'Electricity Bill', head: 'Electricity Bill', headColor: 'bg-orange-50 text-orange-600', date: '21 Aug, 2026', amount: '₹ 15,000.00' },
-    { id: 2, name: 'School Advertisement Hoarding', head: 'Miscellaneous', headColor: 'bg-yellow-50 text-yellow-600', date: '12 Aug, 2026', amount: '₹ 35,000.00' },
-    { id: 3, name: 'Miscellaneous', head: 'Miscellaneous', headColor: 'bg-yellow-50 text-yellow-600', date: '26 Feb, 2026', amount: '₹ 50,000.00' },
-  ];
+  const [expenseData, setExpenseData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [expenseData, setExpenseData] = useState(initialData);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await financeService.getExpenses();
+        const data = (res.data || []).map(exp => ({
+           id: exp._id,
+           name: exp.name || exp.description || 'Unknown Expense',
+           head: exp.expenseHead?.name || '—',
+           headColor: 'bg-orange-50 text-orange-600',
+           date: new Date(exp.date || exp.createdAt).toLocaleDateString(),
+           amount: `₹ ${exp.amount || 0}`
+        }));
+        setExpenseData(data);
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Filtering Logic
   const filteredData = useMemo(() => {
@@ -35,10 +54,15 @@ const Expense = () => {
     }).slice(0, showCount);
   }, [expenseData, searchTerm, showCount]);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
-      setExpenseData(prev => prev.filter(item => item.id !== id));
-      alert("Record deleted successfully!");
+      try {
+        await financeService.deleteExpense(id);
+        setExpenseData(prev => prev.filter(item => item.id !== id));
+        alert("Record deleted successfully!");
+      } catch (err) {
+        alert("Error deleting record");
+      }
     }
   };
 
@@ -210,7 +234,11 @@ const Expense = () => {
                 </tr>
               </thead>
               <tbody className="text-[13px]">
-                {filteredData.length > 0 ? (
+                {loading ? (
+                  <tr className="print:hidden">
+                    <td colSpan="6" className="p-6 text-center text-gray-500">Loading records...</td>
+                  </tr>
+                ) : filteredData.length > 0 ? (
                   filteredData.map((row, index) => (
                     <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors print:border-gray-300">
                       <td className="p-4 border-r border-gray-100 text-center text-gray-500 print:border-gray-300">{index + 1}</td>
@@ -239,7 +267,9 @@ const Expense = () => {
             </table>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 print:block">
-              {filteredData.length > 0 ? (
+              {loading ? (
+                <div className="col-span-full p-6 text-center text-gray-500 bg-white rounded-none border border-gray-200">Loading records...</div>
+              ) : filteredData.length > 0 ? (
                 filteredData.map(row => (
                   <div key={row.id} className="bg-white border border-gray-200 rounded-none p-4 shadow-sm hover:shadow-md transition-shadow print:mb-4 print:break-inside-avoid">
                     <div className="flex justify-between items-start mb-3">

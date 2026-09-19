@@ -1,25 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FileText, ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react';
-
-const installRows = [
-  {type: '1st Installment Fees', due: '05 Jan 26, 12:00 AM', amount: 5000, paid: 5000},
-  {type: '2nd Installment Fees', due: '05 Apr 26, 12:00 AM', amount: 5000, paid: 5000},
-  {type: '3rd Installment Fees', due: '05 Aug 26, 12:00 AM', amount: 5000, paid: 5000},
-  {type: '4th Installment Fees', due: '05 Dec 26, 12:00 AM', amount: 5000, paid: 5000},
-];
-
-const admRows = [
-  {type: 'Admission Fee', due: '05 Jan 26, 12:00 AM', amount: 1000, paid: 1000},
-];
-
-const trans1Rows = [
-  {type: 'Transport Fee', due: '05 Feb 26, 12:00 AM', amount: 300, paid: 300},
-];
-
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const transMonthlyRows = months.map(m => ({
-  type: 'Transport Fee', due: `10 ${m} 26, 12:00 AM`, amount: 1000, paid: 1000
-}));
+import { financeService } from '../../api/financeService';
+import { authService } from '../../api/authService';
 
 const InvoiceTable = ({ title, status, rows }) => {
   const totalAmount = rows.reduce((acc, r) => acc + r.amount, 0);
@@ -79,9 +61,30 @@ const InvoiceTable = ({ title, status, rows }) => {
 };
 
 export default function FeePayments() {
+  const [assignments, setAssignments] = useState([]);
+  const [totals, setTotals] = useState({ assigned: 0, paid: 0, due: 0 });
+  const user = authService.getCurrentUser();
+
+  useEffect(() => {
+    if (user?._id) {
+       financeService.getFeeAssignments(user._id).then(res => {
+         if (res.success && res.data) {
+            // Aggregate totals from API 
+            // In a real flow, you combine Collections with Assignments.
+            setAssignments(res.data);
+            setTotals({
+              assigned: res.data.reduce((acc, val) => acc + (val.amount || 0), 0),
+              paid: res.data.reduce((acc, val) => acc + (val.amountPaid || 0), 0),
+              due: res.data.reduce((acc, val) => acc + ((val.amount || 0) - (val.amountPaid || 0)), 0),
+            });
+         }
+       }).catch(console.error);
+    }
+  }, [user]);
+
   return (
     <div className="p-4 md:p-6 max-w-[1240px] mx-auto space-y-6">
-      <h1 className="text-[22px] font-bold text-[#1f2937] tracking-tight">Fee Invoices for Rajesh Singh</h1>
+      <h1 className="text-[22px] font-bold text-[#1f2937] tracking-tight">Fee Invoices for {user?.firstName || 'Student'}</h1>
       
       {/* 4 Summary Cards - SQUARE (rounded-none) as requested */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -91,8 +94,8 @@ export default function FeePayments() {
              <FileText className="w-5 h-5 text-white" />
           </div>
           <div className="relative z-10 w-full overflow-hidden">
-             <h3 className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-90 truncate">Total Assigned</h3>
-             <p className="text-[19px] font-extrabold leading-tight tracking-tight">₹ 33,300.00</p>
+              <h3 className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-90 truncate">Total Assigned</h3>
+             <p className="text-[19px] font-extrabold leading-tight tracking-tight">₹ {totals.assigned.toLocaleString()}</p>
              <p className="text-[10px] opacity-80 mt-1 truncate">Overall lifetime billed</p>
           </div>
         </div>
@@ -104,7 +107,7 @@ export default function FeePayments() {
           </div>
           <div className="relative z-10 w-full overflow-hidden">
              <h3 className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-90 truncate">Total Paid</h3>
-             <p className="text-[19px] font-extrabold leading-tight tracking-tight">+ ₹ 33,300.00</p>
+             <p className="text-[19px] font-extrabold leading-tight tracking-tight">+ ₹ {totals.paid.toLocaleString()}</p>
              <p className="text-[10px] opacity-80 mt-1 truncate">Successful receipts</p>
           </div>
         </div>
@@ -116,7 +119,7 @@ export default function FeePayments() {
           </div>
           <div className="relative z-10 w-full overflow-hidden">
              <h3 className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-90 truncate">Due Balance</h3>
-             <p className="text-[19px] font-extrabold leading-tight tracking-tight">- ₹ 0.00</p>
+             <p className="text-[19px] font-extrabold leading-tight tracking-tight">- ₹ {totals.due.toLocaleString()}</p>
              <p className="text-[10px] opacity-80 mt-1 truncate">Pending clearance</p>
           </div>
         </div>
@@ -135,10 +138,25 @@ export default function FeePayments() {
       </div>
 
       <div className="space-y-6 pt-2">
-        <InvoiceTable title="4th Installment Fees 2026-2027" status="Paid" rows={installRows} />
-        <InvoiceTable title="Admission Fees 2026-2027" status="Paid" rows={admRows} />
-        <InvoiceTable title="Transport 300 2026-2027" status="Paid" rows={trans1Rows} />
-        <InvoiceTable title="Transport Fee Monthly" status="Paid" rows={transMonthlyRows} />
+         {assignments.length > 0 ? (
+           assignments.map((a, i) => (
+             <InvoiceTable 
+                key={i} 
+                title={a.feeType?.feeType || 'Fee Invoice'} 
+                status={a.amountPaid >= a.amount ? 'Paid' : 'Pending'} 
+                rows={[{
+                   type: a.feeType?.feeType || 'General Fee',
+                   due: new Date(a.dueDate).toLocaleDateString(),
+                   amount: a.amount,
+                   paid: a.amountPaid || 0
+                }]} 
+             />
+           ))
+         ) : (
+           <div className="p-10 text-center text-gray-500 font-bold bg-white border border-gray-200">
+              No bills or invoices issued yet.
+           </div>
+         )}
       </div>
       <div className="h-4"></div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   Plus, 
   HelpCircle, 
@@ -139,40 +139,45 @@ export default function RolesPermissions() {
   // Current view: "list" | "add" | "edit"
   const [view, setView] = useState("list");
 
-  // State to manage list of roles
-  const [roles, setRoles] = useState([
-    { id: 1, name: "Social", permissions: { academics: 13, accounts: 1, exams: 2, ptm: 2, student: 20 } },
-    { id: 2, name: "Jr. Teacher", permissions: { academics: 13, exams: 2, student: 20 } },
-    { id: 3, name: "Senior Teacher", permissions: { academics: 13, exams: 2, student: 20 } },
-    { id: 4, name: "Copy & drawing", permissions: { academics: 13, exams: 2, student: 20 } },
-    { id: 5, name: "EVS", permissions: { academics: 13, student: 20 } },
-    { id: 6, name: "English & E V S", permissions: { academics: 13, student: 20 } },
-    { id: 7, name: "UKG", permissions: { academics: 13, exams: 2, student: 20 } },
-    { id: 8, name: "LKG", permissions: { academics: 13, student: 20 } },
-    { id: 9, name: "Nursery", permissions: { academics: 13, student: 20 } }
-  ]);
+  // State to manage list of roles — fetched from API
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setRolesLoading(true);
+        // TODO: Replace with actual API call e.g. rolesService.getRoles()
+        // const res = await axiosInstance.get('/roles');
+        // setRoles(res.data || []);
+      } catch (err) {
+        console.error('Failed to load roles:', err);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   // Form active state
   const [editingRole, setEditingRole] = useState(null);
   const [roleName, setRoleName] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
 
+  // Build accordion initial state dynamically from ALL_PERMISSIONS_MODULES
+  const initialAccordions = ALL_PERMISSIONS_MODULES.reduce((acc, mod) => {
+    acc[mod.key] = true;
+    return acc;
+  }, {});
+
   // Keep track of accordion expand states: key -> boolean
-  const [accordions, setAccordions] = useState({
-    academics: true,
-    student: true,
-    fees: true,
-    exams: true,
-    certificates: true,
-    communicate: true,
-    hr: true
-  });
+  const [accordions, setAccordions] = useState(initialAccordions);
 
   // Track checked permission slug strings: Set of slugs
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
 
-  // Count total permissions in the system (219 mock total count)
-  const TOTAL_SYSTEM_PERMS = 219;
+  // Count total permissions dynamically from the module list
+  const TOTAL_SYSTEM_PERMS = ALL_PERMISSIONS_MODULES.reduce((sum, mod) => sum + mod.permissions.length, 0);
 
   // Toggle single permission checked state
   const handleTogglePermission = (slug) => {
@@ -207,15 +212,11 @@ export default function RolesPermissions() {
 
   // Expand / Collapse all accordions
   const handleToggleAllAccordions = (expand) => {
-    setAccordions({
-      academics: expand,
-      student: expand,
-      fees: expand,
-      exams: expand,
-      certificates: expand,
-      communicate: expand,
-      hr: expand
-    });
+    const next = ALL_PERMISSIONS_MODULES.reduce((acc, mod) => {
+      acc[mod.key] = expand;
+      return acc;
+    }, {});
+    setAccordions(next);
   };
 
   const handleAddRoleClick = () => {
@@ -228,24 +229,10 @@ export default function RolesPermissions() {
   const handleEditRoleClick = (role) => {
     setEditingRole(role);
     setRoleName(role.name);
-    
-    // Auto-check permissions according to mock numbers
-    const prefill = new Set();
-    
-    // Fill pre-selected items to make it look active
-    if (role.permissions.academics) {
-      ALL_PERMISSIONS_MODULES.find(m => m.key === "academics").permissions.forEach(p => prefill.add(p.slug));
-    }
-    if (role.permissions.student) {
-      ALL_PERMISSIONS_MODULES.find(m => m.key === "student").permissions.forEach(p => prefill.add(p.slug));
-    }
-    if (role.permissions.exams) {
-      ALL_PERMISSIONS_MODULES.find(m => m.key === "exams").permissions.forEach(p => prefill.add(p.slug));
-    }
-    if (role.permissions.fees) {
-      ALL_PERMISSIONS_MODULES.find(m => m.key === "fees").permissions.forEach(p => prefill.add(p.slug));
-    }
-    
+
+    // Pre-fill permissions from the role's stored slugs array (from API)
+    // role.permissionSlugs is expected to be string[] e.g. ['academics.manage', ...]
+    const prefill = new Set(role.permissionSlugs || []);
     setSelectedPermissions(prefill);
     setView("edit");
   };
@@ -273,18 +260,20 @@ export default function RolesPermissions() {
     });
 
     if (editingRole) {
-      // Edit mode
-      setRoles(roles.map(r => r.id === editingRole.id ? { ...r, name: roleName, permissions: moduleCounts } : r));
-      alert("Role permissions updated successfully!");
+      // Edit mode — update local state; TODO: call API PATCH /roles/:id
+      setRoles(roles.map(r => r.id === editingRole.id
+        ? { ...r, name: roleName, moduleCounts, permissionSlugs: Array.from(selectedPermissions) }
+        : r
+      ));
     } else {
-      // Add mode
+      // Add mode — update local state; TODO: call API POST /roles
       const newRole = {
-        id: roles.length + 1,
+        id: Date.now(),
         name: roleName,
-        permissions: moduleCounts
+        moduleCounts,
+        permissionSlugs: Array.from(selectedPermissions)
       };
-      setRoles([...roles, newRole]);
-      alert("New Role created successfully!");
+      setRoles(prev => [...prev, newRole]);
     }
 
     setView("list");
@@ -348,60 +337,32 @@ export default function RolesPermissions() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-650 font-medium">
-                {roles.map((role) => (
+                {rolesLoading ? (
+                  <tr>
+                    <td colSpan="3" className="py-8 text-center text-slate-400 font-semibold">Loading roles...</td>
+                  </tr>
+                ) : roles.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="py-8 text-center text-slate-400">No roles found. Click "Add New Role" to create one.</td>
+                  </tr>
+                ) : roles.map((role) => (
                   <tr key={role.id} className="hover:bg-slate-50/30 transition-colors">
-                    
+
                     {/* Role name */}
                     <td className="py-4 px-5 border-r border-slate-100 font-bold text-slate-800">{role.name}</td>
-                    
-                    {/* Permissions pill list */}
+
+                    {/* Permissions pill list — dynamic from role.moduleCounts or permissionSlugs */}
                     <td className="py-4 px-5 border-r border-slate-100">
                       <div className="flex flex-wrap gap-1.5">
-                        {role.permissions.academics && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Academics {role.permissions.academics}
-                          </span>
-                        )}
-                        {role.permissions.student && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Student {role.permissions.student}
-                          </span>
-                        )}
-                        {role.permissions.fees && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Fees {role.permissions.fees}
-                          </span>
-                        )}
-                        {role.permissions.exams && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Examinations {role.permissions.exams}
-                          </span>
-                        )}
-                        {role.permissions.certificates && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Certificates {role.permissions.certificates}
-                          </span>
-                        )}
-                        {role.permissions.communicate && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Communicate {role.permissions.communicate}
-                          </span>
-                        )}
-                        {role.permissions.hr && (
-                          <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                            Human Resource {role.permissions.hr}
-                          </span>
-                        )}
-                        {/* Static mockup accounts/ptm tags for matching exactly */}
-                        {role.name === "Social" && (
-                          <>
-                            <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                              Accounts 1
+                        {role.moduleCounts && Object.entries(role.moduleCounts).map(([moduleKey, count]) => (
+                          count > 0 && (
+                            <span key={moduleKey} className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
+                              {ALL_PERMISSIONS_MODULES.find(m => m.key === moduleKey)?.name || moduleKey} {count}
                             </span>
-                            <span className="px-2 py-0.5 border border-slate-200 rounded-none text-[10px] text-slate-600 font-semibold bg-white">
-                              PTM 2
-                            </span>
-                          </>
+                          )
+                        ))}
+                        {(!role.moduleCounts || Object.keys(role.moduleCounts).length === 0) && (
+                          <span className="text-slate-400 text-[10px] italic">No permissions assigned</span>
                         )}
                       </div>
                     </td>

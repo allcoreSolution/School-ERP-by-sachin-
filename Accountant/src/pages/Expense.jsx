@@ -1,13 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Gauge, BookOpen, ArrowDown, ArrowUp, FileSearch, Network, Tag, Building2,
   Plus, List, Grid, Copy, FileSpreadsheet, File, Printer, Columns, Search, Edit, Trash2
 } from 'lucide-react';
-
-const expenseData = [
-  { id: 1, name: 'Miscellaneous', head: 'Miscellaneous', date: '26 Feb, 2026', amount: 50000 },
-];
+import { accountantService } from '../api/accountantService';
 
 const ToolbarButton = ({ label, icon: Icon }) => (
   <button className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 text-[13px] bg-white hover:bg-gray-50 transition-colors">
@@ -17,6 +14,27 @@ const ToolbarButton = ({ label, icon: Icon }) => (
 );
 
 const Expense = () => {
+  const [expenseData, setExpenseData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    accountantService.getExpenses()
+      .then(res => {
+         if (res.success && res.data) {
+           setExpenseData(res.data.map(d => ({
+             id: d._id,
+             name: d.name || 'Expense',
+             head: d.expenseHead?.headName || 'General',
+             date: new Date(d.date).toLocaleDateString(),
+             amount: d.amount || 0
+           })));
+         }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#ecf0f5] text-[#333] p-4 sm:p-6 font-sans">
       
@@ -49,7 +67,7 @@ const Expense = () => {
       </div>
 
       <div className="flex flex-col md:flex-row justify-end items-end md:items-center mb-6 gap-2 w-full">
-        <button className="flex items-center gap-2 px-4 py-1.5 rounded-[3px] border border-[#5a52d7] bg-[#5a52d7] text-white font-semibold text-[13px] hover:bg-[#4a42c0] shadow-sm">
+        <button onClick={() => navigate('/accounts/add-expense')} className="flex items-center gap-2 px-4 py-1.5 rounded-[3px] border border-[#5a52d7] bg-[#5a52d7] text-white font-semibold text-[13px] hover:bg-[#4a42c0] shadow-sm">
           <Plus className="w-4 h-4" />
           Add New Expense
         </button>
@@ -114,7 +132,11 @@ const Expense = () => {
               </tr>
             </thead>
             <tbody className="text-[13px] text-[#333]">
-              {expenseData.map((expense, i) => (
+              {loading ? (
+                 <tr><td colSpan={6} className="py-10 text-center text-gray-500">Loading expenses...</td></tr>
+              ) : expenseData.length === 0 ? (
+                 <tr><td colSpan={6} className="py-10 text-center text-gray-500">No recent expenses found.</td></tr>
+              ) : expenseData.map((expense, i) => (
                 <tr key={expense.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-5 text-center text-gray-500">{i + 1}</td>
                   <td className="py-4 px-5 border-l border-gray-100 font-medium text-gray-700">{expense.name}</td>

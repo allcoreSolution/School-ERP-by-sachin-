@@ -1,25 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { academicService } from '../../api/academicService';
+import { studentService } from '../../api/studentService';
 
 export default function GenerateMarksheet() {
   const navigate = useNavigate();
   const [showStudents, setShowStudents] = useState(false);
   const [archiveTrace, setArchiveTrace] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const students = [
-    { roll: 1, adm: 'YISADM-021', name: 'Dhruv Agarwal' },
-    { roll: 2, adm: 'YISADM-022', name: 'Prisha Iyer' },
-    { roll: 3, adm: 'YISADM-023', name: 'Jay Mehta' },
-    { roll: 4, adm: 'YISADM-024', name: 'Riya Das' },
-    { roll: 5, adm: 'YISADM-025', name: 'Karan Shukla' },
-    { roll: 6, adm: 'YISADM-026', name: 'Saanvi Bhatt' },
-    { roll: 7, adm: 'YISADM-027', name: 'Laksh Chaudhary' },
-    { roll: 8, adm: 'YISADM-028', name: 'Samaira Ali' },
-    { roll: 9, adm: 'YISADM-029', name: 'Neel Saxena' },
-  ];
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [students, setStudents] = useState([]);
 
-  const handleSearch = () => {
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  
+  useEffect(() => {
+    academicService.getClasses().then(res => setClasses(res.data || [])).catch(console.error);
+    academicService.getSections().then(res => setSections(res.data || [])).catch(console.error);
+  }, []);
+
+  const handleSearch = async () => {
+    if(!selectedClass || !selectedSection) {
+       alert("Please select class and section tools!");
+       return;
+    }
     setShowStudents(true);
+    setLoading(true);
+    try {
+      const res = await studentService.getStudents({ class: selectedClass, section: selectedSection });
+      setStudents(res.data || []);
+    } catch(err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,18 +62,16 @@ export default function GenerateMarksheet() {
             </div>
             <div className="flex-1 min-w-[150px] space-y-1">
               <label className="text-xs font-bold text-slate-800">Class</label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded-none text-sm text-slate-700 focus:outline-none focus:border-[#007bff] bg-white">
+              <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-none text-sm text-slate-700 focus:outline-none focus:border-[#007bff] bg-white">
                 <option value="">Select Class</option>
-                <option value="6">Class 6th</option>
-                <option value="7">Class 7th</option>
+                {classes.map(c => <option key={c._id} value={c._id}>{c.className}</option>)}
               </select>
             </div>
             <div className="flex-1 min-w-[150px] space-y-1">
               <label className="text-xs font-bold text-slate-800">Section</label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded-none text-sm text-slate-700 focus:outline-none focus:border-[#007bff] bg-white">
-                <option value="">-- Select Class First --</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
+              <select value={selectedSection} onChange={e => setSelectedSection(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-none text-sm text-slate-700 focus:outline-none focus:border-[#007bff] bg-white">
+                <option value="">-- Select Section --</option>
+                {sections.map(s => <option key={s._id} value={s._id}>{s.name || s.sectionName}</option>)}
               </select>
             </div>
             <div className="flex-1 min-w-[200px] space-y-1">
@@ -70,9 +84,10 @@ export default function GenerateMarksheet() {
             <div className="shrink-0">
               <button 
                 onClick={handleSearch}
+                disabled={loading}
                 className="px-6 py-2 bg-[#fd7e14] hover:bg-[#e86e10] text-white font-bold text-sm rounded-none shadow-sm transition-colors cursor-pointer border-none h-[38px]"
               >
-                Search
+                {loading ? 'Searching...' : 'Search'}
               </button>
             </div>
           </div>
@@ -140,14 +155,17 @@ export default function GenerateMarksheet() {
                   </tr>
                 </thead>
                 <tbody className="text-sm">
+                  {students.length === 0 && (
+                    <tr><td colSpan="4" className="py-8 text-center text-slate-500 font-semibold">No students found.</td></tr>
+                  )}
                   {students.map((student) => (
-                    <tr key={student.roll} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 px-4 text-slate-700 border-r border-slate-200">{student.roll}</td>
-                      <td className="py-2.5 px-4 text-slate-700 border-r border-slate-200">{student.adm}</td>
-                      <td className="py-2.5 px-4 font-bold text-slate-700 border-r border-slate-200">{student.name}</td>
+                    <tr key={student._id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                      <td className="py-2.5 px-4 text-slate-700 border-r border-slate-200">{student.rollNumber || '--'}</td>
+                      <td className="py-2.5 px-4 text-slate-700 border-r border-slate-200">{student.admissionNo || '--'}</td>
+                      <td className="py-2.5 px-4 font-bold text-slate-700 border-r border-slate-200">{student.firstName} {student.lastName}</td>
                       <td className="py-2.5 px-4 text-center">
                         <button 
-                          onClick={() => navigate(`/offline-exams/report-card-view?student=${encodeURIComponent(student.name)}`)}
+                          onClick={() => navigate(`/offline-exams/report-card-view?studentId=${student._id}`)}
                           className="px-4 py-1.5 bg-[#28a745] hover:bg-[#218838] text-white font-bold text-xs rounded-none transition-colors cursor-pointer border-none shadow-sm"
                         >
                           Generate Report Card

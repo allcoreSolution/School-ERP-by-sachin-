@@ -5,18 +5,7 @@ import {
   Filter, LayoutList
 } from 'lucide-react';
 
-const mockData = [
-  { id: 1, date: '23 Aug 2026', name: 'Shivam Sharma', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-4444', in: '05:35 AM', out: '05:45 AM', duration: '0h 9m', status: 'Present' },
-  { id: 2, date: '23 Aug 2026', name: 'M', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-26-27-2026-0017', in: '05:32 AM', out: '—', duration: '—', status: 'Present' },
-  { id: 3, date: '23 Aug 2026', name: 'Zara Sheikh', type: 'Student', classDesig: 'Nursery - B', admStaffId: 'YISADM-040', in: '05:32 AM', out: '05:55 AM', duration: '0h 23m', status: 'Present' },
-  { id: 4, date: '23 Aug 2026', name: 'Darsh Jain', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-016', in: '05:24 AM', out: '—', duration: '—', status: 'Present' },
-  { id: 5, date: '23 Aug 2026', name: 'Krish Yadav', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-012', in: '05:24 AM', out: '—', duration: '—', status: 'Present' },
-  { id: 6, date: '23 Aug 2026', name: 'Myra Khan', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-013', in: '05:24 AM', out: '—', duration: '—', status: 'Present' },
-  { id: 7, date: '23 Aug 2026', name: 'Aaryan Rao', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-014', in: '05:23 AM', out: '05:23 AM', duration: '0h 0m', status: 'Present' },
-  { id: 8, date: '23 Aug 2026', name: 'Shaurya Mishra', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-008', in: '05:12 AM', out: '—', duration: '—', status: 'Present' },
-  { id: 9, date: '23 Aug 2026', name: 'Ishaan Gupta', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-006', in: '05:11 AM', out: '—', duration: '—', status: 'Present' },
-  { id: 10, date: '23 Aug 2026', name: 'Kabir Singh', type: 'Student', classDesig: 'Nursery - A', admStaffId: 'YISADM-004', in: '04:54 AM', out: '—', duration: '—', status: 'Present' },
-];
+import { attendanceService } from '../../api/attendanceService';
 
 export default function QRAttendanceReport() {
   const [fromDate, setFromDate] = useState('2026-08-23');
@@ -24,10 +13,29 @@ export default function QRAttendanceReport() {
   const [filterType, setFilterType] = useState('All');
   const [filterStatus, setFilterStatus] = useState('Any');
   const [searchQuery, setSearchQuery] = useState('');
+  const [logData, setLogData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        setLoading(true);
+        const res = await attendanceService.getQRAttendanceReport({ fromDate, toDate });
+        if (res.success && res.data) {
+          setLogData(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching QR report:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [fromDate, toDate]);
 
   // Filtering Logic
   const filteredData = useMemo(() => {
-    return mockData.filter(row => {
+    return logData.filter(row => {
       const matchType = filterType === 'All' || row.type === filterType;
       const matchStatus = filterStatus === 'Any' || row.status === filterStatus;
       const matchSearch = row.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -70,7 +78,7 @@ export default function QRAttendanceReport() {
               <LayoutList className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-lg font-black text-slate-800 leading-tight">10</div>
+              <div className="text-lg font-black text-slate-800 leading-tight">0</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total Scans</div>
             </div>
           </div>
@@ -80,7 +88,7 @@ export default function QRAttendanceReport() {
               <Users className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-lg font-black text-slate-800 leading-tight">10</div>
+              <div className="text-lg font-black text-slate-800 leading-tight">0</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Students</div>
             </div>
           </div>
@@ -100,7 +108,7 @@ export default function QRAttendanceReport() {
               <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-lg font-black text-slate-800 leading-tight">10</div>
+              <div className="text-lg font-black text-slate-800 leading-tight">0</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Present</div>
             </div>
           </div>
@@ -120,7 +128,7 @@ export default function QRAttendanceReport() {
               <ArrowLeftRight className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-lg font-black text-slate-800 leading-tight">3</div>
+              <div className="text-lg font-black text-slate-800 leading-tight">0</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">In & Out</div>
             </div>
           </div>
@@ -211,7 +219,11 @@ export default function QRAttendanceReport() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                {filteredData.length > 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan="9" className="py-8 text-center text-slate-500 font-medium">Loading report data...</td>
+                  </tr>
+                ) : filteredData.length > 0 ? (
                   filteredData.map((row) => (
                     <tr key={row.id} className="hover:bg-slate-50/50">
                       <td className="py-3.5 px-4 border-r border-slate-100 text-slate-500 font-medium">{row.date}</td>

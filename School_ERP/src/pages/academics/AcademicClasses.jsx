@@ -6,6 +6,7 @@ import {
   Clock, Calendar, Briefcase, Plus, List, Grid, Search, 
   FileText, Download, Printer, Edit, Trash2, ArrowUpDown, DownloadCloud
 } from 'lucide-react';
+import { academicService } from '../../api/academicService';
 
 const AcademicClasses = () => {
   const navigate = useNavigate();
@@ -25,18 +26,31 @@ const AcademicClasses = () => {
     { name: 'Manage Periods', icon: Clock, path: '/academics/manage-periods' },
   ];
 
-  const [classesList, setClassesList] = useState([
-    { id: 1, name: 'Nursery', coordinator: 'Amit Sharma', enrolled: 28 },
-    { id: 2, name: 'KG', coordinator: 'Amit Sharma', enrolled: 0 },
-    { id: 3, name: 'Class I', coordinator: 'Amit Sharma', enrolled: 42 },
-    { id: 4, name: 'Class II', coordinator: '-', enrolled: 24 },
-    { id: 5, name: 'Class III', coordinator: '-', enrolled: 20 },
-    { id: 6, name: 'Class IV', coordinator: '-', enrolled: 19 },
-    { id: 7, name: 'Class V', coordinator: '-', enrolled: 20 },
-    { id: 8, name: 'Class VI', coordinator: '-', enrolled: 20 },
-    { id: 9, name: 'Class VII', coordinator: 'Amit Sharma', enrolled: 20 },
-    { id: 10, name: 'Class VIII', coordinator: 'Amit Sharma', enrolled: 20 },
-  ]);
+  const [classesList, setClassesList] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        setLoading(true);
+        const res = await academicService.getClasses();
+        if (res.data) {
+          const mappedArray = res.data.map((c, index) => ({
+            id: c._id || index + 1,
+            name: c.className,
+            coordinator: c.classTeacher ? (c.classTeacher.firstName + ' ' + (c.classTeacher.lastName || '')).trim() : '-',
+            enrolled: 0 // Mock for now
+          }));
+          setClassesList(mappedArray);
+        }
+      } catch (error) {
+        console.error("Failed to fetch classes", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   const filteredClasses = classesList.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -185,7 +199,11 @@ const AcademicClasses = () => {
                   </tr>
                 </thead>
                 <tbody className="text-[13px] text-gray-700">
-                  {filteredClasses.map((c) => (
+                  {loading ? (
+                    <tr><td colSpan="5" className="px-5 py-8 text-center text-gray-500 font-medium">Loading classes...</td></tr>
+                  ) : filteredClasses.length === 0 ? (
+                    <tr><td colSpan="5" className="px-5 py-8 text-center text-gray-500 font-medium">No classes found.</td></tr>
+                  ) : filteredClasses.map((c) => (
                     <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="px-5 py-3 border-r border-gray-100 text-center text-[#5F52FF] font-bold">{c.id}</td>
                       <td className="px-5 py-3 border-r border-gray-100 font-bold text-gray-800">{c.name}</td>
@@ -213,7 +231,11 @@ const AcademicClasses = () => {
               </table>
             ) : (
               <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredClasses.map(c => (
+                {loading ? (
+                  <div className="col-span-full py-8 text-center text-gray-500 font-medium">Loading classes...</div>
+                ) : filteredClasses.length === 0 ? (
+                  <div className="col-span-full py-8 text-center text-gray-500 font-medium">No classes found.</div>
+                ) : filteredClasses.map(c => (
                   <div key={c.id} className="border border-gray-200 rounded-none p-5 hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-bold text-[#1a1a2e] text-lg">{c.name}</h3>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -24,6 +24,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('SuperAdmin API Call Error: ', error.response || error.message);
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('superadmin_token');
+      localStorage.removeItem('superadmin_user');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );

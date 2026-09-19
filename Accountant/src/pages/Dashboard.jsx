@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { accountantService } from '../api/accountantService';
 import { 
   ArrowDownToLine, ArrowUpFromLine, Calendar, Wallet, 
   Printer, ArrowDown, ArrowUp, BarChart, Calendar as CalendarIcon,
@@ -8,26 +9,6 @@ import {
 } from 'lucide-react';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Sep 25', income: 0, expense: 0 },
-  { name: 'Feb 26', income: 500000, expense: 50000 },
-  { name: 'Mar 26', income: 120000, expense: 10000 },
-  { name: 'Apr 26', income: 120000, expense: 5000 },
-  { name: 'May 26', income: 280000, expense: 10000 },
-  { name: 'Jun 26', income: 20000, expense: 5000 },
-  { name: 'Jul 26', income: 130000, expense: 0 },
-  { name: 'Aug 26', income: 1107503.83, expense: 50000 },
-];
-
-const vouchers = [
-  { id: 'RCT/26-27/0139', type: 'Receipt', date: '21 Aug 2026', amount: '₹5,360.00' },
-  { id: 'RCT/26-27/0138', type: 'Receipt', date: '21 Aug 2026', amount: '₹2,000.00' },
-  { id: 'RCT/26-27/0137', type: 'Receipt', date: '21 Aug 2026', amount: '₹4,950.00' },
-  { id: 'RCT/26-27/0136', type: 'Receipt', date: '21 Aug 2026', amount: '₹10,000.00' },
-  { id: 'RCT/26-27/0135', type: 'Receipt', date: '21 Aug 2026', amount: '₹105,000.00' },
-  { id: 'PMT/26-27/0004', type: 'Payment', date: '21 Aug 2026', amount: '₹15,000.00' },
-  { id: 'PMT/26-27/0003', type: 'Payment', date: '21 Aug 2026', amount: '₹150,000.00' },
-];
 
 import Swal from 'sweetalert2';
 
@@ -50,6 +31,22 @@ const ClassicStatCard = ({ title, subTitle, value, bgColor, icon: Icon }) => {
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('General');
+  const [stats, setStats] = useState({
+    collectedToday: 0,
+    incomeMonth: 0,
+    expenseMonth: 0,
+    cashBankBalance: 0,
+    chartData: [],
+    recentVouchers: []
+  });
+
+  useEffect(() => {
+    accountantService.getDashboardStats().then(res => {
+      if (res.success && res.data) {
+        setStats(res.data);
+      }
+    }).catch(console.error);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#ecf0f5] text-[#333] p-4 font-sans pb-16">
@@ -65,26 +62,26 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <ClassicStatCard 
           title="Collected Today" 
-          value="₹151,310" 
+          value={`₹${stats.collectedToday.toLocaleString()}`} 
           icon={Printer} 
           bgColor="bg-[#00a65a]" 
         />
         <ClassicStatCard 
           title="Income This Month" 
           subTitle="(All Years)"
-          value="₹1,107,503" 
+          value={`₹${stats.incomeMonth.toLocaleString()}`} 
           icon={ArrowDown} 
           bgColor="bg-[#dd4b39]" 
         />
         <ClassicStatCard 
           title="Expense This Month" 
-          value="₹50,000" 
+          value={`₹${stats.expenseMonth.toLocaleString()}`} 
           icon={ArrowUp} 
           bgColor="bg-[#00c0ef]" 
         />
         <ClassicStatCard 
           title="Cash & Bank Balance" 
-          value="₹989,503" 
+          value={`₹${stats.cashBankBalance.toLocaleString()}`} 
           icon={Wallet} 
           bgColor="bg-[#f39c12]" 
         />
@@ -213,7 +210,7 @@ const Dashboard = () => {
               </div>
               <div className="bg-white border border-[#e0e0e0] border-t-0 p-4 h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RechartsBarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={30}>
+                  <RechartsBarChart data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={30}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 13, fill: '#666' }} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} tickFormatter={(val) => val/1000 + 'k'} />
@@ -234,7 +231,9 @@ const Dashboard = () => {
                   <Link to="/accounts/day-book" className="text-xs text-[#3c8dbc] hover:underline">View All</Link>
                 </div>
                 <div className="h-[350px] overflow-y-auto w-full p-3 bg-white">
-                  {vouchers.map((v, i) => (
+                  {stats.recentVouchers.length === 0 ? (
+                    <div className="text-gray-400 text-center py-6 text-sm flex items-center justify-center h-full">No vouchers available</div>
+                  ) : stats.recentVouchers.map((v, i) => (
                     <div key={i} className="flex justify-between items-center p-3 mb-2 bg-[#fdfdfd] border-l-[3px] border-[#3c8dbc] border border-y-[#e0e0e0] border-r-[#e0e0e0] shadow-sm hover:bg-[#f8f9fa]">
                       <div>
                         <div className="flex items-center gap-2 mb-1">

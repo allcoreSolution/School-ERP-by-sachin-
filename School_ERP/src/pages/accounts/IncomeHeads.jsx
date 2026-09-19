@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import AccountsTabs from '../../components/accounts/AccountsTabs';
 import { Link } from 'react-router-dom';
 import { 
@@ -6,6 +6,7 @@ import {
   Calendar, FileText, Tags, Wallet, FileText as FileTextIcon, 
   Printer, Columns, ChevronDown, List, Grid, Plus, Edit, Trash2, X
 } from 'lucide-react';
+import { financeService } from '../../api/financeService';
 
 const IncomeHeads = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,16 +14,28 @@ const IncomeHeads = () => {
   const [viewMode, setViewMode] = useState('list');
   const [editingRecord, setEditingRecord] = useState(null);
   
-  const initialData = [
-    { id: 1, name: 'Book Sale', description: '—' },
-    { id: 2, name: 'Donation', description: '—' },
-    { id: 3, name: 'Miscellaneous', description: '—' },
-    { id: 4, name: 'Miscellaneous1', description: '—' },
-    { id: 5, name: 'Rent', description: '—' },
-    { id: 6, name: 'Uniform Sale', description: '—' },
-  ];
+  const [headsData, setHeadsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [headsData, setHeadsData] = useState(initialData);
+  useEffect(() => {
+    const fetchHeads = async () => {
+      try {
+        setLoading(true);
+        const res = await financeService.getIncomeHeads();
+        const data = (res.data || []).map(hd => ({
+          id: hd._id,
+          name: hd.name,
+          description: hd.description || '—'
+        }));
+        setHeadsData(data);
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHeads();
+  }, []);
 
   // Filtering Logic
   const filteredData = useMemo(() => {
@@ -36,10 +49,15 @@ const IncomeHeads = () => {
     }).slice(0, showCount);
   }, [headsData, searchTerm, showCount]);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this head?")) {
-      setHeadsData(prev => prev.filter(item => item.id !== id));
-      alert("Head deleted successfully!");
+      try {
+        await financeService.deleteIncomeHead(id);
+        setHeadsData(prev => prev.filter(item => item.id !== id));
+        alert("Head deleted successfully!");
+      } catch (err) {
+        alert("Error deleting record");
+      }
     }
   };
 

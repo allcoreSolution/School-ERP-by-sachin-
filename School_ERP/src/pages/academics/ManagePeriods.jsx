@@ -33,38 +33,7 @@ const ManagePeriods = () => {
   const [editingSet, setEditingSet] = useState(null);
 
   // State for Period Sets
-  const [periodSets, setPeriodSets] = useState([
-    {
-      id: 1,
-      name: 'Default',
-      isDefault: true,
-      description: 'Default period set (auto-created from existing periods).',
-      usedBy: ['Nursery', 'KG', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V', 'Class VI', 'Class VII', 'Class VIII', 'Class IX', 'Class XI', 'Class XII', 'Class 11 science', 'KG1', 'c45', 'Gj', 'Gjgh', 'Class X', '123', 'ASHWANI DUBEY'],
-      periods: [
-        { id: 101, name: 'Period 1', type: 'Teaching', start: '10:00 AM', end: '11:00 AM' },
-        { id: 102, name: 'Period 2', type: 'Teaching', start: '11:00 AM', end: '12:00 PM' },
-        { id: 103, name: 'Lunch Break', type: 'Break', start: '12:00 PM', end: '01:00 PM' },
-        { id: 104, name: 'Period 3', type: 'Teaching', start: '01:00 PM', end: '02:00 PM' },
-        { id: 105, name: 'Period 4', type: 'Teaching', start: '02:00 PM', end: '04:00 PM' },
-      ]
-    },
-    {
-      id: 2,
-      name: 'ganesh',
-      isDefault: false,
-      description: 'Ganesh',
-      usedBy: [],
-      periods: []
-    },
-    {
-      id: 3,
-      name: 'GAME',
-      isDefault: false,
-      description: '',
-      usedBy: [],
-      periods: []
-    }
-  ]);
+  const [periodSets, setPeriodSets] = useState([]);
 
   // Handlers
   const handleCopySet = (set) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, BookOpen, List, Tags, Award, LayoutGrid, Calendar, Edit3, Star, MessageSquare, PenTool, CheckSquare, FileText, TrendingUp, History, ClipboardList,
   Plus, Grid as GridIcon, Copy, Printer, Search, ChevronDown, Edit, Trash2
@@ -9,89 +9,65 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
 
-// Mock Data
-const examScheduleData = [
-  { name: '23 Aug', count: 0 },
-  { name: '24 Aug', count: 2 },
-  { name: '25 Aug', count: 1 },
-  { name: '26 Aug', count: 0 },
-  { name: '27 Aug', count: 0 },
-  { name: '28 Aug', count: 0 },
-  { name: '29 Aug', count: 0 },
-  { name: '30 Aug', count: 0 },
-  { name: '31 Aug', count: 0 },
-  { name: '01 Sep', count: 0 },
-  { name: '02 Sep', count: 0 },
-  { name: '03 Sep', count: 0 },
-  { name: '04 Sep', count: 0 },
-  { name: '05 Sep', count: 0 },
-  { name: '06 Sep', count: 0 },
-  { name: '07 Sep', count: 0 },
-];
-
-const examTypeData = [
-  { name: 'Term Exam', value: 400 },
-  { name: 'Unit Test', value: 300 },
-  { name: 'Half Yearly', value: 300 },
-  { name: 'Annual', value: 200 },
-  { name: 'Weekly Test', value: 100 },
-];
-
-const attendanceData = [
-  { name: 'Present', value: 95 },
-  { name: 'Absent', value: 5 },
-];
-
 const COLORS = ['#0ea5e9', '#f59e0b', '#8b5cf6', '#ec4899', '#10b981'];
 const ATTENDANCE_COLORS = ['#10b981', '#ef4444'];
 
-// Additional Mock Data
-const marksEntryProgress = [
-  { name: 'Term 3 Nov', current: 2, total: 5, color: 'bg-yellow-400' },
-  { name: 'New Exam Test', current: 2, total: 2, color: 'bg-green-500' },
-  { name: 'Annual Examination', current: 8, total: 8, color: 'bg-green-500' },
-  { name: 'Half-Yearly Examination 2026-2027', current: 1, total: 13, color: 'bg-slate-200' },
-  { name: 'Half-Yearly Examination 2026-2027', current: 1, total: 92, color: 'bg-slate-200' },
-  { name: 'Half-Yearly Examination 2026-2027', current: 0, total: 12, color: 'bg-slate-200' },
-  { name: 'Term 1', current: 16, total: 24, color: 'bg-blue-500' },
-  { name: 'Term 2', current: 16, total: 16, color: 'bg-green-500' },
-];
-
-const passFailData = [
-  { name: 'Nursery', passed: 450, failed: 2 },
-  { name: 'Class I', passed: 10, failed: 5 },
-];
-
-const recentExams = [
-  { title: 'New Exam Test', date: '2026-2027 - 01 Aug, 2026' },
-  { title: 'Half-Yearly Examination 2026-2027', date: '2026-2027 - 01 Apr, 2026' },
-  { title: 'Half-Yearly Examination 2026-2027', date: '2026-2027 - 01 Apr, 2026' },
-  { title: 'Term 3 Nov', date: '2026-2027 - 13 Nov, 2026' },
-  { title: 'Half-Yearly Examination 2026-2027', date: '2026-2027 - 01 Apr, 2026' },
-];
-
-const operations = [
-  { label: 'Exam Types', count: 12, icon: Tags, color: 'text-orange-500' },
-  { label: 'Grades', count: 7, icon: Award, color: 'text-purple-500' },
-  { label: 'Scheduled Papers', count: 35, icon: Calendar, color: 'text-green-500' },
-  { label: 'Report Card Setups', count: 5, icon: LayoutGrid, color: 'text-teal-500' },
-  { label: 'Uploaded Marksheets', count: 2, icon: FileText, color: 'text-yellow-500' },
-];
-
-const initialExamTypes = [
-  { id: 1, name: '1st Term', abbreviation: '—' },
-  { id: 2, name: 'ANNUAL EXAMINATIO', abbreviation: 'ANN' },
-  { id: 3, name: 'HALF YEARLY', abbreviation: 'HY' },
-  { id: 4, name: 'NOTE BOOK', abbreviation: 'NB' },
-  { id: 5, name: 'Oral', abbreviation: 'Or' },
-  { id: 6, name: 'Oral Exam', abbreviation: 'OR' },
-];
-
 export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [examTypes, setExamTypes] = useState(initialExamTypes);
+  const [examTypes, setExamTypes] = useState([]);
   const [typesViewMode, setTypesViewMode] = useState('list');
   const navigate = useNavigate();
+
+  // Dashboard stats state
+  const [examScheduleData, setExamScheduleData] = useState([]);
+  const [examTypeData, setExamTypeData] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([{ name: 'Present', value: 0 }, { name: 'Absent', value: 0 }]);
+  const [marksEntryProgress, setMarksEntryProgress] = useState([]);
+  const [passFailData, setPassFailData] = useState([]);
+  const [recentExams, setRecentExams] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({ examsThisSession: 0, upcomingExams: 0, marksEntryPercent: 0, publishedMarksheets: 0 });
+  const [operations, setOperations] = useState([
+    { label: 'Exam Types', count: 0, icon: Tags, color: 'text-orange-500' },
+    { label: 'Grades', count: 0, icon: Award, color: 'text-purple-500' },
+    { label: 'Scheduled Papers', count: 0, icon: Calendar, color: 'text-green-500' },
+    { label: 'Report Card Setups', count: 0, icon: LayoutGrid, color: 'text-teal-500' },
+    { label: 'Uploaded Marksheets', count: 0, icon: FileText, color: 'text-yellow-500' },
+  ]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        // TODO: Replace with actual API calls e.g. assessmentService.getDashboard()
+        // const res = await assessmentService.getDashboard();
+        // setExamScheduleData(res.scheduleData || []);
+        // setExamTypeData(res.typeData || []);
+        // setRecentExams(res.recentExams || []);
+        // setMarksEntryProgress(res.marksProgress || []);
+        // setPassFailData(res.passFailData || []);
+        // setDashboardStats(res.stats || {});
+      } catch (err) {
+        console.error('Failed to load exam dashboard:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const fetchExamTypes = async () => {
+      try {
+        // TODO: Replace with actual API call e.g. assessmentService.getExamTypes()
+        // const res = await assessmentService.getExamTypes();
+        // setExamTypes(res.data || []);
+      } catch (err) {
+        console.error('Failed to load exam types:', err);
+      }
+    };
+    if (activeTab === 'Exam Types') fetchExamTypes();
+  }, [activeTab]);
 
   const handleExport = (type) => {
     if (type === 'print') {
@@ -194,8 +170,8 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Exams This Session</div>
-                  <div className="text-3xl font-black text-slate-800 mb-1">10</div>
-                  <div className="text-[11px] text-[#0ea5e9] font-medium">10 total all-time</div>
+                  <div className="text-3xl font-black text-slate-800 mb-1">{dashboardStats.examsThisSession ?? 0}</div>
+                  <div className="text-[11px] text-[#0ea5e9] font-medium">{dashboardStats.examsThisSession ?? 0} total all-time</div>
                 </div>
               </div>
 
@@ -205,7 +181,7 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Upcoming Exams</div>
-                  <div className="text-3xl font-black text-slate-800 mb-1">1</div>
+                  <div className="text-3xl font-black text-slate-800 mb-1">{dashboardStats.upcomingExams ?? 0}</div>
                   <div className="text-[11px] text-[#0ea5e9] font-medium">0 ongoing now</div>
                 </div>
               </div>
@@ -216,8 +192,8 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Marks Entry</div>
-                  <div className="text-3xl font-black text-slate-800 mb-1">26.7%</div>
-                  <div className="text-[11px] text-slate-500 font-medium">46 of 172 subjects scored</div>
+                  <div className="text-3xl font-black text-slate-800 mb-1">{dashboardStats.marksEntryPercent ?? 0}%</div>
+                  <div className="text-[11px] text-slate-500 font-medium">marks entry progress</div>
                 </div>
               </div>
 
@@ -227,8 +203,8 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Published Marksheets</div>
-                  <div className="text-3xl font-black text-slate-800 mb-1">0</div>
-                  <div className="text-[11px] text-[#16a34a] font-medium">1 uploaded &amp; published</div>
+                  <div className="text-3xl font-black text-slate-800 mb-1">{dashboardStats.publishedMarksheets ?? 0}</div>
+                  <div className="text-[11px] text-[#16a34a] font-medium">uploaded &amp; published</div>
                 </div>
               </div>
             </div>
@@ -245,10 +221,10 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">Percentage of class-subject distributions that have marks entered.</p>
                 </div>
-                <div className="text-2xl font-bold text-[#f59e0b]">26.7%</div>
+                <div className="text-2xl font-bold text-[#f59e0b]">{dashboardStats.marksEntryPercent ?? 0}%</div>
               </div>
               <div className="w-full bg-slate-100 rounded-none h-2.5 mt-4">
-                <div className="bg-[#f59e0b] h-2.5 rounded-none" style={{ width: '26.7%' }}></div>
+                <div className="bg-[#f59e0b] h-2.5 rounded-none" style={{ width: `${dashboardStats.marksEntryPercent ?? 0}%` }}></div>
               </div>
             </div>
 
@@ -325,7 +301,9 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                   </h3>
                 </div>
                 <div className="p-4 space-y-4 max-h-[350px] overflow-y-auto">
-                  {marksEntryProgress.map((exam, idx) => {
+                  {marksEntryProgress.length === 0 ? (
+                    <div className="text-center text-slate-400 text-xs py-6">No marks entry data available.</div>
+                  ) : marksEntryProgress.map((exam, idx) => {
                     const percent = exam.total > 0 ? Math.round((exam.current / exam.total) * 100) : 0;
                     return (
                       <div key={idx} className="space-y-1">
@@ -373,7 +351,9 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                   </h3>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2">
-                  {recentExams.map((exam, idx) => (
+                  {recentExams.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-slate-400 text-xs">No recent exams.</div>
+                  ) : recentExams.map((exam, idx) => (
                     <div key={idx} className="flex items-start gap-3 p-3 hover:bg-slate-50 rounded-none cursor-pointer">
                       <FileText className="w-4 h-4 text-[#0ea5e9] shrink-0 mt-0.5" />
                       <div>
@@ -392,15 +372,7 @@ export default function OfflineExaminations({ initialTab = 'Dashboard' }) {
                   </h3>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">
-                  <div className="border border-slate-200 rounded-none p-3 flex items-start justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-slate-800 mb-1">Term 3 Nov</div>
-                      <div className="text-[10px] text-slate-500">2026-2027 · 13 Nov - 27 Nov, 2026</div>
-                    </div>
-                    <div className="bg-[#0ea5e9] text-white text-[10px] font-bold px-2 py-1 rounded-none flex items-center gap-1">
-                      <Calendar className="w-3 h-3" /> Nov 13
-                    </div>
-                  </div>
+                  <div className="flex items-center justify-center h-full text-slate-400 text-xs py-6">No upcoming exams.</div>
                 </div>
               </div>
 
